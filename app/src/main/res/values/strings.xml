@@ -2,4 +2,9 @@
     <string name="app_name">Boxes</string>
 
     <string name="back">Back</string>
+
+    <string name="set_name">Set a name for your project</string>
+
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
 </resources>

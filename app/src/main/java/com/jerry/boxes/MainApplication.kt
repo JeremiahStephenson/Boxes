@@ -2,6 +2,7 @@ package com.jerry.boxes
 
 import android.app.Application
 import com.jerry.boxes.inject.appModule
+import com.jerry.boxes.inject.cacheModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
@@ -14,7 +15,7 @@ class MainApplication : Application() {
         startKoin {
             androidLogger()
             androidContext(this@MainApplication)
-            modules(appModule)
+            modules(appModule, cacheModule)
         }
     }
 }

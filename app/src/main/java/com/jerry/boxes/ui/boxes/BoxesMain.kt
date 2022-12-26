@@ -28,181 +28,192 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.godaddy.android.colorpicker.ClassicColorPicker
 import com.godaddy.android.colorpicker.HsvColor
 import com.jerry.boxes.R
 import com.jerry.boxes.extensions.asSerializableColor
-import com.jerry.boxes.ui.common.LocalAppBarTitle
+import com.jerry.boxes.ui.common.DefaultContainer
 import com.jerry.boxes.ui.common.unboundClickable
 import com.ramcosta.composedestinations.annotation.Destination
-import com.ramcosta.composedestinations.annotation.RootNavGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import org.koin.androidx.compose.koinViewModel
 import kotlin.math.min
 
-@RootNavGraph(start = true)
 @Destination
 @Composable
 fun BoxesMain(
+    projectId: Long,
+    projectColumns: Int,
+    projectRows: Int,
     navController: DestinationsNavigator,
     viewModel: BoxesViewModel = koinViewModel()
 ) {
-    LocalAppBarTitle.current("Boxes")
+    val project = viewModel.projectFlow.collectAsStateWithLifecycle()
 
-    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+    DefaultContainer(
+        title = project.value?.project?.name
+    ) {
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
 
-        val numX = 12
-        val numY = 20
+            val density = LocalDensity.current
 
-        val density = LocalDensity.current
-
-        val spacing = remember {
-            with(density) {
-                5.dp.roundToPx()
+            val spacing = remember {
+                with(density) {
+                    5.dp.roundToPx()
+                }
             }
-        }
 
-        val stroke = remember {
-            Stroke(with(density) {
-                2.dp.roundToPx()
-            }.toFloat())
-        }
-
-        val buttonBarOffset = remember {
-            with(density) {
-                56.dp.roundToPx()
+            val stroke = remember {
+                Stroke(with(density) {
+                    2.dp.roundToPx()
+                }.toFloat())
             }
-        }
 
-        val size = this.constraints
+            val buttonBarOffset = remember {
+                with(density) {
+                    56.dp.roundToPx()
+                }
+            }
 
-        val maxWidth = remember { (size.maxWidth - (spacing * (numX + 1))) / numX }
-        val maxHeight = remember { (size.maxHeight - (spacing * (numY + 1))) / numY }
+            var currentColor by rememberSaveable { mutableStateOf(Color.Green.asSerializableColor) }
 
-        val min = remember { min(maxWidth, maxHeight).toFloat() }
+            val size = this.constraints
+            val min = remember {
+                val maxWidth = (size.maxWidth - (spacing * (projectColumns + 1))) / projectColumns
+                val maxHeight = (size.maxHeight - (spacing * (projectRows + 1))) / projectRows
+                min(maxWidth, maxHeight).toFloat()
+            }
 
-        var currentColor by rememberSaveable { mutableStateOf(Color.Green.asSerializableColor) }
+            val boxes = rememberBoxes(
+                numX = projectColumns,
+                numY = projectRows,
+                spacing = spacing,
+                width = min,
+                height = min,
+                buttonBarOffset = buttonBarOffset
+            )
 
-        val boxes = rememberBoxes(
-            numX = numX,
-            numY = numY,
-            spacing = spacing,
-            width = min,
-            height = min,
-            buttonBarOffset = buttonBarOffset
-        )
+            val selections = remember {
+                mutableStateMapOf<Point, SerializableColor?>()
+            }
 
-        val selections = remember {
-            mutableStateMapOf<Point, SerializableColor?>().apply {
+            LaunchedEffect(project.value) {
                 when (viewModel.boxes) {
-                    null -> for (y in 0 until numY) {
-                        for (x in 0 until numX) {
-                            put(Point(x, y), null)
-                        }
-                    }
-                    else -> putAll(viewModel.boxes!!)
+                    null -> selections.putAll(project.value?.pixels?.associate {
+                        Point(it.x, it.y) to
+                                SerializableColor(it.hue, it.saturation, it.value, it.alpha)
+                    } ?: emptyMap())
+                    else -> selections.putAll(viewModel.boxes!!)
                 }
             }
-        }
 
-        DisposableEffect(Unit) {
-            onDispose {
-                viewModel.boxes = HashMap(selections.toMap())
+            DisposableEffect(Unit) {
+                onDispose {
+                    viewModel.boxes = HashMap(selections.toMap())
+                }
             }
-        }
 
-        var eraserSelected by remember { mutableStateOf(false) }
+            var eraserSelected by remember { mutableStateOf(false) }
 
-        var scale by remember { mutableStateOf(1f) }
-        var offset by remember { mutableStateOf(Offset.Zero) }
-        val state = rememberTransformableState { zoomChange, offsetChange, _ ->
-            scale *= zoomChange
-            offset += offsetChange
-        }
+            var scale by remember { mutableStateOf(1f) }
+            var offset by remember { mutableStateOf(Offset.Zero) }
+            val state = rememberTransformableState { zoomChange, offsetChange, _ ->
+                scale *= zoomChange
+                offset += offsetChange
+            }
 
-        Canvas(
-            modifier = Modifier
-                .fillMaxSize()
-                .graphicsLayer(
-                    scaleX = scale,
-                    scaleY = scale,
-                    translationX = offset.x,
-                    translationY = offset.y
-                )
-                .pointerInput(Unit) {
-                    detectTapGestures { offset ->
-                        boxes.entries.find { box ->
-                            offset.x >= box.value.left && offset.x <= box.value.right &&
-                                    offset.y >= box.value.top && offset.y <= box.value.bottom
-                        }?.key?.let {
-                            val selection = selections[it]
-                            selections[it] = when (selection == currentColor) {
-                                true -> null
-                                else -> currentColor
+            Canvas(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer(
+                        scaleX = scale,
+                        scaleY = scale,
+                        translationX = offset.x,
+                        translationY = offset.y
+                    )
+                    .pointerInput(Unit) {
+                        detectTapGestures { offset ->
+                            boxes.entries.find { box ->
+                                offset.x >= box.value.left && offset.x <= box.value.right &&
+                                        offset.y >= box.value.top && offset.y <= box.value.bottom
+                            }?.key?.let {
+                                val selection = selections[it]
+                                selections.put(
+                                    it, when (selection == currentColor) {
+                                        true -> null
+                                        else -> currentColor
+                                    }
+                                )
                             }
                         }
                     }
-                }
-                .pointerInput(Unit) {
-                    detectDragGestures { change, _ ->
-                        val position = change.position
-                        boxes.entries.find { box ->
-                            position.x >= box.value.left && position.x <= box.value.right &&
-                                    position.y >= box.value.top && position.y <= box.value.bottom
-                        }?.key?.let {
-                            selections[it] = when (eraserSelected) {
-                                true -> null
-                                else -> currentColor
+                    .pointerInput(Unit) {
+                        detectDragGestures { change, _ ->
+                            val position = change.position
+                            boxes.entries.find { box ->
+                                position.x >= box.value.left && position.x <= box.value.right &&
+                                        position.y >= box.value.top && position.y <= box.value.bottom
+                            }?.key?.let {
+                                selections.put(
+                                    it, when (eraserSelected) {
+                                        true -> null
+                                        else -> currentColor
+                                    }
+                                )
                             }
                         }
                     }
-                }
-                .transformable(state = state)
-        ) {
+                    .transformable(state = state)
+            ) {
 
-            boxes.forEach { key ->
+                boxes.forEach { key ->
 
-                val selection = selections[key.key]
+                    val selection = selections[key.key]
 
-                val style = when (selection) {
-                    null -> stroke
-                    else -> Fill
-                }
-
-                drawRect(
-                    style = style,
-                    topLeft = Offset(key.value.left.toFloat(), key.value.top.toFloat()),
-                    size = Size(min, min),
-                    color = when (selection) {
-                        null -> Color.Gray
-                        else -> selection.color
+                    val style = when (selection) {
+                        null -> stroke
+                        else -> Fill
                     }
-                )
 
+                    drawRect(
+                        style = style,
+                        topLeft = Offset(key.value.left.toFloat(), key.value.top.toFloat()),
+                        size = Size(key.value.width().toFloat(), key.value.height().toFloat()),
+                        color = when (selection) {
+                            null -> Color.Gray
+                            else -> selection.color
+                        }
+                    )
+
+                }
             }
+
+            ButtonBar(
+                color = currentColor,
+                eraserSelected = eraserSelected,
+                onClearClick = {
+                    selections
+                        .filter { it.value != null }
+                        .forEach {
+                            selections[it.key] = null
+                        }
+                },
+                onEraserClick = {
+                    eraserSelected = !eraserSelected
+                },
+                onColorChosen = {
+                    currentColor = it
+                },
+                onResetZoom = {
+                    scale = 1F
+                    offset = Offset.Zero
+                },
+                onSave = {
+                    viewModel.save(selections.toMap())
+                }
+            )
         }
-
-        ButtonBar(
-            color = currentColor,
-            eraserSelected = eraserSelected,
-            onClearClick = {
-                selections
-                    .filter { it.value != null }
-                    .forEach {
-                        selections[it.key] = null
-                    }
-            },
-            onEraserClick = {
-                eraserSelected = !eraserSelected
-            },
-            onColorChosen = {
-                currentColor = it
-            },
-            onResetZoom = {
-                scale = 1F
-                offset = Offset.Zero
-            }
-        )
     }
 }
 
@@ -213,6 +224,7 @@ private fun ButtonBar(
     onClearClick: () -> Unit,
     onEraserClick: () -> Unit,
     onResetZoom: () -> Unit,
+    onSave: () -> Unit,
     onColorChosen: (SerializableColor) -> Unit
 ) {
     Row(
@@ -254,6 +266,17 @@ private fun ButtonBar(
         )
 
         Spacer(modifier = Modifier.weight(1F))
+
+        Icon(
+            modifier = Modifier
+                .clip(CircleShape)
+                .clickable {
+                    onSave()
+                }
+                .padding(16.dp),
+            painter = painterResource(R.drawable.ic_baseline_save_24),
+            contentDescription = null
+        )
 
         Icon(
             modifier = Modifier
@@ -323,7 +346,8 @@ private fun ColorPickerDialog(
                 modifier = Modifier
                     .padding(bottom = 16.dp)
                     .fillMaxWidth(),
-                onClick = onDismiss) {
+                onClick = onDismiss
+            ) {
                 Text(text = "Close")
             }
         }
@@ -338,26 +362,24 @@ private fun rememberBoxes(
     width: Float,
     height: Float,
     buttonBarOffset: Int
-): Map<Point, Rect> {
-    return remember {
-        mutableStateMapOf<Point, Rect>().apply {
-            for (y in 0 until numY) {
-                for (x in 0 until numX) {
-                    val topLeft = Offset(
-                        ((x + 1) * spacing) + (width * x),
-                        (((y + 1) * spacing) + (height * y)) + buttonBarOffset
+) = remember {
+    mutableMapOf<Point, Rect>().apply {
+        for (y in 0 until numY) {
+            for (x in 0 until numX) {
+                val topLeft = Offset(
+                    ((x + 1) * spacing) + (width * x),
+                    (((y + 1) * spacing) + (height * y)) + buttonBarOffset
+                )
+                put(
+                    Point(x, y),
+                    Rect(
+                        topLeft.x.toInt(),
+                        topLeft.y.toInt(),
+                        (topLeft.x + width).toInt(),
+                        (topLeft.y + height).toInt()
                     )
-                    put(
-                        Point(x, y),
-                        Rect(
-                            topLeft.x.toInt(),
-                            topLeft.y.toInt(),
-                            (topLeft.x + width).toInt(),
-                            (topLeft.y + height).toInt()
-                        )
-                    )
-                }
+                )
             }
-        }.toMap()
+        }
     }
 }

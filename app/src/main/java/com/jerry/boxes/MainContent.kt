@@ -11,11 +11,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
-import com.jerry.boxes.ui.boxes.NavGraphs
-import com.jerry.boxes.ui.boxes.appCurrentDestinationAsState
+import com.jerry.boxes.ui.NavGraphs
+import com.jerry.boxes.ui.appCurrentDestinationAsState
+import com.jerry.boxes.ui.common.FloatButtonProperties
 import com.jerry.boxes.ui.common.LocalAppBarTitle
+import com.jerry.boxes.ui.common.LocalFloatingActionBarButton
 import com.jerry.boxes.ui.common.unboundClickable
 import com.ramcosta.composedestinations.DestinationsNavHost
 import com.ramcosta.composedestinations.animations.defaults.RootNavGraphDefaultAnimations
@@ -48,9 +51,11 @@ fun MainContent(
         }
     }
 
+    var fab by remember { mutableStateOf<FloatButtonProperties?>(null) }
     var title by remember { mutableStateOf<String?>(null) }
     CompositionLocalProvider(
         LocalAppBarTitle provides { title = it },
+        LocalFloatingActionBarButton provides { fab = it }
     ) {
         Scaffold(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -64,6 +69,22 @@ fun MainContent(
                     onBack = onBackPressed,
                     getTitle = { title.orEmpty() }
                 )
+            },
+            floatingActionButton = {
+                val derived by remember { derivedStateOf { fab != null } }
+                AnimatedVisibility(
+                    visible = derived,
+                    enter = fadeIn() + expandIn { IntSize(width = 1, height = 1) }) {
+                    FloatingActionButton(
+                        modifier = Modifier.systemBarsPadding(),
+                        onClick = fab?.onClick ?: {}
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_baseline_add_24),
+                            contentDescription = null
+                        )
+                    }
+                }
             },
             contentWindowInsets = WindowInsets(0, 0, 0, 0)
         ) { innerPadding ->
