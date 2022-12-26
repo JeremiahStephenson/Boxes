@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import java.io.Serializable
 
 @Entity(
     tableName = Pixel.TABLE_NAME,
@@ -23,7 +24,7 @@ data class Pixel(
     val saturation: Float,
     val value: Float,
     val alpha: Float
-) {
+) : Serializable {
     @PrimaryKey(autoGenerate = true)
     var id: Long = 0L
 

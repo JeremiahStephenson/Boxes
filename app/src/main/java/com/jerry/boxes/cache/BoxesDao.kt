@@ -4,7 +4,6 @@ import androidx.paging.PagingSource
 import androidx.room.*
 import com.jerry.boxes.cache.data.Pixel
 import com.jerry.boxes.cache.data.Project
-import com.jerry.boxes.cache.data.ProjectAndPixel
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -14,8 +13,8 @@ interface BoxesDao {
     fun findAllProjects(): PagingSource<Int, Project>
 
     @Transaction
-    @Query("SELECT * FROM project WHERE id = :id")
-    fun getProjectFlowById(id: Long): Flow<ProjectAndPixel>
+    @Query("SELECT * FROM pixel WHERE projectId = :projectId")
+    fun getPixelsFlowByProjectId(projectId: Long): Flow<List<Pixel>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertProject(project: Project)

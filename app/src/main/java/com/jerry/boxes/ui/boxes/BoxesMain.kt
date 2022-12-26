@@ -32,6 +32,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.godaddy.android.colorpicker.ClassicColorPicker
 import com.godaddy.android.colorpicker.HsvColor
 import com.jerry.boxes.R
+import com.jerry.boxes.cache.data.Project
 import com.jerry.boxes.extensions.asSerializableColor
 import com.jerry.boxes.ui.common.DefaultContainer
 import com.jerry.boxes.ui.common.unboundClickable
@@ -43,16 +44,14 @@ import kotlin.math.min
 @Destination
 @Composable
 fun BoxesMain(
-    projectId: Long,
-    projectColumns: Int,
-    projectRows: Int,
+    project: Project,
     navController: DestinationsNavigator,
     viewModel: BoxesViewModel = koinViewModel()
 ) {
-    val project = viewModel.projectFlow.collectAsStateWithLifecycle()
+    val pixels = viewModel.pixelFlow.collectAsStateWithLifecycle()
 
     DefaultContainer(
-        title = project.value?.project?.name
+        title = project.name
     ) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
 
@@ -80,14 +79,14 @@ fun BoxesMain(
 
             val size = this.constraints
             val min = remember {
-                val maxWidth = (size.maxWidth - (spacing * (projectColumns + 1))) / projectColumns
-                val maxHeight = (size.maxHeight - (spacing * (projectRows + 1))) / projectRows
+                val maxWidth = (size.maxWidth - (spacing * (project.columns + 1))) / project.columns
+                val maxHeight = (size.maxHeight - (spacing * (project.rows + 1))) / project.rows
                 min(maxWidth, maxHeight).toFloat()
             }
 
             val boxes = rememberBoxes(
-                numX = projectColumns,
-                numY = projectRows,
+                numX = project.columns,
+                numY = project.rows,
                 spacing = spacing,
                 width = min,
                 height = min,
@@ -98,9 +97,9 @@ fun BoxesMain(
                 mutableStateMapOf<Point, SerializableColor?>()
             }
 
-            LaunchedEffect(project.value) {
+            LaunchedEffect(pixels.value) {
                 when (viewModel.boxes) {
-                    null -> selections.putAll(project.value?.pixels?.associate {
+                    null -> selections.putAll(pixels.value.associate {
                         Point(it.x, it.y) to
                                 SerializableColor(it.hue, it.saturation, it.value, it.alpha)
                     } ?: emptyMap())

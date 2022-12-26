@@ -60,11 +60,7 @@ fun HomeMain(
                         .clickable {
                             item?.let { project ->
                                 navController.navigate(
-                                    BoxesMainDestination(
-                                        project.id,
-                                        project.columns,
-                                        project.rows
-                                    )
+                                    BoxesMainDestination(project)
                                 )
                             }
                         }
