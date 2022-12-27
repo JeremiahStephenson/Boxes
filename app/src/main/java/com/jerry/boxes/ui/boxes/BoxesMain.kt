@@ -36,6 +36,7 @@ import com.jerry.boxes.ui.common.unboundClickable
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import org.koin.androidx.compose.koinViewModel
+import timber.log.Timber
 import kotlin.math.min
 
 @Destination
@@ -148,7 +149,7 @@ fun BoxesMain(
 
             ButtonBar(
                 color = currentColor,
-                eraserSelected = eraserSelected,
+                eraserSelected = { eraserSelected },
                 onClearClick = {
                     selections
                         .filter { it.value != null }
@@ -199,14 +200,7 @@ private fun BoxCanvas(
                     boxes.entries.find { box ->
                         offset.x >= box.value.left && offset.x <= box.value.right &&
                                 offset.y >= box.value.top && offset.y <= box.value.bottom
-                    }?.key?.let {
-                        onTap(it)
-//                        val selection = selections[it]
-//                        selections[it] = when (selection == currentColor) {
-//                            true -> null
-//                            else -> currentColor
-//                        }
-                    }
+                    }?.key?.let { onTap(it) }
                 }
             }
             .pointerInput(Unit) {
@@ -215,18 +209,11 @@ private fun BoxCanvas(
                     boxes.entries.find { box ->
                         position.x >= box.value.left && position.x <= box.value.right &&
                                 position.y >= box.value.top && position.y <= box.value.bottom
-                    }?.key?.let {
-                        onDrag(it)
-//                        selections[it] = when (eraserSelected) {
-//                            true -> null
-//                            else -> currentColor
-//                        }
-                    }
+                    }?.key?.let { onDrag(it) }
                 }
             }
             .transformable(state = state)
     ) {
-
         boxes.forEach { key ->
 
             val selection = selections[key.key]
@@ -253,7 +240,7 @@ private fun BoxCanvas(
 @Composable
 private fun ButtonBar(
     color: SerializableColor,
-    eraserSelected: Boolean,
+    eraserSelected: () -> Boolean,
     onClearClick: () -> Unit,
     onEraserClick: () -> Unit,
     onResetZoom: () -> Unit,
@@ -329,7 +316,7 @@ private fun ButtonBar(
                     onEraserClick()
                 }
                 .run {
-                    when (eraserSelected) {
+                    when (eraserSelected()) {
                         true -> background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3F))
                         else -> this
                     }
