@@ -11,6 +11,7 @@ import com.jerry.boxes.cache.data.Pixel
 import com.jerry.boxes.ui.destinations.BoxesMainDestination
 import com.jerry.boxes.util.SavedHandle
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -20,13 +21,14 @@ class BoxesViewModel(
     private val boxesDatabase: BoxesDatabase
 ) : ViewModel() {
 
-    private val projectId = BoxesMainDestination.argsFrom(handle).project.id
+    private val projectId = BoxesMainDestination.argsFrom(handle).projectId
 
-    val pixelFlow = boxesDao.getPixelsFlowByProjectId(projectId)
+    val projectFlow = boxesDao.getProjectFlowById(projectId)
+        .filterNotNull()
         .stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(),
-            emptyList()
+            null
         )
 
     var boxes by SavedHandle<HashMap<Point, SerializableColor?>?>(handle, "TESTING", null)
