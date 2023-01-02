@@ -18,7 +18,7 @@ interface BoxesDao {
     fun getProjectFlowById(id: Long): Flow<ProjectAndPixel>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertProject(project: Project)
+    suspend fun insertProject(project: Project): Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAllPixels(pixelList: List<Pixel>)

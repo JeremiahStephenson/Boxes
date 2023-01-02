@@ -7,4 +7,11 @@
 
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
+
+    <string name="name">Name</string>
+    <string name="columns">Columns</string>
+    <string name="rows">Rows</string>
+    <string name="add_new_project">Add new project</string>
+
+    <string name="error_save">There was a problem creating your project. Please try again.</string>
 </resources>

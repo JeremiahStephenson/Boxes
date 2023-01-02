@@ -31,12 +31,12 @@ import com.godaddy.android.colorpicker.ClassicColorPicker
 import com.godaddy.android.colorpicker.HsvColor
 import com.jerry.boxes.R
 import com.jerry.boxes.extensions.asSerializableColor
+import com.jerry.boxes.extensions.safeLet
 import com.jerry.boxes.ui.common.DefaultContainer
 import com.jerry.boxes.ui.common.unboundClickable
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import org.koin.androidx.compose.koinViewModel
-import timber.log.Timber
 import kotlin.math.min
 
 @Destination
@@ -57,7 +57,7 @@ fun BoxesMain(
 
             val spacing = remember {
                 with(density) {
-                    5.dp.roundToPx()
+                    0.dp.roundToPx()
                 }
             }
 
@@ -99,6 +99,7 @@ fun BoxesMain(
                     val maxHeight =
                         (size.maxHeight - (spacing * (project.project.rows + 1))) / project.project.rows
                     val min = min(maxWidth, maxHeight).toFloat()
+
                     boxes.clear()
                     boxes.putAll(
                         generateBoxes(
@@ -128,6 +129,8 @@ fun BoxesMain(
             BoxCanvas(
                 boxes = boxes,
                 selections = selections,
+                rows = project.value?.project?.rows ?: 0,
+                columns = project.value?.project?.columns ?: 0,
                 scale = scale,
                 offset = offset,
                 stroke = stroke,
@@ -179,6 +182,8 @@ fun BoxesMain(
 private fun BoxCanvas(
     boxes: SnapshotStateMap<Point, Rect>,
     selections: SnapshotStateMap<Point, SerializableColor?>,
+    columns: Int,
+    rows: Int,
     scale: Float,
     offset: Offset,
     stroke: Stroke,
@@ -214,25 +219,48 @@ private fun BoxCanvas(
             }
             .transformable(state = state)
     ) {
-        boxes.forEach { key ->
-
-            val selection = selections[key.key]
-
-            val style = when (selection) {
-                null -> stroke
-                else -> Fill
+        selections.forEach { (point, color) ->
+            val position = boxes[point]
+            safeLet(position, color) { pos, selectedColor ->
+                drawRect(
+                    style = Fill,
+                    topLeft = Offset(pos.left.toFloat(), pos.top.toFloat()),
+                    size = Size(pos.width().toFloat(), pos.height().toFloat()),
+                    color = selectedColor.color
+                )
             }
+        }
+    }
 
-            drawRect(
-                style = style,
-                topLeft = Offset(key.value.left.toFloat(), key.value.top.toFloat()),
-                size = Size(key.value.width().toFloat(), key.value.height().toFloat()),
-                color = when (selection) {
-                    null -> Color.Gray
-                    else -> selection.color
-                }
+    Canvas(
+        Modifier
+            .fillMaxSize()
+            .graphicsLayer(
+                scaleX = scale,
+                scaleY = scale,
+                translationX = offset.x,
+                translationY = offset.y
             )
-
+    ) {
+        for (i in 0 until rows) {
+            safeLet(boxes[Point(0, i)], boxes[Point(columns - 1, i)]) { start, end ->
+                drawLine(
+                    strokeWidth = stroke.width / scale,
+                    color = Color.Gray,
+                    start = Offset(start.left.toFloat(), start.top.toFloat()),
+                    end = Offset(end.right.toFloat(), end.top.toFloat())
+                )
+            }
+        }
+        for (i in 0 until columns) {
+            safeLet(boxes[Point(i, 0)], boxes[Point(i, rows - 1)]) { start, end ->
+                drawLine(
+                    strokeWidth = stroke.width / scale,
+                    color = Color.Gray,
+                    start = Offset(start.left.toFloat(), start.top.toFloat()),
+                    end = Offset(end.left.toFloat(), end.bottom.toFloat())
+                )
+            }
         }
     }
 }
