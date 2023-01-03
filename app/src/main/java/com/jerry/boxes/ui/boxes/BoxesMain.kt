@@ -2,14 +2,17 @@ package com.jerry.boxes.ui.boxes
 
 import android.graphics.Point
 import android.graphics.RectF
+import android.view.View
+import android.view.ViewGroup
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshots.SnapshotStateMap
@@ -19,16 +22,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.*
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.core.view.doOnLayout
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.godaddy.android.colorpicker.ClassicColorPicker
@@ -39,9 +43,15 @@ import com.jerry.boxes.extensions.safeLet
 import com.jerry.boxes.ui.common.DefaultContainer
 import com.jerry.boxes.ui.common.LocalAppBarHeight
 import com.jerry.boxes.ui.common.unboundClickable
+import com.jerry.boxes.util.IconMenuButton
+import com.jerry.boxes.util.IconSelectableMenuButton
 import com.jerry.boxes.util.LifecycleEffect
+import com.jerry.boxes.util.storeImage
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import dev.shreyaspatil.capturable.Capturable
+import dev.shreyaspatil.capturable.controller.rememberCaptureController
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import kotlin.math.max
@@ -103,7 +113,10 @@ fun BoxesMain(
                         (size.maxHeight - buttonBarOffset) / project.project.rows.toFloat()
                     val min = min(maxWidth, maxHeight)
 
-                    val yOffSet = max((((size.maxHeight - buttonBarOffset) - (min * project.project.rows)) / 2), 0F)
+                    val yOffSet = max(
+                        (((size.maxHeight - buttonBarOffset) - (min * project.project.rows)) / 2),
+                        0F
+                    )
                     val xOffSet = max(((size.maxWidth - (min * project.project.columns)) / 2), 0F)
 
                     boxes.clear()
@@ -165,6 +178,10 @@ fun BoxesMain(
             val zoomAnimator = remember { Animatable(0F) }
             val panAnimatorX = remember { Animatable(0F) }
             val panAnimatorY = remember { Animatable(0F) }
+
+            val rootView = LocalView.current.rootView
+            val captureController = rememberCaptureController()
+
             ButtonBar(
                 color = currentColor,
                 eraserSelected = { eraserSelected },
@@ -203,6 +220,53 @@ fun BoxesMain(
                 },
                 onSave = {
                     viewModel.save(selections.toMap())
+                },
+                onExport = {
+                    scope.launch(Dispatchers.Main) {
+                        (rootView as? ViewGroup)?.run {
+                            val composeView = ComposeView(context).apply {
+                                val rows = project.value?.project?.rows ?: 0
+                                val columns = project.value?.project?.columns ?: 0
+
+                                val newBoxes = generateBoxes(columns, rows, 100F, 0, 0)
+
+                                layoutParams = ViewGroup.LayoutParams(
+                                    rows * 100,
+                                    columns * 100
+                                )
+                                visibility = View.INVISIBLE
+
+                                setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+                                id = R.id.imageExportId
+
+                                setContent {
+                                    val context = LocalContext.current
+                                    Capturable(
+                                        controller = captureController,
+                                        onCaptured = { bitmap, error ->
+                                            // This is captured bitmap of a content inside Capturable Composable.
+                                            bitmap?.asAndroidBitmap()?.storeImage(context)
+                                            if (error != null) {
+                                                // Error occurred. Handle it!
+                                            }
+                                            rootView.removeView(this)
+                                        }
+                                    ) {
+                                        SelectionsBoxes(
+                                            scale = 1F,
+                                            offset = Offset.Zero,
+                                            boxes = newBoxes,
+                                            selections = selections
+                                        )
+                                    }
+                                }
+                            }
+                            addView(composeView)
+                            composeView.doOnLayout {
+                                captureController.capture()
+                            }
+                        }
+                    }
                 }
             )
         }
@@ -253,28 +317,13 @@ private fun BoxCanvas(
             state = state,
             lockRotationOnZoomPan = true
         )) {
-        Canvas(
-            modifier = Modifier
-                .fillMaxSize()
-                .graphicsLayer(
-                    scaleX = scale,
-                    scaleY = scale,
-                    translationX = offset.x,
-                    translationY = offset.y
-                )
-        ) {
-            selections.forEach { (point, color) ->
-                val position = boxes[point]
-                safeLet(position, color) { pos, selectedColor ->
-                    drawRect(
-                        style = Fill,
-                        topLeft = Offset(pos.left, pos.top),
-                        size = Size(pos.width(), pos.height()),
-                        color = selectedColor.color
-                    )
-                }
-            }
-        }
+
+        SelectionsBoxes(
+            scale = scale,
+            offset = offset,
+            boxes = boxes,
+            selections = selections
+        )
 
         Canvas(
             Modifier
@@ -327,6 +376,37 @@ private fun BoxCanvas(
 }
 
 @Composable
+private fun SelectionsBoxes(
+    scale: Float,
+    offset: Offset,
+    boxes: MutableMap<Point, RectF>,
+    selections: SnapshotStateMap<Point, SerializableColor?>
+) {
+    Canvas(
+        modifier = Modifier
+            .fillMaxSize()
+            .graphicsLayer(
+                scaleX = scale,
+                scaleY = scale,
+                translationX = offset.x,
+                translationY = offset.y
+            )
+    ) {
+        selections.forEach { (point, color) ->
+            val position = boxes[point]
+            safeLet(position, color) { pos, selectedColor ->
+                drawRect(
+                    style = Fill,
+                    topLeft = Offset(pos.left, pos.top),
+                    size = Size(pos.width(), pos.height()),
+                    color = selectedColor.color
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun ButtonBar(
     color: SerializableColor,
     eraserSelected: () -> Boolean,
@@ -334,6 +414,7 @@ private fun ButtonBar(
     onEraserClick: () -> Unit,
     onResetZoom: () -> Unit,
     onSave: () -> Unit,
+    onExport: () -> Unit,
     onColorChosen: (SerializableColor) -> Unit
 ) {
     Row(
@@ -342,15 +423,10 @@ private fun ButtonBar(
             .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6F))
             .fillMaxWidth()
     ) {
-        Icon(
-            modifier = Modifier
-                .clip(CircleShape)
-                .clickable {
-                    onClearClick()
-                }
-                .padding(16.dp),
-            painter = painterResource(R.drawable.ic_auto_renew),
-            contentDescription = null
+
+        IconMenuButton(
+            onClick = onClearClick,
+            drawableRes = R.drawable.ic_auto_renew
         )
 
         Spacer(modifier = Modifier.weight(1F))
@@ -377,44 +453,25 @@ private fun ButtonBar(
 
         Spacer(modifier = Modifier.weight(1F))
 
-        Icon(
-            modifier = Modifier
-                .clip(CircleShape)
-                .clickable {
-                    onSave()
-                }
-                .padding(16.dp),
-            painter = painterResource(R.drawable.ic_baseline_save_24),
-            contentDescription = null
+        IconMenuButton(
+            onClick = onSave,
+            drawableRes = R.drawable.ic_baseline_save_24
         )
 
-        Icon(
-            modifier = Modifier
-                .clip(CircleShape)
-                .clickable {
-                    onResetZoom()
-                }
-                .padding(16.dp),
-            painter = painterResource(R.drawable.ic_baseline_zoom_out_map_24),
-            contentDescription = null
+        IconMenuButton(
+            onClick = onResetZoom,
+            drawableRes = R.drawable.ic_baseline_zoom_out_map_24
         )
 
-        Icon(
-            modifier = Modifier
-                .clip(CircleShape)
-                .clickable {
-                    onEraserClick()
-                }
-                .run {
-                    when (eraserSelected()) {
-                        true -> background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3F))
-                        else -> this
-                    }
-                }
-                .padding(16.dp),
-            painter = painterResource(R.drawable.ic_eraser),
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurface
+        IconMenuButton(
+            onClick = onExport,
+            drawableRes = R.drawable.ic_baseline_image_24
+        )
+
+        IconSelectableMenuButton(
+            onClick = onEraserClick,
+            isSelected = eraserSelected,
+            drawableRes = R.drawable.ic_eraser
         )
     }
 }
@@ -492,6 +549,7 @@ private fun generateBoxes(
 private fun Offset.convert(scale: Float, offset: Offset, size: Constraints): Offset {
     val centerX = size.maxWidth / 2F
     val centerY = size.maxHeight / 2F
-    val point = Offset(((x - centerX) * (1F / scale)) + centerX, ((y - centerY) * (1F / scale)) + centerY)
+    val point =
+        Offset(((x - centerX) * (1F / scale)) + centerX, ((y - centerY) * (1F / scale)) + centerY)
     return point - (offset / scale)
 }

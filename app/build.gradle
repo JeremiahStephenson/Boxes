@@ -116,6 +116,7 @@ dependencies {
 
     implementation "com.chargemap.compose:numberpicker:1.0.3"
     implementation 'com.godaddy.android.colorpicker:compose-color-picker-android:0.5.1'
+    implementation "dev.shreyaspatil:capturable:1.0.3"
 
     coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$desugarJdkLib"
 
