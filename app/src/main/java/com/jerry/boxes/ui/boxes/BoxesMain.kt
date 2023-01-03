@@ -222,6 +222,7 @@ fun BoxesMain(
                     viewModel.save(selections.toMap())
                 },
                 onExport = {
+                    // todo export this logic out and make it better
                     scope.launch(Dispatchers.Main) {
                         (rootView as? ViewGroup)?.run {
                             val composeView = ComposeView(context).apply {

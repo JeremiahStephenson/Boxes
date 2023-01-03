@@ -39,7 +39,7 @@ private fun getOutputMediaFile(context: Context): File? {
     // To be safe, you should check that the SDCard is mounted
     // using Environment.getExternalStorageState() before doing this.
     val mediaStorageDir = Environment.getExternalStoragePublicDirectory(
-        Environment.DIRECTORY_PICTURES
+        Environment.DIRECTORY_PICTURES + "/Pixels"
     )
 
     // This location works best if you want the created images to be shared
