@@ -29,6 +29,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.godaddy.android.colorpicker.ClassicColorPicker
 import com.godaddy.android.colorpicker.HsvColor
@@ -36,8 +37,9 @@ import com.jerry.boxes.R
 import com.jerry.boxes.extensions.asSerializableColor
 import com.jerry.boxes.extensions.safeLet
 import com.jerry.boxes.ui.common.DefaultContainer
-import com.jerry.boxes.ui.common.LocalContentOffset
+import com.jerry.boxes.ui.common.LocalAppBarHeight
 import com.jerry.boxes.ui.common.unboundClickable
+import com.jerry.boxes.util.LifecycleEffect
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.launch
@@ -92,13 +94,17 @@ fun BoxesMain(
                 }
             }
 
+            val bottom = 0 //WindowInsets.navigationBars.getBottom(LocalDensity.current)
             LaunchedEffect(project.value?.project?.rows, project.value?.project?.columns) {
                 project.value?.let { project ->
                     val maxWidth =
-                        (size.maxWidth - (project.project.columns + 1)) / project.project.columns.toFloat()
+                        size.maxWidth / project.project.columns.toFloat()
                     val maxHeight =
-                        (size.maxHeight - (project.project.rows + 1)) / project.project.rows.toFloat()
+                        (size.maxHeight - buttonBarOffset) / project.project.rows.toFloat()
                     val min = min(maxWidth, maxHeight)
+
+                    val yOffSet = max((((size.maxHeight - buttonBarOffset) - (min * project.project.rows)) / 2), 0F)
+                    val xOffSet = max(((size.maxWidth - (min * project.project.columns)) / 2), 0F)
 
                     boxes.clear()
                     boxes.putAll(
@@ -106,10 +112,16 @@ fun BoxesMain(
                             project.project.columns,
                             project.project.rows,
                             min,
-                            min,
-                            buttonBarOffset
+                            xOffSet.toInt(),
+                            buttonBarOffset + yOffSet.toInt()
                         )
                     )
+                }
+            }
+
+            LifecycleEffect { _, event ->
+                if (event == Lifecycle.Event.ON_PAUSE) {
+                    viewModel.save(selections.toMap())
                 }
             }
 
@@ -211,7 +223,7 @@ private fun BoxCanvas(
     onTap: (Point) -> Unit,
     onDrag: (Point) -> Unit,
 ) {
-    val contentOffset = LocalContentOffset.current
+    val contentOffset = LocalAppBarHeight.current
     val appBarExpanded by remember { derivedStateOf { contentOffset.value == 0F } }
     val scaleState by rememberUpdatedState(scale)
     val offsetState by rememberUpdatedState(offset)
@@ -257,7 +269,7 @@ private fun BoxCanvas(
                     drawRect(
                         style = Fill,
                         topLeft = Offset(pos.left, pos.top),
-                        size = Size(pos.width() + 1F, pos.height() + 1F),
+                        size = Size(pos.width(), pos.height()),
                         color = selectedColor.color
                     )
                 }
@@ -423,9 +435,8 @@ private fun ColorPickerDialog(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             ClassicColorPicker(
-                showAlphaBar = false,
                 color = color.color,
-                modifier = Modifier.fillMaxHeight(0.8F),
+                modifier = Modifier.fillMaxHeight(0.5F),
                 onColorChanged = { color: HsvColor ->
                     currentColor = color.asSerializableColor
                 }
@@ -455,23 +466,23 @@ private fun ColorPickerDialog(
 private fun generateBoxes(
     numX: Int,
     numY: Int,
-    width: Float,
-    height: Float,
-    buttonBarOffset: Int
+    size: Float,
+    xOffSet: Int,
+    yOffSet: Int
 ) = mutableMapOf<Point, RectF>().apply {
     for (y in 0 until numY) {
         for (x in 0 until numX) {
             val topLeft = Offset(
-                (x + 1) + (width * x),
-                ((y + 1) + (height * y)) + buttonBarOffset
+                (size * x) + xOffSet,
+                (size * y) + yOffSet
             )
             put(
                 Point(x, y),
                 RectF(
                     topLeft.x,
                     topLeft.y,
-                    (topLeft.x + width),
-                    (topLeft.y + height)
+                    (topLeft.x + size),
+                    (topLeft.y + size)
                 )
             )
         }

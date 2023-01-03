@@ -50,10 +50,12 @@ fun MainContent(
 
     var fab by remember { mutableStateOf<FloatButtonProperties?>(null) }
     var title by remember { mutableStateOf<String?>(null) }
+    var actions by remember { mutableStateOf<(@Composable RowScope.() -> Unit)?>(null) }
     CompositionLocalProvider(
         LocalAppBarTitle provides { title = it },
         LocalFloatingActionBarButton provides { fab = it },
-        LocalContentOffset provides rememberUpdatedState(scrollBehavior.state.heightOffset)
+        LocalAppBarActions provides { actions = it },
+        LocalAppBarHeight provides rememberUpdatedState(scrollBehavior.state.heightOffset)
     ) {
         Scaffold(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -65,7 +67,8 @@ fun MainContent(
                     scrollBehavior = scrollBehavior,
                     showBackArrow = { showBackArrow },
                     onBack = onBackPressed,
-                    getTitle = { title.orEmpty() }
+                    getTitle = { title.orEmpty() },
+                    actions = { actions ?: {} }
                 )
             },
             floatingActionButton = {
@@ -105,12 +108,18 @@ fun Toolbar(
     scrollBehavior: TopAppBarScrollBehavior,
     showBackArrow: () -> Boolean,
     onBack: () -> Unit,
-    getTitle: () -> String
+    getTitle: () -> String,
+    actions: () -> @Composable RowScope.() -> Unit = { {} }
 ) {
     val topAppBarElementColor = MaterialTheme.colorScheme.onPrimary
     val appBarContainerColor = MaterialTheme.colorScheme.primary
     TopAppBar(
-        windowInsets = WindowInsets.statusBars,
+        actions = actions(),
+        windowInsets = WindowInsets.statusBars.add(
+            WindowInsets.navigationBars.only(
+                WindowInsetsSides.Top + WindowInsetsSides.Horizontal
+            )
+        ),
         navigationIcon = {
             AnimatedVisibility(
                 visible = showBackArrow(),

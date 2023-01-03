@@ -8,7 +8,7 @@ import java.io.Serializable
 
 @Entity(
     tableName = Pixel.TABLE_NAME,
-    indices = [(Index(value = ["id", "projectId"], unique = true))],
+    indices = [(Index(value = ["id", "projectId", "x", "y"], unique = true))],
     foreignKeys = [(ForeignKey(
         entity = Project::class,
         parentColumns = ["id"],
@@ -23,7 +23,8 @@ data class Pixel(
     val hue: Float,
     val saturation: Float,
     val value: Float,
-    val alpha: Float
+    val alpha: Float,
+    val timeStamp: Long
 ) : Serializable {
     @PrimaryKey(autoGenerate = true)
     var id: Long = 0L

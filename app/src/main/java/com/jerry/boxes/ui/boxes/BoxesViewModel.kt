@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.Instant
 
 class BoxesViewModel(
     handle: SavedStateHandle,
@@ -36,7 +37,7 @@ class BoxesViewModel(
     fun save(map: Map<Point, SerializableColor?>) {
         viewModelScope.launch {
             boxesDatabase.withTransaction {
-                boxesDao.deletePixelsFromProject(projectId)
+                val now = Instant.now().toEpochMilli()
                 val list = map.filter { it.value != null }.map { Pixel(
                     projectId,
                     it.key.x,
@@ -44,9 +45,11 @@ class BoxesViewModel(
                     it.value!!.hue,
                     it.value!!.saturation,
                     it.value!!.value,
-                    it.value!!.alpha
+                    it.value!!.alpha,
+                    now
                 ) }
                 boxesDao.insertAllPixels(list)
+                boxesDao.deletePixelsFromProject(projectId, now)
             }
         }
     }

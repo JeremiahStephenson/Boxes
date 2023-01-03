@@ -23,7 +23,9 @@ interface BoxesDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAllPixels(pixelList: List<Pixel>)
 
-    @Query("DELETE FROM pixel WHERE projectId = :id")
-    suspend fun deletePixelsFromProject(id: Long)
+    @Query("DELETE FROM pixel WHERE projectId = :id AND timeStamp < :timeStamp")
+    suspend fun deletePixelsFromProject(id: Long, timeStamp: Long)
 
+    @Query("DELETE FROM project WHERE id = :id")
+    suspend fun deleteProject(id: Long)
 }
