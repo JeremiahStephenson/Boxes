@@ -36,6 +36,7 @@ import com.jerry.boxes.R
 import com.jerry.boxes.extensions.asSerializableColor
 import com.jerry.boxes.extensions.safeLet
 import com.jerry.boxes.ui.common.DefaultContainer
+import com.jerry.boxes.ui.common.LocalContentOffset
 import com.jerry.boxes.ui.common.unboundClickable
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
@@ -218,16 +219,18 @@ private fun BoxCanvas(
     stroke: Stroke,
     state: TransformableState,
     onTap: (Offset) -> Unit,
-    onDrag: (Offset) -> Unit
+    onDrag: (Offset) -> Unit,
 ) {
+    val contentOffset = LocalContentOffset.current
+    val appBarExpanded by remember { derivedStateOf { contentOffset.value == 0F } }
     Box(modifier = Modifier
         .fillMaxSize()
-        .pointerInput(Unit) {
+        .pointerInput(appBarExpanded) {
             detectTapGestures { point ->
                 onTap(point)
             }
         }
-        .pointerInput(Unit) {
+        .pointerInput(appBarExpanded) {
             detectDragGestures { change, _ ->
                 if (state.isTransformInProgress) return@detectDragGestures
                 onDrag(change.position)

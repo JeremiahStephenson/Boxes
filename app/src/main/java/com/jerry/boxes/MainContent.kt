@@ -16,10 +16,7 @@ import androidx.compose.ui.unit.dp
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.jerry.boxes.ui.NavGraphs
 import com.jerry.boxes.ui.appCurrentDestinationAsState
-import com.jerry.boxes.ui.common.FloatButtonProperties
-import com.jerry.boxes.ui.common.LocalAppBarTitle
-import com.jerry.boxes.ui.common.LocalFloatingActionBarButton
-import com.jerry.boxes.ui.common.unboundClickable
+import com.jerry.boxes.ui.common.*
 import com.ramcosta.composedestinations.DestinationsNavHost
 import com.ramcosta.composedestinations.animations.defaults.RootNavGraphDefaultAnimations
 import com.ramcosta.composedestinations.animations.rememberAnimatedNavHostEngine
@@ -55,7 +52,8 @@ fun MainContent(
     var title by remember { mutableStateOf<String?>(null) }
     CompositionLocalProvider(
         LocalAppBarTitle provides { title = it },
-        LocalFloatingActionBarButton provides { fab = it }
+        LocalFloatingActionBarButton provides { fab = it },
+        LocalContentOffset provides rememberUpdatedState(scrollBehavior.state.heightOffset)
     ) {
         Scaffold(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
