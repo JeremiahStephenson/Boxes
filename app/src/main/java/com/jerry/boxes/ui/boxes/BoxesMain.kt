@@ -1,7 +1,7 @@
 package com.jerry.boxes.ui.boxes
 
 import android.graphics.Point
-import android.graphics.Rect
+import android.graphics.RectF
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -76,7 +76,7 @@ fun BoxesMain(
             var currentColor by rememberSaveable { mutableStateOf(Color.Green.asSerializableColor) }
             var eraserSelected by remember { mutableStateOf(false) }
 
-            val boxes = remember { mutableStateMapOf<Point, Rect>() }
+            val boxes = remember { mutableStateMapOf<Point, RectF>() }
             val selections = remember { mutableStateMapOf<Point, SerializableColor?>() }
 
             val size = this.constraints
@@ -95,10 +95,10 @@ fun BoxesMain(
             LaunchedEffect(project.value?.project?.rows, project.value?.project?.columns) {
                 project.value?.let { project ->
                     val maxWidth =
-                        (size.maxWidth - (project.project.columns + 1)) / project.project.columns
+                        (size.maxWidth - (project.project.columns + 1)) / project.project.columns.toFloat()
                     val maxHeight =
-                        (size.maxHeight - (project.project.rows + 1)) / project.project.rows
-                    val min = min(maxWidth, maxHeight).toFloat()
+                        (size.maxHeight - (project.project.rows + 1)) / project.project.rows.toFloat()
+                    val min = min(maxWidth, maxHeight)
 
                     boxes.clear()
                     boxes.putAll(
@@ -132,31 +132,20 @@ fun BoxesMain(
                 columns = project.value?.project?.columns ?: 0,
                 scale = scale,
                 offset = offset,
+                size = size,
                 stroke = stroke,
                 state = state,
-                onTap = { p ->
-                    val point = p.convert(scale, offset, size)
-                    boxes.entries.find { box ->
-                        point.x >= box.value.left && point.x <= box.value.right &&
-                                point.y >= box.value.top && point.y <= box.value.bottom
-                    }?.key?.let {
-                        val selection = selections[it]
-                        selections[it] = when (selection == currentColor) {
-                            true -> null
-                            else -> currentColor
-                        }
+                onTap = {
+                    val selection = selections[it]
+                    selections[it] = when (selection == currentColor) {
+                        true -> null
+                        else -> currentColor
                     }
                 },
-                onDrag = { p ->
-                    val position = p.convert(scale, offset, size)
-                    boxes.entries.find { box ->
-                        position.x >= box.value.left && position.x <= box.value.right &&
-                                position.y >= box.value.top && position.y <= box.value.bottom
-                    }?.key?.let {
-                        selections[it] = when (eraserSelected) {
-                            true -> null
-                            else -> currentColor
-                        }
+                onDrag = {
+                    selections[it] = when (eraserSelected) {
+                        true -> null
+                        else -> currentColor
                     }
                 }
             )
@@ -210,30 +199,42 @@ fun BoxesMain(
 
 @Composable
 private fun BoxCanvas(
-    boxes: SnapshotStateMap<Point, Rect>,
+    boxes: SnapshotStateMap<Point, RectF>,
     selections: SnapshotStateMap<Point, SerializableColor?>,
     columns: Int,
     rows: Int,
     scale: Float,
+    size: Constraints,
     offset: Offset,
     stroke: Stroke,
     state: TransformableState,
-    onTap: (Offset) -> Unit,
-    onDrag: (Offset) -> Unit,
+    onTap: (Point) -> Unit,
+    onDrag: (Point) -> Unit,
 ) {
     val contentOffset = LocalContentOffset.current
     val appBarExpanded by remember { derivedStateOf { contentOffset.value == 0F } }
+    val scaleState by rememberUpdatedState(scale)
+    val offsetState by rememberUpdatedState(offset)
+    val sizeState by rememberUpdatedState(size)
     Box(modifier = Modifier
         .fillMaxSize()
         .pointerInput(appBarExpanded) {
-            detectTapGestures { point ->
-                onTap(point)
+            detectTapGestures { p ->
+                val point = p.convert(scaleState, offsetState, sizeState)
+                boxes.entries.find { box ->
+                    point.x >= box.value.left && point.x <= box.value.right &&
+                            point.y >= box.value.top && point.y <= box.value.bottom
+                }?.key?.let { onTap(it) }
             }
         }
         .pointerInput(appBarExpanded) {
             detectDragGestures { change, _ ->
                 if (state.isTransformInProgress) return@detectDragGestures
-                onDrag(change.position)
+                val position = change.position.convert(scaleState, offsetState, sizeState)
+                boxes.entries.find { box ->
+                    position.x >= box.value.left && position.x <= box.value.right &&
+                            position.y >= box.value.top && position.y <= box.value.bottom
+                }?.key?.let { onDrag(it) }
             }
         }
         .transformable(
@@ -255,8 +256,8 @@ private fun BoxCanvas(
                 safeLet(position, color) { pos, selectedColor ->
                     drawRect(
                         style = Fill,
-                        topLeft = Offset(pos.left.toFloat(), pos.top.toFloat()),
-                        size = Size(pos.width().toFloat(), pos.height().toFloat()),
+                        topLeft = Offset(pos.left, pos.top),
+                        size = Size(pos.width() + 1F, pos.height() + 1F),
                         color = selectedColor.color
                     )
                 }
@@ -278,15 +279,15 @@ private fun BoxCanvas(
                     drawLine(
                         strokeWidth = stroke.width / scale,
                         color = Color.Gray,
-                        start = Offset(start.left.toFloat(), start.top.toFloat()),
-                        end = Offset(end.right.toFloat(), end.top.toFloat())
+                        start = Offset(start.left, start.top),
+                        end = Offset(end.right, end.top)
                     )
                     if (i == rows - 1) {
                         drawLine(
                             strokeWidth = stroke.width / scale,
                             color = Color.Gray,
-                            start = Offset(start.left.toFloat(), start.bottom.toFloat()),
-                            end = Offset(end.right.toFloat(), end.bottom.toFloat())
+                            start = Offset(start.left, start.bottom),
+                            end = Offset(end.right, end.bottom)
                         )
                     }
                 }
@@ -296,15 +297,15 @@ private fun BoxCanvas(
                     drawLine(
                         strokeWidth = stroke.width / scale,
                         color = Color.Gray,
-                        start = Offset(start.left.toFloat(), start.top.toFloat()),
-                        end = Offset(end.left.toFloat(), end.bottom.toFloat())
+                        start = Offset(start.left, start.top),
+                        end = Offset(end.left, end.bottom)
                     )
                     if (i == columns - 1) {
                         drawLine(
                             strokeWidth = stroke.width / scale,
                             color = Color.Gray,
-                            start = Offset(start.right.toFloat(), start.top.toFloat()),
-                            end = Offset(end.right.toFloat(), end.bottom.toFloat())
+                            start = Offset(start.right, start.top),
+                            end = Offset(end.right, end.bottom)
                         )
                     }
                 }
@@ -457,7 +458,7 @@ private fun generateBoxes(
     width: Float,
     height: Float,
     buttonBarOffset: Int
-) = mutableMapOf<Point, Rect>().apply {
+) = mutableMapOf<Point, RectF>().apply {
     for (y in 0 until numY) {
         for (x in 0 until numX) {
             val topLeft = Offset(
@@ -466,11 +467,11 @@ private fun generateBoxes(
             )
             put(
                 Point(x, y),
-                Rect(
-                    topLeft.x.toInt(),
-                    topLeft.y.toInt(),
-                    (topLeft.x + width).toInt(),
-                    (topLeft.y + height).toInt()
+                RectF(
+                    topLeft.x,
+                    topLeft.y,
+                    (topLeft.x + width),
+                    (topLeft.y + height)
                 )
             )
         }
