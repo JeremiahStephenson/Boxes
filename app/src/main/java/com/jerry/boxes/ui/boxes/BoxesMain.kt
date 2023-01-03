@@ -2,6 +2,7 @@ package com.jerry.boxes.ui.boxes
 
 import android.graphics.Point
 import android.graphics.Rect
+import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -24,6 +25,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -36,7 +39,9 @@ import com.jerry.boxes.ui.common.DefaultContainer
 import com.jerry.boxes.ui.common.unboundClickable
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
+import kotlin.math.max
 import kotlin.math.min
 
 @Destination
@@ -47,6 +52,7 @@ fun BoxesMain(
     viewModel: BoxesViewModel = koinViewModel()
 ) {
     val project = viewModel.projectFlow.collectAsStateWithLifecycle()
+    val scope = rememberCoroutineScope()
 
     DefaultContainer(
         title = project.value?.project?.name.orEmpty()
@@ -54,13 +60,6 @@ fun BoxesMain(
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
 
             val density = LocalDensity.current
-
-            val spacing = remember {
-                with(density) {
-                    0.dp.roundToPx()
-                }
-            }
-
             val stroke = remember {
                 Stroke(with(density) {
                     2.dp.roundToPx()
@@ -95,9 +94,9 @@ fun BoxesMain(
             LaunchedEffect(project.value?.project?.rows, project.value?.project?.columns) {
                 project.value?.let { project ->
                     val maxWidth =
-                        (size.maxWidth - (spacing * (project.project.columns + 1))) / project.project.columns
+                        (size.maxWidth - (project.project.columns + 1)) / project.project.columns
                     val maxHeight =
-                        (size.maxHeight - (spacing * (project.project.rows + 1))) / project.project.rows
+                        (size.maxHeight - (project.project.rows + 1)) / project.project.rows
                     val min = min(maxWidth, maxHeight).toFloat()
 
                     boxes.clear()
@@ -105,7 +104,6 @@ fun BoxesMain(
                         generateBoxes(
                             project.project.columns,
                             project.project.rows,
-                            spacing,
                             min,
                             min,
                             buttonBarOffset
@@ -123,7 +121,7 @@ fun BoxesMain(
             var scale by remember { mutableStateOf(1f) }
             var offset by remember { mutableStateOf(Offset.Zero) }
             val state = rememberTransformableState { zoomChange, offsetChange, _ ->
-                scale *= zoomChange
+                scale = max(1F, scale * zoomChange)
                 offset += offsetChange
             }
             BoxCanvas(
@@ -135,21 +133,36 @@ fun BoxesMain(
                 offset = offset,
                 stroke = stroke,
                 state = state,
-                onTap = {
-                    val selection = selections[it]
-                    selections[it] = when (selection == currentColor) {
-                        true -> null
-                        else -> currentColor
+                onTap = { p ->
+                    val point = p.convert(scale, offset, size)
+                    boxes.entries.find { box ->
+                        point.x >= box.value.left && point.x <= box.value.right &&
+                                point.y >= box.value.top && point.y <= box.value.bottom
+                    }?.key?.let {
+                        val selection = selections[it]
+                        selections[it] = when (selection == currentColor) {
+                            true -> null
+                            else -> currentColor
+                        }
                     }
                 },
-                onDrag = {
-                    selections[it] = when (eraserSelected) {
-                        true -> null
-                        else -> currentColor
+                onDrag = { p ->
+                    val position = p.convert(scale, offset, size)
+                    boxes.entries.find { box ->
+                        position.x >= box.value.left && position.x <= box.value.right &&
+                                position.y >= box.value.top && position.y <= box.value.bottom
+                    }?.key?.let {
+                        selections[it] = when (eraserSelected) {
+                            true -> null
+                            else -> currentColor
+                        }
                     }
                 }
             )
 
+            val zoomAnimator = remember { Animatable(0F) }
+            val panAnimatorX = remember { Animatable(0F) }
+            val panAnimatorY = remember { Animatable(0F) }
             ButtonBar(
                 color = currentColor,
                 eraserSelected = { eraserSelected },
@@ -167,8 +180,24 @@ fun BoxesMain(
                     currentColor = it
                 },
                 onResetZoom = {
-                    scale = 1F
-                    offset = Offset.Zero
+                    scope.launch {
+                        zoomAnimator.snapTo(scale)
+                        zoomAnimator.animateTo(1F) {
+                            scale = this.value
+                        }
+                    }
+                    scope.launch {
+                        panAnimatorX.snapTo(offset.x)
+                        panAnimatorX.animateTo(0F) {
+                            offset = offset.copy(x = this.value)
+                        }
+                    }
+                    scope.launch {
+                        panAnimatorY.snapTo(offset.y)
+                        panAnimatorY.animateTo(0F) {
+                            offset = offset.copy(y = this.value)
+                        }
+                    }
                 },
                 onSave = {
                     viewModel.save(selections.toMap())
@@ -188,78 +217,94 @@ private fun BoxCanvas(
     offset: Offset,
     stroke: Stroke,
     state: TransformableState,
-    onTap: (Point) -> Unit,
-    onDrag: (Point) -> Unit
+    onTap: (Offset) -> Unit,
+    onDrag: (Offset) -> Unit
 ) {
-    Canvas(
-        modifier = Modifier
-            .fillMaxSize()
-            .graphicsLayer(
-                scaleX = scale,
-                scaleY = scale,
-                translationX = offset.x,
-                translationY = offset.y
-            )
-            .pointerInput(Unit) {
-                detectTapGestures { offset ->
-                    boxes.entries.find { box ->
-                        offset.x >= box.value.left && offset.x <= box.value.right &&
-                                offset.y >= box.value.top && offset.y <= box.value.bottom
-                    }?.key?.let { onTap(it) }
-                }
-            }
-            .pointerInput(Unit) {
-                detectDragGestures { change, _ ->
-                    val position = change.position
-                    boxes.entries.find { box ->
-                        position.x >= box.value.left && position.x <= box.value.right &&
-                                position.y >= box.value.top && position.y <= box.value.bottom
-                    }?.key?.let { onDrag(it) }
-                }
-            }
-            .transformable(state = state)
-    ) {
-        selections.forEach { (point, color) ->
-            val position = boxes[point]
-            safeLet(position, color) { pos, selectedColor ->
-                drawRect(
-                    style = Fill,
-                    topLeft = Offset(pos.left.toFloat(), pos.top.toFloat()),
-                    size = Size(pos.width().toFloat(), pos.height().toFloat()),
-                    color = selectedColor.color
-                )
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .pointerInput(Unit) {
+            detectTapGestures { point ->
+                onTap(point)
             }
         }
-    }
+        .pointerInput(Unit) {
+            detectDragGestures { change, _ ->
+                if (state.isTransformInProgress) return@detectDragGestures
+                onDrag(change.position)
+            }
+        }
+        .transformable(
+            state = state,
+            lockRotationOnZoomPan = true
+        )) {
+        Canvas(
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer(
+                    scaleX = scale,
+                    scaleY = scale,
+                    translationX = offset.x,
+                    translationY = offset.y
+                )
+        ) {
+            selections.forEach { (point, color) ->
+                val position = boxes[point]
+                safeLet(position, color) { pos, selectedColor ->
+                    drawRect(
+                        style = Fill,
+                        topLeft = Offset(pos.left.toFloat(), pos.top.toFloat()),
+                        size = Size(pos.width().toFloat(), pos.height().toFloat()),
+                        color = selectedColor.color
+                    )
+                }
+            }
+        }
 
-    Canvas(
-        Modifier
-            .fillMaxSize()
-            .graphicsLayer(
-                scaleX = scale,
-                scaleY = scale,
-                translationX = offset.x,
-                translationY = offset.y
-            )
-    ) {
-        for (i in 0 until rows) {
-            safeLet(boxes[Point(0, i)], boxes[Point(columns - 1, i)]) { start, end ->
-                drawLine(
-                    strokeWidth = stroke.width / scale,
-                    color = Color.Gray,
-                    start = Offset(start.left.toFloat(), start.top.toFloat()),
-                    end = Offset(end.right.toFloat(), end.top.toFloat())
+        Canvas(
+            Modifier
+                .fillMaxSize()
+                .graphicsLayer(
+                    scaleX = scale,
+                    scaleY = scale,
+                    translationX = offset.x,
+                    translationY = offset.y
                 )
+        ) {
+            for (i in 0 until rows) {
+                safeLet(boxes[Point(0, i)], boxes[Point(columns - 1, i)]) { start, end ->
+                    drawLine(
+                        strokeWidth = stroke.width / scale,
+                        color = Color.Gray,
+                        start = Offset(start.left.toFloat(), start.top.toFloat()),
+                        end = Offset(end.right.toFloat(), end.top.toFloat())
+                    )
+                    if (i == rows - 1) {
+                        drawLine(
+                            strokeWidth = stroke.width / scale,
+                            color = Color.Gray,
+                            start = Offset(start.left.toFloat(), start.bottom.toFloat()),
+                            end = Offset(end.right.toFloat(), end.bottom.toFloat())
+                        )
+                    }
+                }
             }
-        }
-        for (i in 0 until columns) {
-            safeLet(boxes[Point(i, 0)], boxes[Point(i, rows - 1)]) { start, end ->
-                drawLine(
-                    strokeWidth = stroke.width / scale,
-                    color = Color.Gray,
-                    start = Offset(start.left.toFloat(), start.top.toFloat()),
-                    end = Offset(end.left.toFloat(), end.bottom.toFloat())
-                )
+            for (i in 0 until columns) {
+                safeLet(boxes[Point(i, 0)], boxes[Point(i, rows - 1)]) { start, end ->
+                    drawLine(
+                        strokeWidth = stroke.width / scale,
+                        color = Color.Gray,
+                        start = Offset(start.left.toFloat(), start.top.toFloat()),
+                        end = Offset(end.left.toFloat(), end.bottom.toFloat())
+                    )
+                    if (i == columns - 1) {
+                        drawLine(
+                            strokeWidth = stroke.width / scale,
+                            color = Color.Gray,
+                            start = Offset(start.right.toFloat(), start.top.toFloat()),
+                            end = Offset(end.right.toFloat(), end.bottom.toFloat())
+                        )
+                    }
+                }
             }
         }
     }
@@ -278,6 +323,7 @@ private fun ButtonBar(
     Row(
         modifier = Modifier
             .height(56.dp)
+            .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6F))
             .fillMaxWidth()
     ) {
         Icon(
@@ -388,7 +434,7 @@ private fun ColorPickerDialog(
                     onColorChosen(currentColor)
                     onDismiss()
                 }) {
-                Text(text = "Set Color")
+                Text(text = stringResource(R.string.set_color))
             }
             OutlinedButton(
                 modifier = Modifier
@@ -396,7 +442,7 @@ private fun ColorPickerDialog(
                     .fillMaxWidth(),
                 onClick = onDismiss
             ) {
-                Text(text = "Close")
+                Text(text = stringResource(R.string.close))
             }
         }
     }
@@ -405,7 +451,6 @@ private fun ColorPickerDialog(
 private fun generateBoxes(
     numX: Int,
     numY: Int,
-    spacing: Int,
     width: Float,
     height: Float,
     buttonBarOffset: Int
@@ -413,8 +458,8 @@ private fun generateBoxes(
     for (y in 0 until numY) {
         for (x in 0 until numX) {
             val topLeft = Offset(
-                ((x + 1) * spacing) + (width * x),
-                (((y + 1) * spacing) + (height * y)) + buttonBarOffset
+                (x + 1) + (width * x),
+                ((y + 1) + (height * y)) + buttonBarOffset
             )
             put(
                 Point(x, y),
@@ -427,4 +472,11 @@ private fun generateBoxes(
             )
         }
     }
+}
+
+private fun Offset.convert(scale: Float, offset: Offset, size: Constraints): Offset {
+    val centerX = size.maxWidth / 2F
+    val centerY = size.maxHeight / 2F
+    val point = Offset(((x - centerX) * (1F / scale)) + centerX, ((y - centerY) * (1F / scale)) + centerY)
+    return point - (offset / scale)
 }
