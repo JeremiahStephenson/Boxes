@@ -19,6 +19,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -56,6 +57,7 @@ import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
 
 @Destination
 @Composable
@@ -87,6 +89,7 @@ fun BoxesMain(
 
             var currentColor by rememberSaveable { mutableStateOf(Color.Green.asSerializableColor) }
             var eraserSelected by remember { mutableStateOf(false) }
+            var showPngBackground by rememberSaveable { mutableStateOf(false) }
 
             val boxes = remember { mutableStateMapOf<Point, RectF>() }
             val selections = remember { mutableStateMapOf<Point, SerializableColor?>() }
@@ -104,7 +107,6 @@ fun BoxesMain(
                 }
             }
 
-            val bottom = 0 //WindowInsets.navigationBars.getBottom(LocalDensity.current)
             LaunchedEffect(project.value?.project?.rows, project.value?.project?.columns) {
                 project.value?.let { project ->
                     val maxWidth =
@@ -150,6 +152,9 @@ fun BoxesMain(
                 scale = max(1F, scale * zoomChange)
                 offset += offsetChange
             }
+            if (showPngBackground) {
+                PngBackground()
+            }
             BoxCanvas(
                 boxes = boxes,
                 selections = selections,
@@ -160,6 +165,7 @@ fun BoxesMain(
                 size = size,
                 stroke = stroke,
                 state = state,
+                showPngBackgroundSelected = { showPngBackground },
                 onTap = {
                     val selection = selections[it]
                     selections[it] = when (selection == currentColor) {
@@ -221,6 +227,10 @@ fun BoxesMain(
                 onSave = {
                     viewModel.save(selections.toMap())
                 },
+                onShowPngBackground = {
+                    showPngBackground = !showPngBackground
+                },
+                showPngBackgroundSelected = { showPngBackground },
                 onExport = {
                     // todo export this logic out and make it better
                     scope.launch(Dispatchers.Main) {
@@ -285,6 +295,7 @@ private fun BoxCanvas(
     offset: Offset,
     stroke: Stroke,
     state: TransformableState,
+    showPngBackgroundSelected: () -> Boolean,
     onTap: (Point) -> Unit,
     onDrag: (Point) -> Unit,
 ) {
@@ -326,6 +337,10 @@ private fun BoxCanvas(
             selections = selections
         )
 
+        val color = when (showPngBackgroundSelected()) {
+            true -> MaterialTheme.colorScheme.background
+            else -> Color.Gray
+        }
         Canvas(
             Modifier
                 .fillMaxSize()
@@ -340,14 +355,14 @@ private fun BoxCanvas(
                 safeLet(boxes[Point(0, i)], boxes[Point(columns - 1, i)]) { start, end ->
                     drawLine(
                         strokeWidth = stroke.width / scale,
-                        color = Color.Gray,
+                        color = color,
                         start = Offset(start.left, start.top),
                         end = Offset(end.right, end.top)
                     )
                     if (i == rows - 1) {
                         drawLine(
                             strokeWidth = stroke.width / scale,
-                            color = Color.Gray,
+                            color = color,
                             start = Offset(start.left, start.bottom),
                             end = Offset(end.right, end.bottom)
                         )
@@ -358,14 +373,14 @@ private fun BoxCanvas(
                 safeLet(boxes[Point(i, 0)], boxes[Point(i, rows - 1)]) { start, end ->
                     drawLine(
                         strokeWidth = stroke.width / scale,
-                        color = Color.Gray,
+                        color = color,
                         start = Offset(start.left, start.top),
                         end = Offset(end.left, end.bottom)
                     )
                     if (i == columns - 1) {
                         drawLine(
                             strokeWidth = stroke.width / scale,
-                            color = Color.Gray,
+                            color = color,
                             start = Offset(start.right, start.top),
                             end = Offset(end.right, end.bottom)
                         )
@@ -408,14 +423,48 @@ private fun SelectionsBoxes(
 }
 
 @Composable
+private fun PngBackground() {
+    val size = with(LocalDensity.current) { 10.dp.roundToPx() }.toFloat()
+    Canvas(
+        modifier = Modifier
+            .fillMaxSize()
+            .clipToBounds()
+    ) {
+        val columns = (this.size.width / size).roundToInt()
+        val rows = (this.size.height / size).roundToInt()
+        for (r in 0..rows) {
+            for (c in 0..columns) {
+                drawRect(
+                    color = Color.Gray,
+                    topLeft = Offset(c * size, r * size),
+                    size = Size(size, size),
+                    alpha = when (r % 2 == 0) {
+                        true -> when (c % 2 == 0) {
+                            true -> 1F
+                            else -> 0.5F
+                        }
+                        else -> when (c % 2 == 0) {
+                            true -> 0.5F
+                            else -> 1F
+                        }
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun ButtonBar(
     color: SerializableColor,
     eraserSelected: () -> Boolean,
+    showPngBackgroundSelected: () -> Boolean,
     onClearClick: () -> Unit,
     onEraserClick: () -> Unit,
     onResetZoom: () -> Unit,
     onSave: () -> Unit,
     onExport: () -> Unit,
+    onShowPngBackground: () -> Unit,
     onColorChosen: (SerializableColor) -> Unit
 ) {
     Row(
@@ -473,6 +522,12 @@ private fun ButtonBar(
             onClick = onEraserClick,
             isSelected = eraserSelected,
             drawableRes = R.drawable.ic_eraser
+        )
+
+        IconSelectableMenuButton(
+            onClick = onShowPngBackground,
+            isSelected = showPngBackgroundSelected,
+            drawableRes = R.drawable.ic_baseline_grid_on_24
         )
     }
 }
