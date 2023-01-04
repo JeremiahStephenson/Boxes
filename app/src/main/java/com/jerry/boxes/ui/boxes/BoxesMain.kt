@@ -232,8 +232,8 @@ fun BoxesMain(
                                 val newBoxes = generateBoxes(columns, rows, 100F, 0, 0)
 
                                 layoutParams = ViewGroup.LayoutParams(
-                                    rows * 100,
-                                    columns * 100
+                                    columns * 100,
+                                    rows * 100
                                 )
                                 visibility = View.INVISIBLE
 
