@@ -7,10 +7,11 @@ import androidx.compose.runtime.Composable
 fun DefaultContainer(
     title: String? = null,
     fabListener: (() -> Unit)? = null,
+    disableAppbarScroll: Boolean = false,
     appBarActions: (@Composable RowScope.() -> Unit)? = null,
     content: @Composable () -> Unit
 ) {
-    LocalAppBarTitle.current(title.orEmpty())
+    LocalAppBarTitle.current(title.orEmpty() to disableAppbarScroll)
     LocalFloatingActionBarButton.current(
         when (fabListener) {
             null -> null

@@ -1,7 +1,6 @@
 package com.jerry.boxes.util
 
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
@@ -12,7 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.jerry.boxes.R
+import com.jerry.boxes.ui.common.unboundClickable
 
 @Composable
 fun IconMenuButton(
@@ -35,22 +34,21 @@ fun IconMenuButton(
 fun IconSelectableMenuButton(
     onClick: () -> Unit,
     isSelected: () -> Boolean,
-    @DrawableRes drawableRes: Int
+    @DrawableRes drawableResOn: Int,
+    @DrawableRes drawableResOff: Int
 ) {
     Icon(
         modifier = Modifier
-            .clip(CircleShape)
-            .clickable {
+            .unboundClickable {
                 onClick()
             }
-            .run {
-                when (isSelected()) {
-                    true -> background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3F))
-                    else -> this
-                }
-            }
             .padding(16.dp),
-        painter = painterResource(drawableRes),
+        painter = painterResource(
+            when (isSelected()) {
+                true -> drawableResOn
+                else -> drawableResOff
+            }
+        ),
         contentDescription = null,
         tint = MaterialTheme.colorScheme.onSurface
     )

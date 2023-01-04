@@ -12,6 +12,7 @@
     <string name="done">Done</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
+    <string name="clear">Clear</string>
 
     <string name="name">Name</string>
     <string name="columns">Columns</string>
@@ -21,4 +22,7 @@
 
     <string name="set_color">Set Color</string>
     <string name="error_save">There was a problem creating your project. Please try again.</string>
+
+    <string name="tools">Tools</string>
+    <string name="export">Export</string>
 </resources>

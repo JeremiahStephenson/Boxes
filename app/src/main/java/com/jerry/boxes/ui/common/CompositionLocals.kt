@@ -11,6 +11,6 @@ data class FloatButtonProperties(
 )
 
 val LocalFloatingActionBarButton = compositionLocalOf<(FloatButtonProperties?) -> Unit> { {} }
-val LocalAppBarTitle = compositionLocalOf<(String) -> Unit> { {} }
+val LocalAppBarTitle = compositionLocalOf<(Pair<String, Boolean>) -> Unit> { {} }
 val LocalAppBarHeight = compositionLocalOf<State<Float>> { mutableStateOf(0F) }
 val LocalAppBarActions = compositionLocalOf<((@Composable RowScope.() -> Unit)?) -> Unit> { {} }

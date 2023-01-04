@@ -49,7 +49,7 @@ fun MainContent(
     }
 
     var fab by remember { mutableStateOf<FloatButtonProperties?>(null) }
-    var title by remember { mutableStateOf<String?>(null) }
+    var title by remember { mutableStateOf<Pair<String?, Boolean>>(null to false) }
     var actions by remember { mutableStateOf<(@Composable RowScope.() -> Unit)?>(null) }
     CompositionLocalProvider(
         LocalAppBarTitle provides { title = it },
@@ -58,7 +58,13 @@ fun MainContent(
         LocalAppBarHeight provides rememberUpdatedState(scrollBehavior.state.heightOffset)
     ) {
         Scaffold(
-            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+            modifier = Modifier
+                .run {
+                    when (title.second) {
+                        true -> this
+                        else -> nestedScroll(scrollBehavior.nestedScrollConnection)
+                    }
+                },
             topBar = {
                 val showBackArrow by remember(navController.appCurrentDestinationAsState().value) {
                     derivedStateOf { navController.previousBackStackEntry != null }
@@ -67,7 +73,7 @@ fun MainContent(
                     scrollBehavior = scrollBehavior,
                     showBackArrow = { showBackArrow },
                     onBack = onBackPressed,
-                    getTitle = { title.orEmpty() },
+                    getTitle = { title.first.orEmpty() },
                     actions = { actions ?: {} }
                 )
             },

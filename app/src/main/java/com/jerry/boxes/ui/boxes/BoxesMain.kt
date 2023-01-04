@@ -1,63 +1,49 @@
 package com.jerry.boxes.ui.boxes
 
 import android.graphics.Point
-import android.graphics.RectF
-import android.view.View
-import android.view.ViewGroup
-import androidx.compose.animation.core.Animatable
-import androidx.compose.foundation.Canvas
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Text
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asAndroidBitmap
-import androidx.compose.ui.graphics.drawscope.Fill
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.*
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import androidx.core.view.doOnLayout
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.godaddy.android.colorpicker.ClassicColorPicker
 import com.godaddy.android.colorpicker.HsvColor
+import com.google.accompanist.flowlayout.FlowRow
 import com.jerry.boxes.R
+import com.jerry.boxes.cache.data.ProjectAndPixel
 import com.jerry.boxes.extensions.asSerializableColor
-import com.jerry.boxes.extensions.safeLet
+import com.jerry.boxes.ui.boxes.state.ButtonsState
+import com.jerry.boxes.ui.boxes.state.CanvasState
+import com.jerry.boxes.ui.boxes.state.TransformerState
 import com.jerry.boxes.ui.common.DefaultContainer
-import com.jerry.boxes.ui.common.LocalAppBarHeight
 import com.jerry.boxes.ui.common.unboundClickable
 import com.jerry.boxes.util.IconMenuButton
 import com.jerry.boxes.util.IconSelectableMenuButton
 import com.jerry.boxes.util.LifecycleEffect
-import com.jerry.boxes.util.storeImage
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
-import dev.shreyaspatil.capturable.Capturable
-import dev.shreyaspatil.capturable.controller.rememberCaptureController
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.roundToInt
 
 @Destination
 @Composable
@@ -68,403 +54,285 @@ fun BoxesMain(
 ) {
     val project = viewModel.projectFlow.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
+
+    val canvasState = remember { CanvasState() }
+    val buttonState by rememberSaveable {
+        mutableStateOf(
+            ButtonsState(
+                eraserSelected = false,
+                showPngBackground = false
+            )
+        )
+    }
 
     DefaultContainer(
-        title = project.value?.project?.name.orEmpty()
-    ) {
-        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-
-            val density = LocalDensity.current
-            val stroke = remember {
-                Stroke(with(density) {
-                    2.dp.roundToPx()
-                }.toFloat())
-            }
-
-            val buttonBarOffset = remember {
-                with(density) {
-                    56.dp.roundToPx()
-                }
-            }
-
-            var currentColor by rememberSaveable { mutableStateOf(Color.Green.asSerializableColor) }
-            var eraserSelected by remember { mutableStateOf(false) }
-            var showPngBackground by rememberSaveable { mutableStateOf(false) }
-
-            val boxes = remember { mutableStateMapOf<Point, RectF>() }
-            val selections = remember { mutableStateMapOf<Point, SerializableColor?>() }
-
-            val size = this.constraints
-            LaunchedEffect(project.value) {
-                project.value?.let { project ->
-                    when (viewModel.boxes) {
-                        null -> selections.putAll(project.pixels.associate {
-                            Point(it.x, it.y) to
-                                    SerializableColor(it.hue, it.saturation, it.value, it.alpha)
-                        })
-                        else -> selections.putAll(viewModel.boxes!!)
+        title = project.value?.project?.name.orEmpty(),
+        disableAppbarScroll = true,
+        appBarActions = {
+            Icon(
+                modifier = Modifier
+                    .unboundClickable {
+                        scope.launch {
+                            when (drawerState.isOpen) {
+                                true -> drawerState.close()
+                                else -> drawerState.open()
+                            }
+                        }
                     }
-                }
-            }
-
-            LaunchedEffect(project.value?.project?.rows, project.value?.project?.columns) {
-                project.value?.let { project ->
-                    val maxWidth =
-                        size.maxWidth / project.project.columns.toFloat()
-                    val maxHeight =
-                        (size.maxHeight - buttonBarOffset) / project.project.rows.toFloat()
-                    val min = min(maxWidth, maxHeight)
-
-                    val yOffSet = max(
-                        (((size.maxHeight - buttonBarOffset) - (min * project.project.rows)) / 2),
-                        0F
-                    )
-                    val xOffSet = max(((size.maxWidth - (min * project.project.columns)) / 2), 0F)
-
-                    boxes.clear()
-                    boxes.putAll(
-                        generateBoxes(
-                            project.project.columns,
-                            project.project.rows,
-                            min,
-                            xOffSet.toInt(),
-                            buttonBarOffset + yOffSet.toInt()
+                    .padding(8.dp),
+                painter = painterResource(R.drawable.ic_baseline_menu_24),
+                contentDescription = null
+            )
+        }
+    ) {
+        DrawerContainer(
+            drawerState = drawerState,
+            drawerContent = {
+                val rootView = LocalView.current.rootView
+                DrawerMenu(
+                    eraserSelected = { buttonState.eraserSelectedState },
+                    onClearClick = {
+                        canvasState.selections
+                            .filter { it.value != null }
+                            .forEach {
+                                canvasState.selections[it.key] = null
+                            }
+                    },
+                    onEraserClick = {
+                        buttonState.toggleEraserSelected()
+                    },
+                    onSave = {
+                        viewModel.save(canvasState.selections.toMap())
+                    },
+                    onShowPngBackground = {
+                        buttonState.toggleShowPngBackground()
+                    },
+                    showPngBackgroundSelected = { buttonState.showPngBackgroundState },
+                    onExport = {
+                        exportCanvas(
+                            scope = scope,
+                            rootView = rootView,
+                            rows = project.value?.project?.rows ?: 0,
+                            columns = project.value?.project?.columns ?: 0,
+                            selections = canvasState.selections
                         )
-                    )
-                }
+                    }
+                )
+            }) {
+            project.value?.let { project ->
+                MainCanvas(
+                    project = project,
+                    savedBoxes = viewModel.boxes,
+                    onSaveBoxes = {
+                        viewModel.boxes = it
+                    },
+                    onSaveProject = {
+                        viewModel.save(it)
+                    },
+                    canvasState = canvasState,
+                    buttonsState = buttonState
+                )
             }
+        }
+    }
+}
 
-            LifecycleEffect { _, event ->
-                if (event == Lifecycle.Event.ON_PAUSE) {
-                    viewModel.save(selections.toMap())
-                }
-            }
+@Composable
+private fun MainCanvas(
+    project: ProjectAndPixel,
+    canvasState: CanvasState,
+    buttonsState: ButtonsState,
+    savedBoxes: HashMap<Point, SerializableColor?>?,
+    onSaveBoxes: (HashMap<Point, SerializableColor?>) -> Unit,
+    onSaveProject: (Map<Point, SerializableColor?>) -> Unit
+) {
+    val scope = rememberCoroutineScope()
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
 
-            DisposableEffect(Unit) {
-                onDispose {
-                    viewModel.boxes = HashMap(selections.toMap())
-                }
-            }
+        val density = LocalDensity.current
+        val strokeWidth = remember {
+            with(density) {
+                2.dp.roundToPx()
+            }.toFloat()
+        }
 
-            var scale by remember { mutableStateOf(1f) }
-            var offset by remember { mutableStateOf(Offset.Zero) }
-            val state = rememberTransformableState { zoomChange, offsetChange, _ ->
-                scale = max(1F, scale * zoomChange)
-                offset += offsetChange
+        val buttonBarOffset = remember {
+            with(density) {
+                56.dp.roundToPx()
             }
-            if (showPngBackground) {
+        }
+
+        var currentColor by rememberSaveable { mutableStateOf(Color.Green.asSerializableColor) }
+
+        val size = this.constraints
+        LaunchedEffect(project) {
+            when (savedBoxes) {
+                null -> canvasState.selections.putAll(project.pixels.associate {
+                    Point(it.x, it.y) to
+                            SerializableColor(
+                                it.hue,
+                                it.saturation,
+                                it.value,
+                                it.alpha
+                            )
+                })
+                else -> canvasState.selections.putAll(savedBoxes)
+            }
+        }
+
+        LaunchedEffect(project.project.rows, project.project.columns) {
+            val maxWidth =
+                size.maxWidth / project.project.columns.toFloat()
+            val maxHeight =
+                (size.maxHeight - buttonBarOffset) / project.project.rows.toFloat()
+            val min = min(maxWidth, maxHeight)
+
+            val yOffSet = max(
+                (((size.maxHeight - buttonBarOffset) - (min * project.project.rows)) / 2),
+                0F
+            )
+            val xOffSet =
+                max(((size.maxWidth - (min * project.project.columns)) / 2), 0F)
+
+            canvasState.boxes.clear()
+            canvasState.boxes.putAll(
+                generateBoxes(
+                    project.project.columns,
+                    project.project.rows,
+                    min,
+                    xOffSet.toInt(),
+                    buttonBarOffset + yOffSet.toInt()
+                )
+            )
+        }
+
+        LifecycleEffect { _, event ->
+            if (event == Lifecycle.Event.ON_PAUSE) {
+                onSaveProject(canvasState.selections.toMap())
+            }
+        }
+
+        DisposableEffect(Unit) {
+            onDispose {
+                onSaveBoxes(HashMap(canvasState.selections.toMap()))
+            }
+        }
+
+        val transformerState = remember { TransformerState() }
+        Transformer(transformerState) { scale, offset, state ->
+            if (buttonsState.showPngBackgroundState) {
                 PngBackground()
             }
             BoxCanvas(
-                boxes = boxes,
-                selections = selections,
-                rows = project.value?.project?.rows ?: 0,
-                columns = project.value?.project?.columns ?: 0,
+                boxes = canvasState.boxes,
+                selections = canvasState.selections,
+                rows = project.project.rows,
+                columns = project.project.columns,
                 scale = scale,
                 offset = offset,
                 size = size,
-                stroke = stroke,
+                strokeWidth = strokeWidth,
                 state = state,
-                showPngBackgroundSelected = { showPngBackground },
+                showPngBackgroundSelected = { buttonsState.showPngBackgroundState },
                 onTap = {
-                    val selection = selections[it]
-                    selections[it] = when (selection == currentColor) {
+                    val selection = canvasState.selections[it]
+                    canvasState.selections[it] = when (selection == currentColor) {
                         true -> null
                         else -> currentColor
                     }
                 },
                 onDrag = {
-                    selections[it] = when (eraserSelected) {
+                    canvasState.selections[it] = when (buttonsState.eraserSelectedState) {
                         true -> null
                         else -> currentColor
                     }
                 }
             )
-
-            val zoomAnimator = remember { Animatable(0F) }
-            val panAnimatorX = remember { Animatable(0F) }
-            val panAnimatorY = remember { Animatable(0F) }
-
-            val rootView = LocalView.current.rootView
-            val captureController = rememberCaptureController()
-
-            ButtonBar(
-                color = currentColor,
-                eraserSelected = { eraserSelected },
-                onClearClick = {
-                    selections
-                        .filter { it.value != null }
-                        .forEach {
-                            selections[it.key] = null
-                        }
-                },
-                onEraserClick = {
-                    eraserSelected = !eraserSelected
-                },
-                onColorChosen = {
-                    currentColor = it
-                },
-                onResetZoom = {
-                    scope.launch {
-                        zoomAnimator.snapTo(scale)
-                        zoomAnimator.animateTo(1F) {
-                            scale = this.value
-                        }
-                    }
-                    scope.launch {
-                        panAnimatorX.snapTo(offset.x)
-                        panAnimatorX.animateTo(0F) {
-                            offset = offset.copy(x = this.value)
-                        }
-                    }
-                    scope.launch {
-                        panAnimatorY.snapTo(offset.y)
-                        panAnimatorY.animateTo(0F) {
-                            offset = offset.copy(y = this.value)
-                        }
-                    }
-                },
-                onSave = {
-                    viewModel.save(selections.toMap())
-                },
-                onShowPngBackground = {
-                    showPngBackground = !showPngBackground
-                },
-                showPngBackgroundSelected = { showPngBackground },
-                onExport = {
-                    // todo export this logic out and make it better
-                    scope.launch(Dispatchers.Main) {
-                        (rootView as? ViewGroup)?.run {
-                            val composeView = ComposeView(context).apply {
-                                val rows = project.value?.project?.rows ?: 0
-                                val columns = project.value?.project?.columns ?: 0
-
-                                val newBoxes = generateBoxes(columns, rows, 100F, 0, 0)
-
-                                layoutParams = ViewGroup.LayoutParams(
-                                    columns * 100,
-                                    rows * 100
-                                )
-                                visibility = View.INVISIBLE
-
-                                setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-                                id = R.id.imageExportId
-
-                                setContent {
-                                    val context = LocalContext.current
-                                    Capturable(
-                                        controller = captureController,
-                                        onCaptured = { bitmap, error ->
-                                            // This is captured bitmap of a content inside Capturable Composable.
-                                            bitmap?.asAndroidBitmap()?.storeImage(context)
-                                            if (error != null) {
-                                                // Error occurred. Handle it!
-                                            }
-                                            rootView.removeView(this)
-                                        }
-                                    ) {
-                                        SelectionsBoxes(
-                                            scale = 1F,
-                                            offset = Offset.Zero,
-                                            boxes = newBoxes,
-                                            selections = selections
-                                        )
-                                    }
-                                }
-                            }
-                            addView(composeView)
-                            composeView.doOnLayout {
-                                captureController.capture()
-                            }
-                        }
-                    }
-                }
-            )
         }
-    }
-}
 
-@Composable
-private fun BoxCanvas(
-    boxes: SnapshotStateMap<Point, RectF>,
-    selections: SnapshotStateMap<Point, SerializableColor?>,
-    columns: Int,
-    rows: Int,
-    scale: Float,
-    size: Constraints,
-    offset: Offset,
-    stroke: Stroke,
-    state: TransformableState,
-    showPngBackgroundSelected: () -> Boolean,
-    onTap: (Point) -> Unit,
-    onDrag: (Point) -> Unit,
-) {
-    val contentOffset = LocalAppBarHeight.current
-    val appBarExpanded by remember { derivedStateOf { contentOffset.value == 0F } }
-    val scaleState by rememberUpdatedState(scale)
-    val offsetState by rememberUpdatedState(offset)
-    val sizeState by rememberUpdatedState(size)
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .pointerInput(appBarExpanded) {
-            detectTapGestures { p ->
-                val point = p.convert(scaleState, offsetState, sizeState)
-                boxes.entries.find { box ->
-                    point.x >= box.value.left && point.x <= box.value.right &&
-                            point.y >= box.value.top && point.y <= box.value.bottom
-                }?.key?.let { onTap(it) }
+        ButtonBar(
+            color = currentColor,
+            onColorChosen = {
+                currentColor = it
+            },
+            onResetZoom = {
+                transformerState.reset(scope)
             }
-        }
-        .pointerInput(appBarExpanded) {
-            detectDragGestures { change, _ ->
-                if (state.isTransformInProgress) return@detectDragGestures
-                val position = change.position.convert(scaleState, offsetState, sizeState)
-                boxes.entries.find { box ->
-                    position.x >= box.value.left && position.x <= box.value.right &&
-                            position.y >= box.value.top && position.y <= box.value.bottom
-                }?.key?.let { onDrag(it) }
-            }
-        }
-        .transformable(
-            state = state,
-            lockRotationOnZoomPan = true
-        )) {
-
-        SelectionsBoxes(
-            scale = scale,
-            offset = offset,
-            boxes = boxes,
-            selections = selections
         )
-
-        val color = when (showPngBackgroundSelected()) {
-            true -> MaterialTheme.colorScheme.background
-            else -> Color.Gray
-        }
-        Canvas(
-            Modifier
-                .fillMaxSize()
-                .graphicsLayer(
-                    scaleX = scale,
-                    scaleY = scale,
-                    translationX = offset.x,
-                    translationY = offset.y
-                )
-        ) {
-            for (i in 0 until rows) {
-                safeLet(boxes[Point(0, i)], boxes[Point(columns - 1, i)]) { start, end ->
-                    drawLine(
-                        strokeWidth = stroke.width / scale,
-                        color = color,
-                        start = Offset(start.left, start.top),
-                        end = Offset(end.right, end.top)
-                    )
-                    if (i == rows - 1) {
-                        drawLine(
-                            strokeWidth = stroke.width / scale,
-                            color = color,
-                            start = Offset(start.left, start.bottom),
-                            end = Offset(end.right, end.bottom)
-                        )
-                    }
-                }
-            }
-            for (i in 0 until columns) {
-                safeLet(boxes[Point(i, 0)], boxes[Point(i, rows - 1)]) { start, end ->
-                    drawLine(
-                        strokeWidth = stroke.width / scale,
-                        color = color,
-                        start = Offset(start.left, start.top),
-                        end = Offset(end.left, end.bottom)
-                    )
-                    if (i == columns - 1) {
-                        drawLine(
-                            strokeWidth = stroke.width / scale,
-                            color = color,
-                            start = Offset(start.right, start.top),
-                            end = Offset(end.right, end.bottom)
-                        )
-                    }
-                }
-            }
-        }
     }
 }
 
 @Composable
-private fun SelectionsBoxes(
-    scale: Float,
-    offset: Offset,
-    boxes: MutableMap<Point, RectF>,
-    selections: SnapshotStateMap<Point, SerializableColor?>
+private fun DrawerMenu(
+    eraserSelected: () -> Boolean,
+    showPngBackgroundSelected: () -> Boolean,
+    onClearClick: () -> Unit,
+    onEraserClick: () -> Unit,
+    onSave: () -> Unit,
+    onExport: () -> Unit,
+    onShowPngBackground: () -> Unit,
 ) {
-    Canvas(
+    val scrollState = rememberScrollState()
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .graphicsLayer(
-                scaleX = scale,
-                scaleY = scale,
-                translationX = offset.x,
-                translationY = offset.y
-            )
+            .verticalScroll(scrollState)
+            .padding(8.dp)
     ) {
-        selections.forEach { (point, color) ->
-            val position = boxes[point]
-            safeLet(position, color) { pos, selectedColor ->
-                drawRect(
-                    style = Fill,
-                    topLeft = Offset(pos.left, pos.top),
-                    size = Size(pos.width(), pos.height()),
-                    color = selectedColor.color
-                )
-            }
+        ButtonSection(R.string.tools) {
+            IconSelectableMenuButton(
+                onClick = onEraserClick,
+                isSelected = eraserSelected,
+                drawableResOn = R.drawable.ic_baseline_eraser_on_24,
+                drawableResOff = R.drawable.ic_baseline_eraser_off_24
+            )
+            IconSelectableMenuButton(
+                onClick = onShowPngBackground,
+                isSelected = showPngBackgroundSelected,
+                drawableResOn = R.drawable.ic_baseline_grid_on_24,
+                drawableResOff = R.drawable.ic_baseline_grid_off_24
+            )
+        }
+        ButtonSection(R.string.export) {
+            IconMenuButton(
+                onClick = onExport,
+                drawableRes = R.drawable.ic_baseline_image_24
+            )
+        }
+        ButtonSection(R.string.save) {
+            IconMenuButton(
+                onClick = onSave,
+                drawableRes = R.drawable.ic_baseline_save_24
+            )
+        }
+        Spacer(modifier = Modifier.weight(1F))
+        ButtonSection(R.string.clear) {
+            IconMenuButton(
+                onClick = onClearClick,
+                drawableRes = R.drawable.ic_auto_renew
+            )
         }
     }
 }
 
 @Composable
-private fun PngBackground() {
-    val size = with(LocalDensity.current) { 10.dp.roundToPx() }.toFloat()
-    Canvas(
-        modifier = Modifier
-            .fillMaxSize()
-            .clipToBounds()
-    ) {
-        val columns = (this.size.width / size).roundToInt()
-        val rows = (this.size.height / size).roundToInt()
-        for (r in 0..rows) {
-            for (c in 0..columns) {
-                drawRect(
-                    color = Color.Gray,
-                    topLeft = Offset(c * size, r * size),
-                    size = Size(size, size),
-                    alpha = when (r % 2 == 0) {
-                        true -> when (c % 2 == 0) {
-                            true -> 1F
-                            else -> 0.5F
-                        }
-                        else -> when (c % 2 == 0) {
-                            true -> 0.5F
-                            else -> 1F
-                        }
-                    }
-                )
-            }
-        }
-    }
+private fun ButtonSection(
+    @StringRes title: Int,
+    content: @Composable () -> Unit
+) {
+    Text(
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+        text = stringResource(title)
+    )
+    Divider(modifier = Modifier.padding(horizontal = 16.dp))
+    FlowRow(content = content)
 }
 
 @Composable
 private fun ButtonBar(
     color: SerializableColor,
-    eraserSelected: () -> Boolean,
-    showPngBackgroundSelected: () -> Boolean,
-    onClearClick: () -> Unit,
-    onEraserClick: () -> Unit,
     onResetZoom: () -> Unit,
-    onSave: () -> Unit,
-    onExport: () -> Unit,
-    onShowPngBackground: () -> Unit,
     onColorChosen: (SerializableColor) -> Unit
 ) {
     Row(
@@ -473,13 +341,6 @@ private fun ButtonBar(
             .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6F))
             .fillMaxWidth()
     ) {
-
-        IconMenuButton(
-            onClick = onClearClick,
-            drawableRes = R.drawable.ic_auto_renew
-        )
-
-        Spacer(modifier = Modifier.weight(1F))
 
         var colorPicker by remember { mutableStateOf(false) }
         if (colorPicker) {
@@ -504,31 +365,10 @@ private fun ButtonBar(
         Spacer(modifier = Modifier.weight(1F))
 
         IconMenuButton(
-            onClick = onSave,
-            drawableRes = R.drawable.ic_baseline_save_24
-        )
-
-        IconMenuButton(
             onClick = onResetZoom,
             drawableRes = R.drawable.ic_baseline_zoom_out_map_24
         )
 
-        IconMenuButton(
-            onClick = onExport,
-            drawableRes = R.drawable.ic_baseline_image_24
-        )
-
-        IconSelectableMenuButton(
-            onClick = onEraserClick,
-            isSelected = eraserSelected,
-            drawableRes = R.drawable.ic_eraser
-        )
-
-        IconSelectableMenuButton(
-            onClick = onShowPngBackground,
-            isSelected = showPngBackgroundSelected,
-            drawableRes = R.drawable.ic_baseline_grid_on_24
-        )
     }
 }
 
@@ -576,36 +416,32 @@ private fun ColorPickerDialog(
     }
 }
 
-private fun generateBoxes(
-    numX: Int,
-    numY: Int,
-    size: Float,
-    xOffSet: Int,
-    yOffSet: Int
-) = mutableMapOf<Point, RectF>().apply {
-    for (y in 0 until numY) {
-        for (x in 0 until numX) {
-            val topLeft = Offset(
-                (size * x) + xOffSet,
-                (size * y) + yOffSet
-            )
-            put(
-                Point(x, y),
-                RectF(
-                    topLeft.x,
-                    topLeft.y,
-                    (topLeft.x + size),
-                    (topLeft.y + size)
-                )
-            )
-        }
+@Composable
+private fun DrawerContainer(
+    drawerState: DrawerState,
+    drawerContent: @Composable () -> Unit,
+    content: @Composable () -> Unit
+) {
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+        ModalNavigationDrawer(
+            drawerState = drawerState,
+            drawerContent = {
+                CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+                    ModalDrawerSheet(
+                        drawerShape = RoundedCornerShape(topStart = 16.dp),
+                        modifier = Modifier.fillMaxWidth(0.6F)
+                    ) {
+                        drawerContent()
+                    }
+                }
+            },
+            content = {
+                CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+                    content()
+                }
+            }
+        )
     }
 }
 
-private fun Offset.convert(scale: Float, offset: Offset, size: Constraints): Offset {
-    val centerX = size.maxWidth / 2F
-    val centerY = size.maxHeight / 2F
-    val point =
-        Offset(((x - centerX) * (1F / scale)) + centerX, ((y - centerY) * (1F / scale)) + centerY)
-    return point - (offset / scale)
-}
+
