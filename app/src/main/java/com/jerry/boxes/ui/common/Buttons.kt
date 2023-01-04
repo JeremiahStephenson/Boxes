@@ -1,4 +1,4 @@
-package com.jerry.boxes.util
+package com.jerry.boxes.ui.common
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.clickable
@@ -45,8 +45,8 @@ fun IconSelectableMenuButton(
             .padding(16.dp),
         painter = painterResource(
             when (isSelected()) {
-                true -> drawableResOn
-                else -> drawableResOff
+                true -> drawableResOff
+                else -> drawableResOn
             }
         ),
         contentDescription = null,

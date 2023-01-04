@@ -9,7 +9,6 @@ import com.jerry.boxes.cache.BoxesDao
 import com.jerry.boxes.cache.BoxesDatabase
 import com.jerry.boxes.cache.data.Pixel
 import com.jerry.boxes.ui.destinations.BoxesMainDestination
-import com.jerry.boxes.util.SavedHandle
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.stateIn
@@ -31,8 +30,6 @@ class BoxesViewModel(
             SharingStarted.WhileSubscribed(),
             null
         )
-
-    var boxes by SavedHandle<HashMap<Point, SerializableColor?>?>(handle, "TESTING", null)
 
     fun save(map: Map<Point, SerializableColor?>) {
         viewModelScope.launch {

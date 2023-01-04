@@ -1,11 +1,10 @@
 package com.jerry.boxes.ui.boxes
 
-import android.graphics.Point
+import android.view.View
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -15,11 +14,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.Lifecycle
@@ -28,22 +25,18 @@ import com.godaddy.android.colorpicker.ClassicColorPicker
 import com.godaddy.android.colorpicker.HsvColor
 import com.google.accompanist.flowlayout.FlowRow
 import com.jerry.boxes.R
+import com.jerry.boxes.cache.data.Project
 import com.jerry.boxes.cache.data.ProjectAndPixel
 import com.jerry.boxes.extensions.asSerializableColor
 import com.jerry.boxes.ui.boxes.state.ButtonsState
 import com.jerry.boxes.ui.boxes.state.CanvasState
 import com.jerry.boxes.ui.boxes.state.TransformerState
-import com.jerry.boxes.ui.common.DefaultContainer
-import com.jerry.boxes.ui.common.unboundClickable
-import com.jerry.boxes.util.IconMenuButton
-import com.jerry.boxes.util.IconSelectableMenuButton
-import com.jerry.boxes.util.LifecycleEffect
+import com.jerry.boxes.ui.common.*
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
-import kotlin.math.max
-import kotlin.math.min
 
 @Destination
 @Composable
@@ -57,7 +50,7 @@ fun BoxesMain(
     val drawerState = rememberDrawerState(DrawerValue.Closed)
 
     val canvasState = remember { CanvasState() }
-    val buttonState by rememberSaveable {
+    val buttonsState by rememberSaveable {
         mutableStateOf(
             ButtonsState(
                 eraserSelected = false,
@@ -86,36 +79,23 @@ fun BoxesMain(
             )
         }
     ) {
+        val transformerState = remember { TransformerState() }
+        val rootView = LocalView.current.rootView
         DrawerContainer(
             drawerState = drawerState,
             drawerContent = {
-                val rootView = LocalView.current.rootView
                 DrawerMenu(
-                    eraserSelected = { buttonState.eraserSelectedState },
-                    onClearClick = {
-                        canvasState.selections
-                            .filter { it.value != null }
-                            .forEach {
-                                canvasState.selections[it.key] = null
-                            }
-                    },
-                    onEraserClick = {
-                        buttonState.toggleEraserSelected()
-                    },
-                    onSave = {
-                        viewModel.save(canvasState.selections.toMap())
-                    },
-                    onShowPngBackground = {
-                        buttonState.toggleShowPngBackground()
-                    },
-                    showPngBackgroundSelected = { buttonState.showPngBackgroundState },
-                    onExport = {
-                        exportCanvas(
-                            scope = scope,
-                            rootView = rootView,
-                            rows = project.value?.project?.rows ?: 0,
-                            columns = project.value?.project?.columns ?: 0,
-                            selections = canvasState.selections
+                    buttonsState = buttonsState,
+                    onAction = {
+                        handleAction(
+                            canvasState,
+                            buttonsState,
+                            transformerState,
+                            viewModel,
+                            project.value?.project,
+                            scope,
+                            rootView,
+                            it
                         )
                     }
                 )
@@ -123,15 +103,21 @@ fun BoxesMain(
             project.value?.let { project ->
                 MainCanvas(
                     project = project,
-                    savedBoxes = viewModel.boxes,
-                    onSaveBoxes = {
-                        viewModel.boxes = it
-                    },
-                    onSaveProject = {
-                        viewModel.save(it)
-                    },
                     canvasState = canvasState,
-                    buttonsState = buttonState
+                    buttonsState = buttonsState,
+                    transformerState = transformerState,
+                    onAction = {
+                        handleAction(
+                            canvasState,
+                            buttonsState,
+                            transformerState,
+                            viewModel,
+                            project.project,
+                            scope,
+                            rootView,
+                            it
+                        )
+                    }
                 )
             }
         }
@@ -143,90 +129,43 @@ private fun MainCanvas(
     project: ProjectAndPixel,
     canvasState: CanvasState,
     buttonsState: ButtonsState,
-    savedBoxes: HashMap<Point, SerializableColor?>?,
-    onSaveBoxes: (HashMap<Point, SerializableColor?>) -> Unit,
-    onSaveProject: (Map<Point, SerializableColor?>) -> Unit
+    transformerState: TransformerState,
+    onAction: (Action) -> Unit
 ) {
-    val scope = rememberCoroutineScope()
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
 
         val density = LocalDensity.current
-        val strokeWidth = remember {
-            with(density) {
-                2.dp.roundToPx()
-            }.toFloat()
-        }
-
-        val buttonBarOffset = remember {
-            with(density) {
-                56.dp.roundToPx()
-            }
-        }
+        val strokeWidth = remember { with(density) { 2.dp.roundToPx() }.toFloat() }
+        val buttonBarOffset = remember { with(density) { 56.dp.roundToPx() } }
 
         var currentColor by rememberSaveable { mutableStateOf(Color.Green.asSerializableColor) }
 
         val size = this.constraints
         LaunchedEffect(project) {
-            when (savedBoxes) {
-                null -> canvasState.selections.putAll(project.pixels.associate {
-                    Point(it.x, it.y) to
-                            SerializableColor(
-                                it.hue,
-                                it.saturation,
-                                it.value,
-                                it.alpha
-                            )
-                })
-                else -> canvasState.selections.putAll(savedBoxes)
-            }
+            canvasState.fillInSelections(project.pixels)
         }
 
         LaunchedEffect(project.project.rows, project.project.columns) {
-            val maxWidth =
-                size.maxWidth / project.project.columns.toFloat()
-            val maxHeight =
-                (size.maxHeight - buttonBarOffset) / project.project.rows.toFloat()
-            val min = min(maxWidth, maxHeight)
-
-            val yOffSet = max(
-                (((size.maxHeight - buttonBarOffset) - (min * project.project.rows)) / 2),
-                0F
-            )
-            val xOffSet =
-                max(((size.maxWidth - (min * project.project.columns)) / 2), 0F)
-
-            canvasState.boxes.clear()
-            canvasState.boxes.putAll(
-                generateBoxes(
-                    project.project.columns,
-                    project.project.rows,
-                    min,
-                    xOffSet.toInt(),
-                    buttonBarOffset + yOffSet.toInt()
-                )
+            canvasState.fillInBoxes(
+                size,
+                buttonBarOffset,
+                project.project.columns,
+                project.project.rows
             )
         }
 
         LifecycleEffect { _, event ->
             if (event == Lifecycle.Event.ON_PAUSE) {
-                onSaveProject(canvasState.selections.toMap())
+                onAction(Action.Save)
             }
         }
 
-        DisposableEffect(Unit) {
-            onDispose {
-                onSaveBoxes(HashMap(canvasState.selections.toMap()))
-            }
-        }
-
-        val transformerState = remember { TransformerState() }
         Transformer(transformerState) { scale, offset, state ->
             if (buttonsState.showPngBackgroundState) {
                 PngBackground()
             }
             BoxCanvas(
-                boxes = canvasState.boxes,
-                selections = canvasState.selections,
+                canvasState = canvasState,
                 rows = project.project.rows,
                 columns = project.project.columns,
                 scale = scale,
@@ -235,19 +174,8 @@ private fun MainCanvas(
                 strokeWidth = strokeWidth,
                 state = state,
                 showPngBackgroundSelected = { buttonsState.showPngBackgroundState },
-                onTap = {
-                    val selection = canvasState.selections[it]
-                    canvasState.selections[it] = when (selection == currentColor) {
-                        true -> null
-                        else -> currentColor
-                    }
-                },
-                onDrag = {
-                    canvasState.selections[it] = when (buttonsState.eraserSelectedState) {
-                        true -> null
-                        else -> currentColor
-                    }
-                }
+                onTap = { canvasState.onTap(it, currentColor) },
+                onDrag = { canvasState.onDrag(it, currentColor, buttonsState.eraserSelectedState) }
             )
         }
 
@@ -256,22 +184,15 @@ private fun MainCanvas(
             onColorChosen = {
                 currentColor = it
             },
-            onResetZoom = {
-                transformerState.reset(scope)
-            }
+            onAction = onAction
         )
     }
 }
 
 @Composable
 private fun DrawerMenu(
-    eraserSelected: () -> Boolean,
-    showPngBackgroundSelected: () -> Boolean,
-    onClearClick: () -> Unit,
-    onEraserClick: () -> Unit,
-    onSave: () -> Unit,
-    onExport: () -> Unit,
-    onShowPngBackground: () -> Unit,
+    buttonsState: ButtonsState,
+    onAction: (Action) -> Unit
 ) {
     val scrollState = rememberScrollState()
     Column(
@@ -282,34 +203,34 @@ private fun DrawerMenu(
     ) {
         ButtonSection(R.string.tools) {
             IconSelectableMenuButton(
-                onClick = onEraserClick,
-                isSelected = eraserSelected,
+                onClick = { onAction(Action.Eraser) },
+                isSelected = { buttonsState.eraserSelectedState },
                 drawableResOn = R.drawable.ic_baseline_eraser_on_24,
                 drawableResOff = R.drawable.ic_baseline_eraser_off_24
             )
             IconSelectableMenuButton(
-                onClick = onShowPngBackground,
-                isSelected = showPngBackgroundSelected,
+                onClick = { onAction(Action.ShowPngBackground) },
+                isSelected = { buttonsState.showPngBackgroundState },
                 drawableResOn = R.drawable.ic_baseline_grid_on_24,
                 drawableResOff = R.drawable.ic_baseline_grid_off_24
             )
         }
         ButtonSection(R.string.export) {
             IconMenuButton(
-                onClick = onExport,
+                onClick = { onAction(Action.Export) },
                 drawableRes = R.drawable.ic_baseline_image_24
             )
         }
         ButtonSection(R.string.save) {
             IconMenuButton(
-                onClick = onSave,
+                onClick = { onAction(Action.Save) },
                 drawableRes = R.drawable.ic_baseline_save_24
             )
         }
         Spacer(modifier = Modifier.weight(1F))
         ButtonSection(R.string.clear) {
             IconMenuButton(
-                onClick = onClearClick,
+                onClick = { onAction(Action.Clear) },
                 drawableRes = R.drawable.ic_auto_renew
             )
         }
@@ -332,7 +253,7 @@ private fun ButtonSection(
 @Composable
 private fun ButtonBar(
     color: SerializableColor,
-    onResetZoom: () -> Unit,
+    onAction: (Action) -> Unit,
     onColorChosen: (SerializableColor) -> Unit
 ) {
     Row(
@@ -365,10 +286,9 @@ private fun ButtonBar(
         Spacer(modifier = Modifier.weight(1F))
 
         IconMenuButton(
-            onClick = onResetZoom,
+            onClick = { onAction(Action.ResetZoom) },
             drawableRes = R.drawable.ic_baseline_zoom_out_map_24
         )
-
     }
 }
 
@@ -416,30 +336,28 @@ private fun ColorPickerDialog(
     }
 }
 
-@Composable
-private fun DrawerContainer(
-    drawerState: DrawerState,
-    drawerContent: @Composable () -> Unit,
-    content: @Composable () -> Unit
+private fun handleAction(
+    canvasState: CanvasState,
+    buttonsState: ButtonsState,
+    transformerState: TransformerState,
+    viewModel: BoxesViewModel,
+    project: Project?,
+    scope: CoroutineScope,
+    rootView: View,
+    action: Action
 ) {
-    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-        ModalNavigationDrawer(
-            drawerState = drawerState,
-            drawerContent = {
-                CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-                    ModalDrawerSheet(
-                        drawerShape = RoundedCornerShape(topStart = 16.dp),
-                        modifier = Modifier.fillMaxWidth(0.6F)
-                    ) {
-                        drawerContent()
-                    }
-                }
-            },
-            content = {
-                CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-                    content()
-                }
-            }
+    when (action) {
+        is Action.Eraser -> buttonsState.toggleEraserSelected()
+        is Action.Save -> viewModel.save(canvasState.selections.toMap())
+        is Action.Clear -> canvasState.clear()
+        is Action.ShowPngBackground -> buttonsState.toggleShowPngBackground()
+        is Action.ResetZoom -> transformerState.reset(scope)
+        is Action.Export -> exportCanvas(
+            scope = scope,
+            rootView = rootView,
+            rows = project?.rows ?: 0,
+            columns = project?.columns ?: 0,
+            selections = canvasState.selections
         )
     }
 }

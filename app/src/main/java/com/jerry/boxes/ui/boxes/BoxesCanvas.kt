@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
-import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
@@ -24,13 +23,13 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import com.jerry.boxes.extensions.safeLet
+import com.jerry.boxes.ui.boxes.state.CanvasState
 import com.jerry.boxes.ui.common.LocalAppBarHeight
 import kotlin.math.roundToInt
 
 @Composable
 fun BoxCanvas(
-    boxes: SnapshotStateMap<Point, RectF>,
-    selections: SnapshotStateMap<Point, SerializableColor?>,
+    canvasState: CanvasState,
     columns: Int,
     rows: Int,
     scale: Float,
@@ -51,7 +50,7 @@ fun BoxCanvas(
         .fillMaxSize()
         .pointerInput(appBarExpanded) {
             detectTapGestures { point ->
-                point.findBox(scaleState, offsetState, sizeState, boxes) {
+                point.findBox(scaleState, offsetState, sizeState, canvasState.boxes) {
                     onTap(it)
                 }
             }
@@ -59,7 +58,7 @@ fun BoxCanvas(
         .pointerInput(appBarExpanded) {
             detectDragGestures { change, _ ->
                 if (state.isTransformInProgress) return@detectDragGestures
-                change.position.findBox(scaleState, offsetState, sizeState, boxes) {
+                change.position.findBox(scaleState, offsetState, sizeState, canvasState.boxes) {
                     onDrag(it)
                 }
             }
@@ -72,8 +71,8 @@ fun BoxCanvas(
         SelectionsBoxes(
             scale = scale,
             offset = offset,
-            boxes = boxes,
-            selections = selections
+            boxes = canvasState.boxes,
+            selections = canvasState.selections
         )
 
         val color = when (showPngBackgroundSelected()) {
@@ -87,7 +86,7 @@ fun BoxCanvas(
             strokeColor = color,
             scale = scale,
             offset = offset,
-            boxes = boxes
+            boxes = canvasState.boxes
         )
     }
 }
@@ -165,7 +164,7 @@ private fun Grid(
     strokeColor: Color,
     scale: Float,
     offset: Offset,
-    boxes: MutableMap<Point, RectF>
+    boxes: Map<Point, RectF>
 ) {
     Canvas(
         Modifier
