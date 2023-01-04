@@ -18,6 +18,7 @@
     <string name="columns">Columns</string>
     <string name="rows">Rows</string>
     <string name="add_new_project">Add new project</string>
+    <string name="edit_project">Editing: %1$s</string>
     <string name="are_you_sure">Are you sure you want to delete the project: %1$s?</string>
 
     <string name="set_color">Set Color</string>

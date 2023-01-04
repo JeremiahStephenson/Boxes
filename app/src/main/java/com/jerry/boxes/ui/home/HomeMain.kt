@@ -42,7 +42,7 @@ fun HomeMain(
     DefaultContainer(
         title = stringResource(R.string.app_name),
         fabListener = {
-            navController.navigate(CreateMainDestination)
+            navController.navigate(CreateMainDestination())
         },
         appBarActions = {
             EditMenu(editMode) {

@@ -23,7 +23,7 @@ class BoxesViewModel(
 
     private val projectId = BoxesMainDestination.argsFrom(handle).projectId
 
-    val projectFlow = boxesDao.getProjectFlowById(projectId)
+    val projectFlow = boxesDao.getFullProjectFlowById(projectId)
         .filterNotNull()
         .stateIn(
             viewModelScope,

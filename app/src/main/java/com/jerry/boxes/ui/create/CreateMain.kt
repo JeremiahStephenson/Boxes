@@ -14,8 +14,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.chargemap.compose.numberpicker.NumberPicker
 import com.jerry.boxes.R
+import com.jerry.boxes.cache.data.Project
 import com.jerry.boxes.ui.common.DefaultContainer
 import com.jerry.boxes.ui.destinations.BoxesMainDestination
 import com.jerry.boxes.ui.destinations.CreateMainDestination
@@ -27,10 +29,17 @@ import org.koin.androidx.compose.koinViewModel
 @Destination
 @Composable
 fun CreateMain(
+    projectId: Long? = null,
     navController: DestinationsNavigator,
     viewModel: CreateViewModel = koinViewModel()
 ) {
-    DefaultContainer(title = stringResource(R.string.add_new_project)) {
+    val projectState by viewModel.projectFlow.collectAsStateWithLifecycle(null)
+    DefaultContainer(
+        title = when (projectState) {
+            null -> stringResource(R.string.add_new_project)
+            else -> stringResource(R.string.edit_project, projectState!!.name)
+        }
+    ) {
         val context = LocalContext.current
         val error = stringResource(R.string.error_save)
         LaunchedEffect(Unit) {
@@ -38,22 +47,30 @@ fun CreateMain(
                 // Should only be error or done
                 when (it.isError) {
                     true -> Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
-                    else -> navController.navigate(BoxesMainDestination(it.data!!)) {
-                        popUpTo(CreateMainDestination.route) {
-                            inclusive = true
+                    else -> when (viewModel.isSave) {
+                        true -> navController.popBackStack()
+                        else -> navController.navigate(BoxesMainDestination(it.data!!)) {
+                            popUpTo(CreateMainDestination.route) {
+                                inclusive = true
+                            }
                         }
                     }
                 }
             }
         }
-        CreateForm(onSave = { text, columns, rows ->
-            viewModel.addProject(text, columns, rows)
-        })
+        CreateForm(
+            project = projectState,
+            onSave = { text, columns, rows ->
+                viewModel.saveProject(text, columns, rows)
+            })
     }
 }
 
 @Composable
-private fun CreateForm(onSave: (String, Int, Int) -> Unit) {
+private fun CreateForm(
+    project: Project? = null,
+    onSave: (String, Int, Int) -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -68,9 +85,9 @@ private fun CreateForm(onSave: (String, Int, Int) -> Unit) {
             },
             style = MaterialTheme.typography.titleLarge
         )
-        var text by rememberSaveable { mutableStateOf("") }
-        var columnValue by remember { mutableStateOf(0) }
-        var rowValue by remember { mutableStateOf(0) }
+        var text by rememberSaveable(project) { mutableStateOf(project?.name.orEmpty()) }
+        var columnValue by remember(project) { mutableStateOf(project?.columns ?: 1) }
+        var rowValue by remember(project) { mutableStateOf(project?.rows ?: 1) }
 
         OutlinedTextField(
             modifier = Modifier
@@ -125,7 +142,7 @@ private fun RowScope.ProjectNumberPicker(
         )
         NumberPicker(
             value = value,
-            range = 1..500,
+            range = 1 .. 500,
             onValueChange = {
                 onValueChange(it)
             },

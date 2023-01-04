@@ -32,6 +32,7 @@ import com.jerry.boxes.ui.boxes.state.ButtonsState
 import com.jerry.boxes.ui.boxes.state.CanvasState
 import com.jerry.boxes.ui.boxes.state.TransformerState
 import com.jerry.boxes.ui.common.*
+import com.jerry.boxes.ui.destinations.CreateMainDestination
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.CoroutineScope
@@ -81,23 +82,28 @@ fun BoxesMain(
     ) {
         val transformerState = remember { TransformerState() }
         val rootView = LocalView.current.rootView
+        val handleAction: (Action) -> Unit = remember {
+            {
+                handleAction(
+                    canvasState,
+                    buttonsState,
+                    transformerState,
+                    drawerState,
+                    viewModel,
+                    project.value?.project,
+                    scope,
+                    rootView,
+                    navController,
+                    it
+                )
+            }
+        }
         DrawerContainer(
             drawerState = drawerState,
             drawerContent = {
                 DrawerMenu(
                     buttonsState = buttonsState,
-                    onAction = {
-                        handleAction(
-                            canvasState,
-                            buttonsState,
-                            transformerState,
-                            viewModel,
-                            project.value?.project,
-                            scope,
-                            rootView,
-                            it
-                        )
-                    }
+                    onAction = handleAction
                 )
             }) {
             project.value?.let { project ->
@@ -106,18 +112,7 @@ fun BoxesMain(
                     canvasState = canvasState,
                     buttonsState = buttonsState,
                     transformerState = transformerState,
-                    onAction = {
-                        handleAction(
-                            canvasState,
-                            buttonsState,
-                            transformerState,
-                            viewModel,
-                            project.project,
-                            scope,
-                            rootView,
-                            it
-                        )
-                    }
+                    onAction = handleAction
                 )
             }
         }
@@ -225,6 +220,10 @@ private fun DrawerMenu(
             IconMenuButton(
                 onClick = { onAction(Action.Save) },
                 drawableRes = R.drawable.ic_baseline_save_24
+            )
+            IconMenuButton(
+                onClick = { onAction(Action.Edit) },
+                drawableRes = R.drawable.ic_baseline_edit_24
             )
         }
         Spacer(modifier = Modifier.weight(1F))
@@ -340,10 +339,12 @@ private fun handleAction(
     canvasState: CanvasState,
     buttonsState: ButtonsState,
     transformerState: TransformerState,
+    drawerState: DrawerState,
     viewModel: BoxesViewModel,
     project: Project?,
     scope: CoroutineScope,
     rootView: View,
+    navController: DestinationsNavigator,
     action: Action
 ) {
     when (action) {
@@ -352,6 +353,10 @@ private fun handleAction(
         is Action.Clear -> canvasState.clear()
         is Action.ShowPngBackground -> buttonsState.toggleShowPngBackground()
         is Action.ResetZoom -> transformerState.reset(scope)
+        is Action.Edit -> {
+            scope.launch { drawerState.close() }
+            navController.navigate(CreateMainDestination(project?.id))
+        }
         is Action.Export -> exportCanvas(
             scope = scope,
             rootView = rootView,

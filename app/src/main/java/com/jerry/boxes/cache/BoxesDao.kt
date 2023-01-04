@@ -15,10 +15,16 @@ interface BoxesDao {
 
     @Transaction
     @Query("SELECT * FROM project WHERE id = :id")
-    fun getProjectFlowById(id: Long): Flow<ProjectAndPixel>
+    fun getFullProjectFlowById(id: Long): Flow<ProjectAndPixel>
+
+    @Query("SELECT * FROM project WHERE id = :id")
+    fun getProjectFlowById(id: Long): Flow<Project>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertProject(project: Project): Long
+
+    @Query("UPDATE project SET name = :name, rows = :rows, columns = :columns WHERE id = :id")
+    suspend fun updateProject(name: String, columns: Int, rows: Int, id: Long)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAllPixels(pixelList: List<Pixel>)

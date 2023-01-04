@@ -7,4 +7,5 @@ sealed class Action {
     object Export : Action()
     object ResetZoom: Action()
     object ShowPngBackground : Action()
+    object Edit : Action()
 }
