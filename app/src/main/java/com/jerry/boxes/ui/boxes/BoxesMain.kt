@@ -151,7 +151,7 @@ private fun MainCanvas(
 
         LifecycleEffect { _, event ->
             if (event == Lifecycle.Event.ON_PAUSE) {
-                onAction(Action.Save)
+                onAction(Action.Save(true))
             }
         }
 
@@ -218,7 +218,7 @@ private fun DrawerMenu(
         }
         ButtonSection(R.string.save) {
             IconMenuButton(
-                onClick = { onAction(Action.Save) },
+                onClick = { onAction(Action.Save(false)) },
                 drawableRes = R.drawable.ic_baseline_save_24
             )
             IconMenuButton(
@@ -349,7 +349,10 @@ private fun handleAction(
 ) {
     when (action) {
         is Action.Eraser -> buttonsState.toggleEraserSelected()
-        is Action.Save -> viewModel.save(canvasState.selections.toMap())
+        is Action.Save -> viewModel.save(
+            if (action.autoSave) null else canvasState.boxes.keys.toList(),
+            canvasState.selections.toMap()
+        )
         is Action.Clear -> canvasState.clear()
         is Action.ShowPngBackground -> buttonsState.toggleShowPngBackground()
         is Action.ResetZoom -> transformerState.reset(scope)

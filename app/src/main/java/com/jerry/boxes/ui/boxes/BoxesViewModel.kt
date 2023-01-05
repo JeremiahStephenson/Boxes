@@ -31,20 +31,26 @@ class BoxesViewModel(
             null
         )
 
-    fun save(map: Map<Point, SerializableColor?>) {
+    fun save(
+        boxes: List<Point>? = null,
+        selections: Map<Point, SerializableColor?>
+    ) {
         viewModelScope.launch {
             boxesDatabase.withTransaction {
                 val now = Instant.now().toEpochMilli()
-                val list = map.filter { it.value != null }.map { Pixel(
-                    projectId,
-                    it.key.x,
-                    it.key.y,
-                    it.value!!.hue,
-                    it.value!!.saturation,
-                    it.value!!.value,
-                    it.value!!.alpha,
-                    now
-                ) }
+                val list =
+                    selections.filterKeys { boxes?.contains(it) ?: true }.filterValues { it != null }.map {
+                        Pixel(
+                            projectId,
+                            it.key.x,
+                            it.key.y,
+                            it.value!!.hue,
+                            it.value!!.saturation,
+                            it.value!!.value,
+                            it.value!!.alpha,
+                            now
+                        )
+                    }
                 boxesDao.insertAllPixels(list)
                 boxesDao.deletePixelsFromProject(projectId, now)
             }
