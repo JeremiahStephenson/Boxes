@@ -14,7 +14,8 @@
     <string name="no">No</string>
     <string name="clear">Clear</string>
     <string name="layers">Layers</string>
-    <string name="layer_value">Layer %1$d</string>
+
+    <string name="add_layer">Add Layer</string>
 
     <string name="name">Name</string>
     <string name="columns">Columns</string>

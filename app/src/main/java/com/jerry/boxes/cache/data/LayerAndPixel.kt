@@ -3,11 +3,11 @@ package com.jerry.boxes.cache.data
 import androidx.room.Embedded
 import androidx.room.Relation
 
-data class ProjectAndPixel(
-    @Embedded val project: Project,
+data class LayerAndPixel(
+    @Embedded val layer: Layer,
     @Relation(
         parentColumn = "id",
-        entityColumn = "projectId"
+        entityColumn = "layerId"
     )
     val pixels: List<Pixel>
 )

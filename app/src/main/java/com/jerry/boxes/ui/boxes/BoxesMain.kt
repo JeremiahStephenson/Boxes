@@ -1,13 +1,11 @@
 package com.jerry.boxes.ui.boxes
 
-import android.os.Bundle
 import android.view.View
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -19,7 +17,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.Lifecycle
@@ -28,11 +25,12 @@ import com.godaddy.android.colorpicker.ClassicColorPicker
 import com.godaddy.android.colorpicker.HsvColor
 import com.google.accompanist.flowlayout.FlowRow
 import com.jerry.boxes.R
-import com.jerry.boxes.cache.data.Project
-import com.jerry.boxes.cache.data.ProjectAndPixel
-import com.jerry.boxes.extensions.asList
+import com.jerry.boxes.cache.data.ProjectAndLayer
 import com.jerry.boxes.extensions.asSerializableColor
-import com.jerry.boxes.ui.boxes.state.*
+import com.jerry.boxes.ui.boxes.state.ButtonsState
+import com.jerry.boxes.ui.boxes.state.CanvasState
+import com.jerry.boxes.ui.boxes.state.LayerList
+import com.jerry.boxes.ui.boxes.state.TransformerState
 import com.jerry.boxes.ui.common.*
 import com.jerry.boxes.ui.destinations.CreateMainDestination
 import com.jerry.boxes.util.ArrangementLastItem
@@ -65,9 +63,6 @@ fun BoxesMain(
             )
         )
     }
-    val layerState by rememberSaveable(project.value?.project?.layers) {
-        mutableStateOf(LayerState(project.value?.project?.layers ?: 1))
-    }
 
     DefaultContainer(
         title = project.value?.project?.name.orEmpty(),
@@ -91,6 +86,10 @@ fun BoxesMain(
     ) {
         val transformerState = remember { TransformerState() }
         val rootView = LocalView.current.rootView
+        val layers = remember(project.value?.layers) {
+            LayerList(project.value?.layers?.map { it.layer } ?: emptyList())
+        }
+        val layerState by rememberUpdatedState(layers)
         val handleAction: (Action) -> Unit = remember {
             {
                 handleAction(
@@ -99,7 +98,8 @@ fun BoxesMain(
                     transformerState,
                     drawerState,
                     viewModel,
-                    project.value?.project,
+                    project.value,
+                    layerState,
                     scope,
                     cc,
                     rootView,
@@ -114,7 +114,7 @@ fun BoxesMain(
                 DrawerMenu(
                     buttonsState = buttonsState,
                     onAction = handleAction,
-                    layerCount = project.value?.project?.layers ?: 1,
+                    layers = layers,
                 )
             }) {
             project.value?.let { project ->
@@ -123,7 +123,7 @@ fun BoxesMain(
                     canvasState = canvasState,
                     buttonsState = buttonsState,
                     transformerState = transformerState,
-                    layerState = layerState,
+                    layers = layerState,
                     onAction = handleAction
                 )
             }
@@ -133,11 +133,11 @@ fun BoxesMain(
 
 @Composable
 private fun MainCanvas(
-    project: ProjectAndPixel,
+    project: ProjectAndLayer,
     canvasState: CanvasState,
     buttonsState: ButtonsState,
     transformerState: TransformerState,
-    layerState: LayerState,
+    layers: LayerList,
     onAction: (Action) -> Unit
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
@@ -150,7 +150,7 @@ private fun MainCanvas(
 
         val size = this.constraints
         LaunchedEffect(project) {
-            canvasState.fillInSelections(project.pixels)
+            canvasState.fillInSelections(project.layers)
         }
 
         val contentOffset = LocalAppBarHeight.current
@@ -174,25 +174,32 @@ private fun MainCanvas(
             if (buttonsState.showPngBackgroundState) {
                 PngBackground()
             }
+            val layersState by rememberUpdatedState(layers)
             BoxCanvas(
                 canvasState = canvasState,
                 rows = project.project.rows,
                 columns = project.project.columns,
-                layers = layerState.selectedLayersState,
+                layers = layers,
                 scale = scale,
                 offset = offset,
                 size = size,
                 strokeWidth = strokeWidth,
                 state = state,
                 showPngBackgroundSelected = { buttonsState.showPngBackgroundState },
-                onTap = { canvasState.onTap(it, layerState.selectedLayersState.max, currentColor) },
+                onTap = {
+                    if (layersState.hasLayersTurnedOn) {
+                        canvasState.onTap(it, layersState.max.id, currentColor)
+                    }
+                },
                 onDrag = {
-                    canvasState.onDrag(
-                        it,
-                        layerState.selectedLayersState.max,
-                        currentColor,
-                        buttonsState.eraserSelectedState
-                    )
+                    if (layersState.hasLayersTurnedOn) {
+                        canvasState.onDrag(
+                            it,
+                            layersState.max.id,
+                            currentColor,
+                            buttonsState.eraserSelectedState
+                        )
+                    }
                 }
             )
         }
@@ -209,7 +216,7 @@ private fun MainCanvas(
 
 @Composable
 private fun DrawerMenu(
-    layerCount: Int,
+    layers: LayerList,
     buttonsState: ButtonsState,
     onAction: (Action) -> Unit
 ) {
@@ -217,8 +224,46 @@ private fun DrawerMenu(
         modifier = Modifier
             .fillMaxSize()
             .padding(8.dp),
-        verticalArrangement = remember { ArrangementLastItem() }
+        verticalArrangement = remember { ArrangementLastItem() },
+        contentPadding = PaddingValues(vertical = 8.dp)
     ) {
+        item {
+            ButtonHeader(R.string.layers)
+        }
+
+        items(
+            items = layers.layers,
+            key = { it.id }) { layer ->
+            Row(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    modifier = Modifier.weight(1F),
+                    text = layer.name
+                )
+                Switch(
+                    checked = layer.on,
+                    onCheckedChange = {
+                        onAction(Action.TurnOnOrOffLayer(it, layer.id))
+                    })
+            }
+        }
+
+        item {
+            OutlinedButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp).padding(bottom = 16.dp, top = 8.dp),
+                onClick = {
+                    onAction(Action.AddLayer)
+                }) {
+                Text(stringResource(R.string.add_layer))
+            }
+        }
+
         item {
             ButtonSection(R.string.tools) {
                 IconSelectableMenuButton(
@@ -233,28 +278,6 @@ private fun DrawerMenu(
                     drawableResOn = R.drawable.ic_baseline_grid_on_24,
                     drawableResOff = R.drawable.ic_baseline_grid_off_24
                 )
-            }
-        }
-        item {
-            ButtonHeader(R.string.layers)
-        }
-
-        items(layerCount) {
-            Row(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp).padding(top = 8.dp, bottom = 16.dp)
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    modifier = Modifier.weight(1F),
-                    text = stringResource(R.string.layer_value, it + 1)
-                )
-                Switch(
-                    checked = true,
-                    onCheckedChange = {
-
-                    })
             }
         }
 
@@ -301,7 +324,7 @@ private fun ButtonSection(
 @Composable
 private fun ButtonHeader(@StringRes title: Int) {
     Text(
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+        modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 8.dp),
         text = stringResource(title)
     )
     Divider(modifier = Modifier.padding(horizontal = 16.dp))
@@ -399,7 +422,8 @@ private fun handleAction(
     transformerState: TransformerState,
     drawerState: DrawerState,
     viewModel: BoxesViewModel,
-    project: Project?,
+    project: ProjectAndLayer?,
+    layers: LayerList,
     scope: CoroutineScope,
     cc: CoroutineContextProvider,
     rootView: View,
@@ -413,18 +437,33 @@ private fun handleAction(
             if (action.autoSave) null else canvasState.boxes.keys.toList(),
             canvasState.selections.toMap()
         )
-        is Action.Clear -> canvasState.clear()
+        is Action.Clear -> if (layers.hasLayersTurnedOn) {
+            canvasState.clear(layers.turnedOnIds)
+        }
         is Action.ShowPngBackground -> buttonsState.toggleShowPngBackground()
         is Action.ResetZoom -> transformerState.reset(scope)
         is Action.Edit -> {
             scope.launch { drawerState.close() }
-            navController.navigate(CreateMainDestination(project?.id))
+            navController.navigate(CreateMainDestination(project?.project?.id))
+        }
+        is Action.AddLayer -> {
+            viewModel.addLayer(
+                (project?.layers?.maxOf { it.layer.index } ?: -1) + 1,
+                canvasState.selections.toMap()
+            )
+        }
+        is Action.TurnOnOrOffLayer -> {
+            viewModel.turnOnOrOffLayer(
+                action.on,
+                action.layerId,
+                canvasState.selections.toMap()
+            )
         }
         is Action.Export -> exportCanvas(
             rootView = rootView,
-            rows = project?.rows ?: 0,
-            columns = project?.columns ?: 0,
-            layers = LayerList(1.rangeTo(project?.layers ?: 1).toCollection(ArrayList())),
+            rows = project?.project?.rows ?: 0,
+            columns = project?.project?.columns ?: 0,
+            layers = LayerList(project?.layers?.map { it.layer } ?: emptyList()),
             selections = canvasState.selections,
             cc = cc
         )

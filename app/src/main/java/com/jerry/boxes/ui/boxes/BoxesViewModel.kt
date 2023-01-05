@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.room.withTransaction
 import com.jerry.boxes.cache.BoxesDao
 import com.jerry.boxes.cache.BoxesDatabase
+import com.jerry.boxes.cache.data.Layer
 import com.jerry.boxes.cache.data.Pixel
 import com.jerry.boxes.ui.destinations.BoxesMainDestination
 import kotlinx.coroutines.flow.SharingStarted
@@ -31,32 +32,69 @@ class BoxesViewModel(
             null
         )
 
-    fun save(
-        boxes: List<Point>? = null,
-        selections: Map<Point, Map<Int, SerializableColor?>?>
+    fun addLayer(
+        index: Int,
+        selections: Map<Point, Map<Long, SerializableColor?>?>
     ) {
         viewModelScope.launch {
-            boxesDatabase.withTransaction {
-                val now = Instant.now().toEpochMilli()
-                val list =
-                    selections.filterKeys { boxes?.contains(it) ?: true }.filterValues { it != null }.flatMap { point ->
-                        point.value?.filterValues { it != null }?.map {
-                            Pixel(
-                                projectId,
-                                point.key.x,
-                                point.key.y,
-                                it.key,
-                                it.value!!.hue,
-                                it.value!!.saturation,
-                                it.value!!.value,
-                                it.value!!.alpha,
-                                now
-                            )
-                        } ?: emptyList()
-                    }
-                boxesDao.insertAllPixels(list)
-                boxesDao.deletePixelsFromProject(projectId, now)
+            updateDatabase {
+                saveProject(selections = selections)
+                boxesDao.insertLayer(Layer(projectId, index, "Layer ${index + 1}", true))
             }
         }
+    }
+
+    fun turnOnOrOffLayer(
+        on: Boolean,
+        layerId: Long,
+        selections: Map<Point, Map<Long, SerializableColor?>?>
+    ) {
+        viewModelScope.launch {
+            updateDatabase {
+                saveProject(selections = selections)
+                boxesDao.turnOnOrOffLayer(on, layerId)
+            }
+        }
+    }
+
+    fun save(
+        boxes: List<Point>? = null,
+        selections: Map<Point, Map<Long, SerializableColor?>?>
+    ) {
+        viewModelScope.launch {
+            updateDatabase {
+                saveProject(boxes, selections)
+            }
+        }
+    }
+
+    private suspend fun updateDatabase(block: suspend () -> Unit) {
+        boxesDatabase.withTransaction {
+            block()
+        }
+    }
+
+    private suspend fun saveProject(
+        boxes: List<Point>? = null,
+        selections: Map<Point, Map<Long, SerializableColor?>?>
+    ) {
+        val now = Instant.now().toEpochMilli()
+        val list =
+            selections.filterKeys { boxes?.contains(it) ?: true }.filterValues { it != null }.flatMap { point ->
+                point.value?.filterValues { it != null }?.map {
+                    Pixel(
+                        it.key,
+                        point.key.x,
+                        point.key.y,
+                        it.value!!.hue,
+                        it.value!!.saturation,
+                        it.value!!.value,
+                        it.value!!.alpha,
+                        now
+                    )
+                } ?: emptyList()
+            }
+        boxesDao.insertAllPixels(list)
+        boxesDao.deletePixelsFromProject(projectId, now)
     }
 }

@@ -8,19 +8,18 @@ import java.io.Serializable
 
 @Entity(
     tableName = Pixel.TABLE_NAME,
-    indices = [(Index(value = ["id", "projectId", "x", "y", "layer"], unique = true))],
+    indices = [(Index(value = ["layerId", "x", "y"], unique = true))],
     foreignKeys = [(ForeignKey(
-        entity = Project::class,
+        entity = Layer::class,
         parentColumns = ["id"],
-        childColumns = ["projectId"],
+        childColumns = ["layerId"],
         onDelete = ForeignKey.CASCADE
     ))]
 )
 data class Pixel(
-    val projectId: Long,
+    val layerId: Long,
     val x: Int,
     val y: Int,
-    val layer: Int,
     val hue: Float,
     val saturation: Float,
     val value: Float,

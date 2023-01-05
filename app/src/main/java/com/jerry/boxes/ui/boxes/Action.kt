@@ -7,5 +7,7 @@ sealed class Action {
     object ResetZoom: Action()
     object ShowPngBackground : Action()
     object Edit : Action()
+    object AddLayer: Action()
+    data class TurnOnOrOffLayer(val on: Boolean, val layerId: Long) : Action()
     data class Save(val autoSave: Boolean) : Action()
 }

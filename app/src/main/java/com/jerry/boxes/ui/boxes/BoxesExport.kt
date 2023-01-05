@@ -25,7 +25,7 @@ fun exportCanvas(
     rows: Int,
     columns: Int,
     layers: LayerList,
-    selections: Map<Point, Map<Int, SerializableColor?>?>,
+    selections: Map<Point, Map<Long, SerializableColor?>?>,
     cc: CoroutineContextProvider
 ) {
     (rootView as? ViewGroup)?.run {
@@ -66,7 +66,7 @@ fun exportCanvas(
                         offset = Offset.Zero,
                         boxes = newBoxes,
                         selections = selections,
-                        layerList = layers
+                        layers = layers
                     )
                 }
                 LaunchedEffect(Unit) {

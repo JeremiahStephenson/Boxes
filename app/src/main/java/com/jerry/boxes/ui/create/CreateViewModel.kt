@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jerry.boxes.cache.BoxesDao
+import com.jerry.boxes.cache.data.Layer
 import com.jerry.boxes.cache.data.Project
 import com.jerry.boxes.ui.destinations.CreateMainDestination
 import com.jerry.boxes.util.Resource
@@ -33,7 +34,11 @@ class CreateViewModel(
             _uiState.tryEmit(Resource.error(error))
         }) {
             val id = when (projectId) {
-                null -> boxesDao.insertProject(Project(name, columns, rows, 1))
+                null -> {
+                    val projectId = boxesDao.insertProject(Project(name, columns, rows))
+                    boxesDao.insertLayer(Layer(projectId, 0, "Layer 1", true))
+                    projectId
+                }
                 else -> {
                     boxesDao.updateProject(name, columns, rows, projectId)
                     projectId

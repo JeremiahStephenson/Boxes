@@ -73,7 +73,7 @@ fun BoxCanvas(
         SelectionsBoxes(
             scale = scale,
             offset = offset,
-            layerList = layers,
+            layers = layers,
             boxes = canvasState.boxes,
             selections = canvasState.selections
         )
@@ -98,9 +98,9 @@ fun BoxCanvas(
 fun SelectionsBoxes(
     scale: Float,
     offset: Offset,
-    layerList: LayerList,
+    layers: LayerList,
     boxes: Map<Point, RectF>,
-    selections: Map<Point, Map<Int, SerializableColor?>?>
+    selections: Map<Point, Map<Long, SerializableColor?>?>
 ) {
     Canvas(
         modifier = Modifier
@@ -112,16 +112,20 @@ fun SelectionsBoxes(
                 translationY = offset.y
             )
     ) {
+        //val layersTurnedOn = layers.layers.filter { it.on }.map { it.id }
+        val layerIds = layers.layers.filter { it.on }.sortedBy { it.index }.map { it.id }
         selections.forEach { (point, pixels) ->
             val position = boxes[point]
             safeLet(position, pixels) { pos, selectedPixel ->
-                selectedPixel.filter { layerList.layers.contains(it.key) && it.value != null }.forEach { (_, color) ->
-                    drawRect(
-                        style = Fill,
-                        topLeft = Offset(pos.left, pos.top),
-                        size = Size(pos.width(), pos.height()),
-                        color = color!!.color
-                    )
+                layerIds.forEach {
+                    selectedPixel[it]?.let { color ->
+                        drawRect(
+                            style = Fill,
+                            topLeft = Offset(pos.left, pos.top),
+                            size = Size(pos.width(), pos.height()),
+                            color = color.color
+                        )
+                    }
                 }
             }
         }
