@@ -15,7 +15,7 @@ data class SerializableColor(
     val value: Float,
 
     // from = 0.0, to = 1.0
-    val alpha: Float
+    val alpha: Float,
 ) : Serializable {
 
     @Transient

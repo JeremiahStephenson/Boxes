@@ -4,6 +4,7 @@ import android.graphics.Point
 import android.graphics.RectF
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.unit.Constraints
 import com.jerry.boxes.cache.data.Pixel
 import com.jerry.boxes.ui.boxes.SerializableColor
@@ -14,10 +15,10 @@ import kotlin.math.min
 @Stable
 class CanvasState {
     private val _boxes = mutableStateMapOf<Point, RectF>()
-    private val _selections = mutableStateMapOf<Point, SerializableColor?>()
+    private val _selections = mutableStateMapOf<Point, SnapshotStateMap<Int, SerializableColor?>?>()
 
     val boxes = _boxes as Map<Point, RectF>
-    val selections = _selections as Map<Point, SerializableColor?>
+    val selections = _selections as Map<Point, Map<Int, SerializableColor?>?>
 
     fun clear() {
         _selections
@@ -29,36 +30,43 @@ class CanvasState {
 
     fun onTap(
         point: Point,
+        layer: Int,
         currentColor: SerializableColor
     ) {
-        val selection = _selections[point]
-        _selections[point] = when (selection == currentColor) {
-            true -> null
-            else -> currentColor
+        val selection = _selections[point]?.get(layer)
+        _selections[point] = _selections.getOrDefault(point, mutableStateMapOf())?.apply {
+            put(layer, when (selection == currentColor) {
+                true -> null
+                else -> currentColor
+            })
         }
     }
 
     fun onDrag(
         point: Point,
+        layer: Int,
         currentColor: SerializableColor,
         erasing: Boolean
     ) {
-        _selections[point] = when (erasing) {
-            true -> null
-            else -> currentColor
+        _selections[point] = _selections.getOrDefault(point, mutableStateMapOf())?.apply {
+            put(layer, when (erasing) {
+                true -> null
+                else -> currentColor
+            })
         }
     }
 
     fun fillInSelections(pixels: List<Pixel>) {
         _selections.clear()
-        _selections.putAll(pixels.associate {
-            Point(it.x, it.y) to
-                    SerializableColor(
-                        it.hue,
-                        it.saturation,
-                        it.value,
-                        it.alpha
-                    )
+        _selections.putAll(pixels.groupBy { Point(it.x, it.y) }.mapValues {
+            it.value.associateTo(SnapshotStateMap()) { pixel ->
+                pixel.layer to SerializableColor(
+                    pixel.hue,
+                    pixel.saturation,
+                    pixel.value,
+                    pixel.alpha
+                )
+            }
         })
     }
 

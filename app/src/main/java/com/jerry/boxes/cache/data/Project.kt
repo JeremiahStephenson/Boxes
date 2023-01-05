@@ -10,7 +10,8 @@ import java.io.Serializable
 data class Project(
     val name: String,
     val columns: Int,
-    val rows: Int
+    val rows: Int,
+    val layers: Int,
 ) : Serializable {
     @PrimaryKey(autoGenerate = true)
     var id: Long = 0L

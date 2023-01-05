@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import com.jerry.boxes.extensions.safeLet
 import com.jerry.boxes.ui.boxes.state.CanvasState
+import com.jerry.boxes.ui.boxes.state.LayerList
 import com.jerry.boxes.ui.common.LocalAppBarHeight
 import kotlin.math.roundToInt
 
@@ -32,6 +33,7 @@ fun BoxCanvas(
     canvasState: CanvasState,
     columns: Int,
     rows: Int,
+    layers: LayerList,
     scale: Float,
     size: Constraints,
     offset: Offset,
@@ -71,6 +73,7 @@ fun BoxCanvas(
         SelectionsBoxes(
             scale = scale,
             offset = offset,
+            layerList = layers,
             boxes = canvasState.boxes,
             selections = canvasState.selections
         )
@@ -95,8 +98,9 @@ fun BoxCanvas(
 fun SelectionsBoxes(
     scale: Float,
     offset: Offset,
+    layerList: LayerList,
     boxes: Map<Point, RectF>,
-    selections: Map<Point, SerializableColor?>
+    selections: Map<Point, Map<Int, SerializableColor?>?>
 ) {
     Canvas(
         modifier = Modifier
@@ -108,15 +112,17 @@ fun SelectionsBoxes(
                 translationY = offset.y
             )
     ) {
-        selections.forEach { (point, color) ->
+        selections.forEach { (point, pixels) ->
             val position = boxes[point]
-            safeLet(position, color) { pos, selectedColor ->
-                drawRect(
-                    style = Fill,
-                    topLeft = Offset(pos.left, pos.top),
-                    size = Size(pos.width(), pos.height()),
-                    color = selectedColor.color
-                )
+            safeLet(position, pixels) { pos, selectedPixel ->
+                selectedPixel.filter { layerList.layers.contains(it.key) && it.value != null }.forEach { (_, color) ->
+                    drawRect(
+                        style = Fill,
+                        topLeft = Offset(pos.left, pos.top),
+                        size = Size(pos.width(), pos.height()),
+                        color = color!!.color
+                    )
+                }
             }
         }
     }

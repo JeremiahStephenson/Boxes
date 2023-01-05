@@ -1,9 +1,11 @@
 package com.jerry.boxes.ui.boxes
 
+import android.os.Bundle
 import android.view.View
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -17,6 +19,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.Lifecycle
@@ -27,12 +30,12 @@ import com.google.accompanist.flowlayout.FlowRow
 import com.jerry.boxes.R
 import com.jerry.boxes.cache.data.Project
 import com.jerry.boxes.cache.data.ProjectAndPixel
+import com.jerry.boxes.extensions.asList
 import com.jerry.boxes.extensions.asSerializableColor
-import com.jerry.boxes.ui.boxes.state.ButtonsState
-import com.jerry.boxes.ui.boxes.state.CanvasState
-import com.jerry.boxes.ui.boxes.state.TransformerState
+import com.jerry.boxes.ui.boxes.state.*
 import com.jerry.boxes.ui.common.*
 import com.jerry.boxes.ui.destinations.CreateMainDestination
+import com.jerry.boxes.util.ArrangementLastItem
 import com.jerry.boxes.util.CoroutineContextProvider
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
@@ -61,6 +64,9 @@ fun BoxesMain(
                 showPngBackground = false
             )
         )
+    }
+    val layerState by rememberSaveable(project.value?.project?.layers) {
+        mutableStateOf(LayerState(project.value?.project?.layers ?: 1))
     }
 
     DefaultContainer(
@@ -107,7 +113,8 @@ fun BoxesMain(
             drawerContent = {
                 DrawerMenu(
                     buttonsState = buttonsState,
-                    onAction = handleAction
+                    onAction = handleAction,
+                    layerCount = project.value?.project?.layers ?: 1,
                 )
             }) {
             project.value?.let { project ->
@@ -116,6 +123,7 @@ fun BoxesMain(
                     canvasState = canvasState,
                     buttonsState = buttonsState,
                     transformerState = transformerState,
+                    layerState = layerState,
                     onAction = handleAction
                 )
             }
@@ -129,6 +137,7 @@ private fun MainCanvas(
     canvasState: CanvasState,
     buttonsState: ButtonsState,
     transformerState: TransformerState,
+    layerState: LayerState,
     onAction: (Action) -> Unit
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
@@ -169,14 +178,22 @@ private fun MainCanvas(
                 canvasState = canvasState,
                 rows = project.project.rows,
                 columns = project.project.columns,
+                layers = layerState.selectedLayersState,
                 scale = scale,
                 offset = offset,
                 size = size,
                 strokeWidth = strokeWidth,
                 state = state,
                 showPngBackgroundSelected = { buttonsState.showPngBackgroundState },
-                onTap = { canvasState.onTap(it, currentColor) },
-                onDrag = { canvasState.onDrag(it, currentColor, buttonsState.eraserSelectedState) }
+                onTap = { canvasState.onTap(it, layerState.selectedLayersState.max, currentColor) },
+                onDrag = {
+                    canvasState.onDrag(
+                        it,
+                        layerState.selectedLayersState.max,
+                        currentColor,
+                        buttonsState.eraserSelectedState
+                    )
+                }
             )
         }
 
@@ -192,52 +209,82 @@ private fun MainCanvas(
 
 @Composable
 private fun DrawerMenu(
+    layerCount: Int,
     buttonsState: ButtonsState,
     onAction: (Action) -> Unit
 ) {
-    val scrollState = rememberScrollState()
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(scrollState)
-            .padding(8.dp)
+            .padding(8.dp),
+        verticalArrangement = remember { ArrangementLastItem() }
     ) {
-        ButtonSection(R.string.tools) {
-            IconSelectableMenuButton(
-                onClick = { onAction(Action.Eraser) },
-                isSelected = { buttonsState.eraserSelectedState },
-                drawableResOn = R.drawable.ic_baseline_eraser_on_24,
-                drawableResOff = R.drawable.ic_baseline_eraser_off_24
-            )
-            IconSelectableMenuButton(
-                onClick = { onAction(Action.ShowPngBackground) },
-                isSelected = { buttonsState.showPngBackgroundState },
-                drawableResOn = R.drawable.ic_baseline_grid_on_24,
-                drawableResOff = R.drawable.ic_baseline_grid_off_24
-            )
+        item {
+            ButtonSection(R.string.tools) {
+                IconSelectableMenuButton(
+                    onClick = { onAction(Action.Eraser) },
+                    isSelected = { buttonsState.eraserSelectedState },
+                    drawableResOn = R.drawable.ic_baseline_eraser_on_24,
+                    drawableResOff = R.drawable.ic_baseline_eraser_off_24
+                )
+                IconSelectableMenuButton(
+                    onClick = { onAction(Action.ShowPngBackground) },
+                    isSelected = { buttonsState.showPngBackgroundState },
+                    drawableResOn = R.drawable.ic_baseline_grid_on_24,
+                    drawableResOff = R.drawable.ic_baseline_grid_off_24
+                )
+            }
         }
-        ButtonSection(R.string.export) {
-            IconMenuButton(
-                onClick = { onAction(Action.Export) },
-                drawableRes = R.drawable.ic_baseline_image_24
-            )
+        item {
+            ButtonHeader(R.string.layers)
         }
-        ButtonSection(R.string.save) {
-            IconMenuButton(
-                onClick = { onAction(Action.Save(false)) },
-                drawableRes = R.drawable.ic_baseline_save_24
-            )
-            IconMenuButton(
-                onClick = { onAction(Action.Edit) },
-                drawableRes = R.drawable.ic_baseline_edit_24
-            )
+
+        items(layerCount) {
+            Row(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp).padding(top = 8.dp, bottom = 16.dp)
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    modifier = Modifier.weight(1F),
+                    text = stringResource(R.string.layer_value, it + 1)
+                )
+                Switch(
+                    checked = true,
+                    onCheckedChange = {
+
+                    })
+            }
         }
-        Spacer(modifier = Modifier.weight(1F))
-        ButtonSection(R.string.clear) {
-            IconMenuButton(
-                onClick = { onAction(Action.Clear) },
-                drawableRes = R.drawable.ic_auto_renew
-            )
+
+        item {
+            ButtonSection(R.string.export) {
+                IconMenuButton(
+                    onClick = { onAction(Action.Export) },
+                    drawableRes = R.drawable.ic_baseline_image_24
+                )
+            }
+        }
+        item {
+            ButtonSection(R.string.save) {
+                IconMenuButton(
+                    onClick = { onAction(Action.Save(false)) },
+                    drawableRes = R.drawable.ic_baseline_save_24
+                )
+                IconMenuButton(
+                    onClick = { onAction(Action.Edit) },
+                    drawableRes = R.drawable.ic_baseline_edit_24
+                )
+            }
+        }
+        item {
+            ButtonSection(R.string.clear) {
+                IconMenuButton(
+                    onClick = { onAction(Action.Clear) },
+                    drawableRes = R.drawable.ic_auto_renew
+                )
+            }
         }
     }
 }
@@ -247,12 +294,17 @@ private fun ButtonSection(
     @StringRes title: Int,
     content: @Composable () -> Unit
 ) {
+    ButtonHeader(title = title)
+    FlowRow(content = content)
+}
+
+@Composable
+private fun ButtonHeader(@StringRes title: Int) {
     Text(
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
         text = stringResource(title)
     )
     Divider(modifier = Modifier.padding(horizontal = 16.dp))
-    FlowRow(content = content)
 }
 
 @Composable
@@ -354,6 +406,7 @@ private fun handleAction(
     navController: DestinationsNavigator,
     action: Action
 ) {
+    ArrayList<Int>(5)
     when (action) {
         is Action.Eraser -> buttonsState.toggleEraserSelected()
         is Action.Save -> viewModel.save(
@@ -371,6 +424,7 @@ private fun handleAction(
             rootView = rootView,
             rows = project?.rows ?: 0,
             columns = project?.columns ?: 0,
+            layers = LayerList(1.rangeTo(project?.layers ?: 1).toCollection(ArrayList())),
             selections = canvasState.selections,
             cc = cc
         )

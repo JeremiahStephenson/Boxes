@@ -33,7 +33,7 @@ class CreateViewModel(
             _uiState.tryEmit(Resource.error(error))
         }) {
             val id = when (projectId) {
-                null -> boxesDao.insertProject(Project(name, columns, rows))
+                null -> boxesDao.insertProject(Project(name, columns, rows, 1))
                 else -> {
                     boxesDao.updateProject(name, columns, rows, projectId)
                     projectId
