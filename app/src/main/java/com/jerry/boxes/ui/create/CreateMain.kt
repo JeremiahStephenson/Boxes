@@ -2,6 +2,8 @@ package com.jerry.boxes.ui.create
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -71,9 +73,11 @@ private fun CreateForm(
     project: Project? = null,
     onSave: (String, Int, Int) -> Unit
 ) {
+    val scrollState = rememberScrollState()
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(scrollState)
             .imePadding()
             .padding(16.dp)
     ) {

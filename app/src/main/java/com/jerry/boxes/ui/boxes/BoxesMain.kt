@@ -140,7 +140,9 @@ private fun MainCanvas(
             canvasState.fillInSelections(project.pixels)
         }
 
-        LaunchedEffect(project.project.rows, project.project.columns) {
+        val contentOffset = LocalAppBarHeight.current
+        val appBarExpanded by remember { derivedStateOf { contentOffset.value == 0F } }
+        LaunchedEffect(project.project.rows, project.project.columns, appBarExpanded) {
             canvasState.fillInBoxes(
                 size,
                 buttonBarOffset,
