@@ -33,10 +33,12 @@ import com.jerry.boxes.ui.boxes.state.CanvasState
 import com.jerry.boxes.ui.boxes.state.TransformerState
 import com.jerry.boxes.ui.common.*
 import com.jerry.boxes.ui.destinations.CreateMainDestination
+import com.jerry.boxes.util.CoroutineContextProvider
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import org.koin.androidx.compose.get
 import org.koin.androidx.compose.koinViewModel
 
 @Destination
@@ -44,6 +46,7 @@ import org.koin.androidx.compose.koinViewModel
 fun BoxesMain(
     projectId: Long,
     navController: DestinationsNavigator,
+    cc: CoroutineContextProvider = get(),
     viewModel: BoxesViewModel = koinViewModel()
 ) {
     val project = viewModel.projectFlow.collectAsStateWithLifecycle()
@@ -92,6 +95,7 @@ fun BoxesMain(
                     viewModel,
                     project.value?.project,
                     scope,
+                    cc,
                     rootView,
                     navController,
                     it
@@ -345,6 +349,7 @@ private fun handleAction(
     viewModel: BoxesViewModel,
     project: Project?,
     scope: CoroutineScope,
+    cc: CoroutineContextProvider,
     rootView: View,
     navController: DestinationsNavigator,
     action: Action
@@ -363,11 +368,11 @@ private fun handleAction(
             navController.navigate(CreateMainDestination(project?.id))
         }
         is Action.Export -> exportCanvas(
-            scope = scope,
             rootView = rootView,
             rows = project?.rows ?: 0,
             columns = project?.columns ?: 0,
-            selections = canvasState.selections
+            selections = canvasState.selections,
+            cc = cc
         )
     }
 }
