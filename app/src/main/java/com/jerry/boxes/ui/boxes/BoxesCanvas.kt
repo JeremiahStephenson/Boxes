@@ -16,8 +16,6 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
@@ -27,7 +25,6 @@ import com.jerry.boxes.cache.data.Layer
 import com.jerry.boxes.extensions.safeLet
 import com.jerry.boxes.ui.boxes.state.CanvasState
 import com.jerry.boxes.ui.common.LocalAppBarHeight
-import timber.log.Timber
 import kotlin.math.roundToInt
 
 @Composable
@@ -135,30 +132,6 @@ fun SelectionsBoxes(
     }
 }
 
-private fun DrawScope.drawShapes(
-    layers: List<Layer>,
-    selections: Map<Point, Map<Long, SerializableColor?>?>,
-    boxes: Map<Point, RectF>
-) {
-    Timber.d("DrawTest - drawing")
-    val layerIds = layers.filter { it.on }.sortedBy { it.index }.map { it.id }
-    selections.forEach { (point, pixels) ->
-        val position = boxes[point]
-        safeLet(position, pixels) { pos, selectedPixel ->
-            layerIds.forEach {
-                selectedPixel[it]?.let { color ->
-                    drawRect(
-                        style = Fill,
-                        topLeft = Offset(pos.left, pos.top),
-                        size = Size(pos.width(), pos.height()),
-                        color = color.color
-                    )
-                }
-            }
-        }
-    }
-}
-
 @Composable
 fun PngBackground() {
     val size = with(LocalDensity.current) { 10.dp.roundToPx() }.toFloat()
@@ -214,7 +187,10 @@ private fun Grid(
             )
     ) {
         for (i in 0 until rows) {
-            safeLet(canvasState.boxes[Point(0, i)], canvasState.boxes[Point(columns - 1, i)]) { start, end ->
+            safeLet(
+                canvasState.boxes[Point(0, i)],
+                canvasState.boxes[Point(columns - 1, i)]
+            ) { start, end ->
                 drawLine(
                     strokeWidth = strokeWidth / scale,
                     color = strokeColor,
@@ -232,7 +208,10 @@ private fun Grid(
             }
         }
         for (i in 0 until columns) {
-            safeLet(canvasState.boxes[Point(i, 0)], canvasState.boxes[Point(i, rows - 1)]) { start, end ->
+            safeLet(
+                canvasState.boxes[Point(i, 0)],
+                canvasState.boxes[Point(i, rows - 1)]
+            ) { start, end ->
                 drawLine(
                     strokeWidth = strokeWidth / scale,
                     color = strokeColor,
@@ -265,7 +244,8 @@ private fun Offset.findBox(
     offset: Offset,
     size: Constraints,
     boxes: Map<Point, RectF>,
-    onBox: (Point) -> Unit) {
+    onBox: (Point) -> Unit
+) {
     val point = convert(scale, offset, size)
     boxes.entries.find { box ->
         point.x >= box.value.left && point.x <= box.value.right &&

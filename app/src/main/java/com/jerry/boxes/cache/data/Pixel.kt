@@ -4,6 +4,8 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.jerry.boxes.ui.boxes.SerializableColor
+import com.jerry.boxes.ui.boxes.Shape
 import java.io.Serializable
 
 @Entity(
@@ -24,6 +26,7 @@ data class Pixel(
     val saturation: Float,
     val value: Float,
     val alpha: Float,
+    val shape: Shape,
     val timeStamp: Long
 ) : Serializable {
     @PrimaryKey(autoGenerate = true)
@@ -32,4 +35,6 @@ data class Pixel(
     companion object {
         const val TABLE_NAME = "pixel"
     }
+
+    val asSerializableColor get() = SerializableColor(hue, saturation, value, alpha, shape)
 }

@@ -1,10 +1,15 @@
 package com.jerry.boxes.ui.boxes
 
+import android.graphics.RectF
 import android.view.View
 import androidx.annotation.StringRes
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -139,6 +144,7 @@ private fun MainCanvas(
         val buttonBarOffset = remember { with(density) { 56.dp.roundToPx() } }
 
         var currentColor by rememberSaveable { mutableStateOf(Color.Green.asSerializableColor) }
+        var currentShape by rememberSaveable { mutableStateOf(Shape.Box) }
 
         val size = this.constraints
         LaunchedEffect(project) {
@@ -179,7 +185,12 @@ private fun MainCanvas(
                 showPngBackgroundSelected = { buttonsState.showPngBackgroundState },
                 onTap = {
                     if (canvasState.hasLayersTurnedOn) {
-                        canvasState.onTap(it, canvasState.max.id, currentColor)
+                        canvasState.onTap(
+                            it,
+                            canvasState.max.id,
+                            currentColor,
+                            currentShape
+                        )
                     }
                 },
                 onDrag = {
@@ -188,6 +199,7 @@ private fun MainCanvas(
                             it,
                             canvasState.max.id,
                             currentColor,
+                            currentShape,
                             buttonsState.eraserSelectedState
                         )
                     }
@@ -197,8 +209,12 @@ private fun MainCanvas(
 
         ButtonBar(
             color = currentColor,
+            shape = currentShape,
             onColorChosen = {
                 currentColor = it
+            },
+            onShapeChosen = {
+                currentShape = it
             },
             onAction = onAction
         )
@@ -330,8 +346,10 @@ private fun ButtonHeader(@StringRes title: Int) {
 @Composable
 private fun ButtonBar(
     color: SerializableColor,
+    shape: Shape,
     onAction: (Action) -> Unit,
-    onColorChosen: (SerializableColor) -> Unit
+    onColorChosen: (SerializableColor) -> Unit,
+    onShapeChosen: (Shape) -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -350,6 +368,15 @@ private fun ButtonBar(
             }
         }
 
+        var shapePicker by remember { mutableStateOf(false) }
+        if (shapePicker) {
+            ShapePickerDialog(
+                onShapeChosen = onShapeChosen,
+            ) {
+                shapePicker = false
+            }
+        }
+
         Box(
             modifier = Modifier
                 .unboundClickable {
@@ -360,12 +387,67 @@ private fun ButtonBar(
                 .background(color.color)
         )
 
+        ShapeOption(shape = shape) {
+            shapePicker = true
+        }
+
         Spacer(modifier = Modifier.weight(1F))
 
         IconMenuButton(
             onClick = { onAction(Action.ResetZoom) },
             drawableRes = R.drawable.ic_baseline_zoom_out_map_24
         )
+    }
+}
+
+@Composable
+private fun ShapeOption(
+    shape: Shape,
+    onClick: () -> Unit
+) {
+    val onSurface = MaterialTheme.colorScheme.onSurface
+    val shapeColor = remember { HsvColor.from(onSurface) }
+    val size = with(LocalDensity.current) { 24.dp.toPx() }
+    Canvas(
+        modifier = Modifier
+            .unboundClickable {
+                onClick()
+            }
+            .padding(16.dp)
+            .size(26.dp)
+    ) {
+        drawCustomShape(
+            RectF(0F, 0F, size, size),
+            SerializableColor(shapeColor.hue, shapeColor.saturation, shapeColor.value, 1.0F, shape)
+        )
+    }
+}
+
+@Composable
+private fun ShapePickerDialog(
+    onShapeChosen: (Shape) -> Unit,
+    onDismiss: () -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        LazyVerticalGrid(
+            modifier = Modifier
+                .clip(MaterialTheme.shapes.large)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .padding(16.dp),
+            columns = GridCells.Fixed(4)
+        ) {
+            items(
+                items = Shape.values(),
+                key = { item -> item.ordinal }
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    ShapeOption(shape = it) {
+                        onShapeChosen(it)
+                        onDismiss()
+                    }
+                }
+            }
+        }
     }
 }
 

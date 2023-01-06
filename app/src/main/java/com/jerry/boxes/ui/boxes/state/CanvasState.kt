@@ -2,12 +2,15 @@ package com.jerry.boxes.ui.boxes.state
 
 import android.graphics.Point
 import android.graphics.RectF
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.unit.Constraints
 import com.jerry.boxes.cache.data.Layer
 import com.jerry.boxes.cache.data.LayerAndPixel
 import com.jerry.boxes.ui.boxes.SerializableColor
+import com.jerry.boxes.ui.boxes.Shape
 import com.jerry.boxes.ui.boxes.generateBoxes
 import kotlin.math.max
 import kotlin.math.min
@@ -47,14 +50,16 @@ class CanvasState() {
     fun onTap(
         point: Point,
         layerId: Long,
-        currentColor: SerializableColor
+        currentColor: SerializableColor,
+        currentShape: Shape
     ) {
+        val colorAndShape = currentColor.copy(shape = currentShape)
         val selection = _selections[point]?.get(layerId)
         _selections[point] = _selections.getOrDefault(point, mutableStateMapOf())?.apply {
             put(
-                layerId, when (selection == currentColor) {
+                layerId, when (selection == colorAndShape) {
                     true -> null
-                    else -> currentColor
+                    else -> colorAndShape
                 }
             )
         }
@@ -64,13 +69,14 @@ class CanvasState() {
         point: Point,
         layerId: Long,
         currentColor: SerializableColor,
+        currentShape: Shape,
         erasing: Boolean
     ) {
         _selections[point] = _selections.getOrDefault(point, mutableStateMapOf())?.apply {
             put(
                 layerId, when (erasing) {
                     true -> null
-                    else -> currentColor
+                    else -> currentColor.copy(shape = currentShape)
                 }
             )
         }
@@ -85,12 +91,7 @@ class CanvasState() {
                 Point(it.x, it.y)
             }.mapValues {
                 it.value.associateTo(SnapshotStateMap()) { pixel ->
-                    pixel.layerId to SerializableColor(
-                        pixel.hue,
-                        pixel.saturation,
-                        pixel.value,
-                        pixel.alpha
-                    )
+                    pixel.layerId to pixel.asSerializableColor
                 }
             })
     }

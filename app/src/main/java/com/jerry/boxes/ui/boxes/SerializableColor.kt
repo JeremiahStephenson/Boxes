@@ -16,6 +16,8 @@ data class SerializableColor(
 
     // from = 0.0, to = 1.0
     val alpha: Float,
+
+    val shape: Shape = Shape.Box
 ) : Serializable {
 
     @Transient

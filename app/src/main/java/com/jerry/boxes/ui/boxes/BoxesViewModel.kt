@@ -90,6 +90,7 @@ class BoxesViewModel(
                         it.value!!.saturation,
                         it.value!!.value,
                         it.value!!.alpha,
+                        it.value!!.shape,
                         now
                     )
                 } ?: emptyList()
