@@ -253,15 +253,19 @@ private fun DrawerMenu(
         }
 
         item {
-            OutlinedButton(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp).padding(bottom = 16.dp, top = 8.dp),
-                onClick = {
-                    onAction(Action.AddLayer)
-                }) {
-                Text(stringResource(R.string.add_layer))
+            if (layers.layers.size < 5) {
+                OutlinedButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .padding(top = 8.dp),
+                    onClick = {
+                        onAction(Action.AddLayer)
+                    }) {
+                    Text(stringResource(R.string.add_layer))
+                }
             }
+            Spacer(modifier = Modifier.height(16.dp))
         }
 
         item {
@@ -324,7 +328,9 @@ private fun ButtonSection(
 @Composable
 private fun ButtonHeader(@StringRes title: Int) {
     Text(
-        modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 8.dp),
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 8.dp),
         text = stringResource(title)
     )
     Divider(modifier = Modifier.padding(horizontal = 16.dp))
