@@ -27,10 +27,7 @@ import com.google.accompanist.flowlayout.FlowRow
 import com.jerry.boxes.R
 import com.jerry.boxes.cache.data.ProjectAndLayer
 import com.jerry.boxes.extensions.asSerializableColor
-import com.jerry.boxes.ui.boxes.state.ButtonsState
-import com.jerry.boxes.ui.boxes.state.CanvasState
-import com.jerry.boxes.ui.boxes.state.LayerList
-import com.jerry.boxes.ui.boxes.state.TransformerState
+import com.jerry.boxes.ui.boxes.state.*
 import com.jerry.boxes.ui.common.*
 import com.jerry.boxes.ui.destinations.CreateMainDestination
 import com.jerry.boxes.util.ArrangementLastItem
@@ -50,7 +47,7 @@ fun BoxesMain(
     cc: CoroutineContextProvider = get(),
     viewModel: BoxesViewModel = koinViewModel()
 ) {
-    val project = viewModel.projectFlow.collectAsStateWithLifecycle()
+    val project by viewModel.projectFlow.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
 
@@ -65,7 +62,7 @@ fun BoxesMain(
     }
 
     DefaultContainer(
-        title = project.value?.project?.name.orEmpty(),
+        title = project?.project?.name.orEmpty(),
         disableAppbarScroll = true,
         appBarActions = {
             Icon(
@@ -86,10 +83,10 @@ fun BoxesMain(
     ) {
         val transformerState = remember { TransformerState() }
         val rootView = LocalView.current.rootView
-        val layers = remember(project.value?.layers) {
-            LayerList(project.value?.layers?.map { it.layer } ?: emptyList())
+        val layers = remember(project?.layers) {
+            LayerState(LayerList(project?.layers?.map { it.layer } ?: emptyList()))
         }
-        val layerState by rememberUpdatedState(layers)
+        val layerState = rememberUpdatedState(layers)
         val handleAction: (Action) -> Unit = remember {
             {
                 handleAction(
@@ -98,8 +95,8 @@ fun BoxesMain(
                     transformerState,
                     drawerState,
                     viewModel,
-                    project.value,
-                    layerState,
+                    project,
+                    layerState.value,
                     scope,
                     cc,
                     rootView,
@@ -114,16 +111,16 @@ fun BoxesMain(
                 DrawerMenu(
                     buttonsState = buttonsState,
                     onAction = handleAction,
-                    layers = layers,
+                    layerState = layers,
                 )
             }) {
-            project.value?.let { project ->
+            project?.let { project ->
                 MainCanvas(
                     project = project,
                     canvasState = canvasState,
                     buttonsState = buttonsState,
                     transformerState = transformerState,
-                    layers = layerState,
+                    layers = layers,
                     onAction = handleAction
                 )
             }
@@ -137,7 +134,7 @@ private fun MainCanvas(
     canvasState: CanvasState,
     buttonsState: ButtonsState,
     transformerState: TransformerState,
-    layers: LayerList,
+    layers: LayerState,
     onAction: (Action) -> Unit
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
@@ -216,7 +213,7 @@ private fun MainCanvas(
 
 @Composable
 private fun DrawerMenu(
-    layers: LayerList,
+    layerState: LayerState,
     buttonsState: ButtonsState,
     onAction: (Action) -> Unit
 ) {
@@ -232,7 +229,7 @@ private fun DrawerMenu(
         }
 
         items(
-            items = layers.layers,
+            items = layerState.layersList.layers,
             key = { it.id }) { layer ->
             Row(
                 modifier = Modifier
@@ -253,7 +250,7 @@ private fun DrawerMenu(
         }
 
         item {
-            if (layers.layers.size < 5) {
+            if (layerState.layersList.layers.size < 5) {
                 OutlinedButton(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -429,7 +426,7 @@ private fun handleAction(
     drawerState: DrawerState,
     viewModel: BoxesViewModel,
     project: ProjectAndLayer?,
-    layers: LayerList,
+    layers: LayerState,
     scope: CoroutineScope,
     cc: CoroutineContextProvider,
     rootView: View,
