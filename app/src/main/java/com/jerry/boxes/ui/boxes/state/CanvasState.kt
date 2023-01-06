@@ -10,7 +10,7 @@ import androidx.compose.ui.unit.Constraints
 import com.jerry.boxes.cache.data.Layer
 import com.jerry.boxes.cache.data.LayerAndPixel
 import com.jerry.boxes.ui.boxes.SerializableColor
-import com.jerry.boxes.ui.boxes.Shape
+import com.jerry.boxes.ui.boxes.shapes.Shape
 import com.jerry.boxes.ui.boxes.generateBoxes
 import kotlin.math.max
 import kotlin.math.min
@@ -98,7 +98,7 @@ class CanvasState() {
 
     fun fillInBoxes(
         size: Constraints,
-        offset: Int,
+        offset: Float,
         columns: Int,
         rows: Int
     ) {
@@ -121,8 +121,8 @@ class CanvasState() {
                 columns,
                 rows,
                 min,
-                xOffSet.toInt(),
-                offset + yOffSet.toInt()
+                xOffSet,
+                offset + yOffSet
             )
         )
     }

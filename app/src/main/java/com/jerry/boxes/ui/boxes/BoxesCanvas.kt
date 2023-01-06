@@ -134,7 +134,7 @@ fun SelectionsBoxes(
 
 @Composable
 fun PngBackground() {
-    val size = with(LocalDensity.current) { 10.dp.roundToPx() }.toFloat()
+    val size = with(LocalDensity.current) { 10.dp.toPx() }
     Canvas(
         modifier = Modifier
             .fillMaxSize()

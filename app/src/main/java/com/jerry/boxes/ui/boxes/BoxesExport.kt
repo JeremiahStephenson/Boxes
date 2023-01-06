@@ -31,7 +31,7 @@ fun exportCanvas(
     (rootView as? ViewGroup)?.run {
         val composeView = ComposeView(context).apply {
 
-            val newBoxes = generateBoxes(columns, rows, 100F, 0, 0)
+            val newBoxes = generateBoxes(columns, rows, 100F, 0F, 0F)
 
             layoutParams = ViewGroup.LayoutParams(
                 columns * 100,
