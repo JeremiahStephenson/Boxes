@@ -27,7 +27,9 @@ import com.google.accompanist.flowlayout.FlowRow
 import com.jerry.boxes.R
 import com.jerry.boxes.cache.data.ProjectAndLayer
 import com.jerry.boxes.extensions.asSerializableColor
-import com.jerry.boxes.ui.boxes.state.*
+import com.jerry.boxes.ui.boxes.state.ButtonsState
+import com.jerry.boxes.ui.boxes.state.CanvasState
+import com.jerry.boxes.ui.boxes.state.TransformerState
 import com.jerry.boxes.ui.common.*
 import com.jerry.boxes.ui.destinations.CreateMainDestination
 import com.jerry.boxes.util.ArrangementLastItem
@@ -83,10 +85,6 @@ fun BoxesMain(
     ) {
         val transformerState = remember { TransformerState() }
         val rootView = LocalView.current.rootView
-        val layers = remember(project?.layers) {
-            LayerState(LayerList(project?.layers?.map { it.layer } ?: emptyList()))
-        }
-        val layerState = rememberUpdatedState(layers)
         val handleAction: (Action) -> Unit = remember {
             {
                 handleAction(
@@ -96,7 +94,6 @@ fun BoxesMain(
                     drawerState,
                     viewModel,
                     project,
-                    layerState.value,
                     scope,
                     cc,
                     rootView,
@@ -111,7 +108,7 @@ fun BoxesMain(
                 DrawerMenu(
                     buttonsState = buttonsState,
                     onAction = handleAction,
-                    layerState = layers,
+                    canvasState = canvasState
                 )
             }) {
             project?.let { project ->
@@ -120,7 +117,6 @@ fun BoxesMain(
                     canvasState = canvasState,
                     buttonsState = buttonsState,
                     transformerState = transformerState,
-                    layers = layers,
                     onAction = handleAction
                 )
             }
@@ -134,7 +130,6 @@ private fun MainCanvas(
     canvasState: CanvasState,
     buttonsState: ButtonsState,
     transformerState: TransformerState,
-    layers: LayerState,
     onAction: (Action) -> Unit
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
@@ -147,6 +142,7 @@ private fun MainCanvas(
 
         val size = this.constraints
         LaunchedEffect(project) {
+            canvasState.setLayers(project.layers.map { it.layer })
             canvasState.fillInSelections(project.layers)
         }
 
@@ -171,12 +167,10 @@ private fun MainCanvas(
             if (buttonsState.showPngBackgroundState) {
                 PngBackground()
             }
-            val layersState by rememberUpdatedState(layers)
             BoxCanvas(
                 canvasState = canvasState,
                 rows = project.project.rows,
                 columns = project.project.columns,
-                layers = layers,
                 scale = scale,
                 offset = offset,
                 size = size,
@@ -184,15 +178,15 @@ private fun MainCanvas(
                 state = state,
                 showPngBackgroundSelected = { buttonsState.showPngBackgroundState },
                 onTap = {
-                    if (layersState.hasLayersTurnedOn) {
-                        canvasState.onTap(it, layersState.max.id, currentColor)
+                    if (canvasState.hasLayersTurnedOn) {
+                        canvasState.onTap(it, canvasState.max.id, currentColor)
                     }
                 },
                 onDrag = {
-                    if (layersState.hasLayersTurnedOn) {
+                    if (canvasState.hasLayersTurnedOn) {
                         canvasState.onDrag(
                             it,
-                            layersState.max.id,
+                            canvasState.max.id,
                             currentColor,
                             buttonsState.eraserSelectedState
                         )
@@ -213,7 +207,7 @@ private fun MainCanvas(
 
 @Composable
 private fun DrawerMenu(
-    layerState: LayerState,
+    canvasState: CanvasState,
     buttonsState: ButtonsState,
     onAction: (Action) -> Unit
 ) {
@@ -229,7 +223,7 @@ private fun DrawerMenu(
         }
 
         items(
-            items = layerState.layersList.layers,
+            items = canvasState.layers,
             key = { it.id }) { layer ->
             Row(
                 modifier = Modifier
@@ -250,7 +244,7 @@ private fun DrawerMenu(
         }
 
         item {
-            if (layerState.layersList.layers.size < 5) {
+            if (canvasState.layers.size < 5) {
                 OutlinedButton(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -426,7 +420,6 @@ private fun handleAction(
     drawerState: DrawerState,
     viewModel: BoxesViewModel,
     project: ProjectAndLayer?,
-    layers: LayerState,
     scope: CoroutineScope,
     cc: CoroutineContextProvider,
     rootView: View,
@@ -440,8 +433,8 @@ private fun handleAction(
             if (action.autoSave) null else canvasState.boxes.keys.toList(),
             canvasState.selections.toMap()
         )
-        is Action.Clear -> if (layers.hasLayersTurnedOn) {
-            canvasState.clear(layers.turnedOnIds)
+        is Action.Clear -> if (canvasState.hasLayersTurnedOn) {
+            canvasState.clear(canvasState.turnedOnIds)
         }
         is Action.ShowPngBackground -> buttonsState.toggleShowPngBackground()
         is Action.ResetZoom -> transformerState.reset(scope)
@@ -466,7 +459,7 @@ private fun handleAction(
             rootView = rootView,
             rows = project?.project?.rows ?: 0,
             columns = project?.project?.columns ?: 0,
-            layers = LayerList(project?.layers?.map { it.layer } ?: emptyList()),
+            layers = canvasState.layers,
             selections = canvasState.selections,
             cc = cc
         )

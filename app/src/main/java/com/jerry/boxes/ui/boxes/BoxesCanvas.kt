@@ -23,11 +23,11 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
+import com.jerry.boxes.cache.data.Layer
 import com.jerry.boxes.extensions.safeLet
 import com.jerry.boxes.ui.boxes.state.CanvasState
-import com.jerry.boxes.ui.boxes.state.LayerList
-import com.jerry.boxes.ui.boxes.state.LayerState
 import com.jerry.boxes.ui.common.LocalAppBarHeight
+import timber.log.Timber
 import kotlin.math.roundToInt
 
 @Composable
@@ -35,7 +35,6 @@ fun BoxCanvas(
     canvasState: CanvasState,
     columns: Int,
     rows: Int,
-    layers: LayerState,
     scale: Float,
     size: Constraints,
     offset: Offset,
@@ -75,7 +74,6 @@ fun BoxCanvas(
         SelectionsBoxes(
             scale = scale,
             offset = offset,
-            layers = layers,
             canvasState = canvasState
         )
 
@@ -99,7 +97,7 @@ fun BoxCanvas(
 fun SelectionsBoxes(
     scale: Float,
     offset: Offset,
-    layers: LayerList,
+    layers: List<Layer>,
     boxes: Map<Point, RectF>,
     selections: Map<Point, Map<Long, SerializableColor?>?>
 ) {
@@ -121,7 +119,6 @@ fun SelectionsBoxes(
 fun SelectionsBoxes(
     scale: Float,
     offset: Offset,
-    layers: LayerState,
     canvasState: CanvasState
 ) {
     Canvas(
@@ -134,16 +131,17 @@ fun SelectionsBoxes(
                 translationY = offset.y
             )
     ) {
-        drawShapes(layers.layersList, canvasState.selections, canvasState.boxes)
+        drawShapes(canvasState.layers, canvasState.selections, canvasState.boxes)
     }
 }
 
 private fun DrawScope.drawShapes(
-    layers: LayerList,
+    layers: List<Layer>,
     selections: Map<Point, Map<Long, SerializableColor?>?>,
     boxes: Map<Point, RectF>
 ) {
-    val layerIds = layers.layers.filter { it.on }.sortedBy { it.index }.map { it.id }
+    Timber.d("DrawTest - drawing")
+    val layerIds = layers.filter { it.on }.sortedBy { it.index }.map { it.id }
     selections.forEach { (point, pixels) ->
         val position = boxes[point]
         safeLet(position, pixels) { pos, selectedPixel ->

@@ -2,10 +2,10 @@ package com.jerry.boxes.ui.boxes.state
 
 import android.graphics.Point
 import android.graphics.RectF
-import androidx.compose.runtime.Stable
-import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.unit.Constraints
+import com.jerry.boxes.cache.data.Layer
 import com.jerry.boxes.cache.data.LayerAndPixel
 import com.jerry.boxes.ui.boxes.SerializableColor
 import com.jerry.boxes.ui.boxes.generateBoxes
@@ -13,13 +13,24 @@ import kotlin.math.max
 import kotlin.math.min
 
 @Stable
-class CanvasState {
+class CanvasState() {
     private val _boxes = mutableStateMapOf<Point, RectF>()
     private val _selections =
         mutableStateMapOf<Point, SnapshotStateMap<Long, SerializableColor?>?>()
+    private val _layers = mutableStateListOf<Layer>()
 
     val boxes = _boxes as Map<Point, RectF>
     val selections = _selections as Map<Point, Map<Long, SerializableColor?>?>
+    val layers = _layers as List<Layer>
+
+    val max get() = _layers.filter { it.on }.maxBy { it.index }
+    val hasLayersTurnedOn get() = _layers.any { it.on }
+    val turnedOnIds get() = _layers.filter { it.on }.map { it.id }
+
+    fun setLayers(layerList: List<Layer>) {
+        _layers.clear()
+        _layers.addAll(layerList)
+    }
 
     fun clear(layers: List<Long>) {
         _selections
