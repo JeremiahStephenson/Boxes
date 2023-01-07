@@ -39,7 +39,7 @@ class CanvasState() {
         _selections
             .filter { it.value != null }
             .forEach {
-                _selections[it.key] = _selections.getOrDefault(it.key, mutableStateMapOf())?.apply {
+                _selections.getOrDefault(it.key, mutableStateMapOf())?.apply {
                     layers.forEach { layerId ->
                         put(layerId, null)
                     }

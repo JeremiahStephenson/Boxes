@@ -25,6 +25,7 @@ import com.jerry.boxes.cache.data.Layer
 import com.jerry.boxes.extensions.safeLet
 import com.jerry.boxes.ui.boxes.state.CanvasState
 import com.jerry.boxes.ui.common.LocalAppBarHeight
+import timber.log.Timber
 import kotlin.math.roundToInt
 
 @Composable
@@ -56,12 +57,68 @@ fun BoxCanvas(
             }
         }
         .pointerInput(appBarExpanded) {
-            detectDragGestures { change, _ ->
-                if (state.isTransformInProgress) return@detectDragGestures
-                change.position.findBox(scaleState, offsetState, sizeState, canvasState.boxes) {
-                    onDrag(it)
+//            detectDragGestures { change, _ ->
+//                if (state.isTransformInProgress) return@detectDragGestures
+//                change.position.findBox(scaleState, offsetState, sizeState, canvasState.boxes) {
+//                    onDrag(it)
+//                }
+//            }
+            detectDragGestures(
+                onDragStart = {
+                    //Timber.d("DragTest - start")
+                },
+                onDragCancel = {},
+                onDragEnd = {
+                    //Timber.d("DragTest - end")
+                },
+                onDrag = { change, offset ->
+                    //Timber.d("DragTest1 - $change")
+                    //Timber.d("DragTest2 - $offset")
+                    if (state.isTransformInProgress) return@detectDragGestures
+
+                    val list = mutableListOf<Offset>()
+
+//                    val boxSize = canvasState.boxes.values
+//                        .first()
+//                        .width()
+//                        .toInt()
+//
+//                    val previousPosition = change.position.minus(offset)
+//                    if (offset.x > boxSize || offset.y > boxSize) {
+//                        Timber.d("DragTest pre - ${previousPosition}")
+//
+//                        val testX = when (previousPosition.x > change.position.x) {
+//                            true -> previousPosition.x.toInt()downTo change.position.x.toInt() step boxSize
+//                            else -> previousPosition.x.toInt()..change.position.x.toInt() step boxSize
+//                        }
+//
+//                        val testY = when (previousPosition.y > change.position.y) {
+//                            true -> previousPosition.y.toInt()downTo change.position.y.toInt() step boxSize
+//                            else -> previousPosition.y.toInt()..change.position.y.toInt() step boxSize
+//                        }
+//
+//                        for (c in testX) {
+//                            for (r in testY) {
+//                                list.add(Offset(c.toFloat(), r.toFloat()))
+//                            }
+//                        }
+//                    }
+
+                    Timber.d("DragTest 2- ${change.position}")
+                    list.add(change.position)
+
+                    list.forEach {
+                        it.findBox(
+                            scaleState,
+                            offsetState,
+                            sizeState,
+                            canvasState.boxes
+                        ) {
+                            onDrag(it)
+                        }
+                    }
                 }
-            }
+            )
         }
         .transformable(
             state = state,
