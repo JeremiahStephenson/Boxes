@@ -25,8 +25,9 @@ import com.jerry.boxes.cache.data.Layer
 import com.jerry.boxes.extensions.safeLet
 import com.jerry.boxes.ui.boxes.state.CanvasState
 import com.jerry.boxes.ui.common.LocalAppBarHeight
-import timber.log.Timber
+import kotlin.math.pow
 import kotlin.math.roundToInt
+import kotlin.math.sqrt
 
 @Composable
 fun BoxCanvas(
@@ -57,57 +58,34 @@ fun BoxCanvas(
             }
         }
         .pointerInput(appBarExpanded) {
-//            detectDragGestures { change, _ ->
-//                if (state.isTransformInProgress) return@detectDragGestures
-//                change.position.findBox(scaleState, offsetState, sizeState, canvasState.boxes) {
-//                    onDrag(it)
-//                }
-//            }
-            detectDragGestures(
-                onDragStart = {
-                    //Timber.d("DragTest - start")
-                },
-                onDragCancel = {},
-                onDragEnd = {
-                    //Timber.d("DragTest - end")
-                },
-                onDrag = { change, offset ->
-                    //Timber.d("DragTest1 - $change")
-                    //Timber.d("DragTest2 - $offset")
-                    if (state.isTransformInProgress) return@detectDragGestures
+            detectDragGestures { position, change ->
+                if (state.isTransformInProgress) return@detectDragGestures
+                mutableListOf<Offset>().apply {
+                    val boxSize = canvasState.boxes.values
+                        .first()
+                        .width()
+                        .toInt()
 
-                    val list = mutableListOf<Offset>()
+                    if (change.x > boxSize || change.y > boxSize) {
+                        val distance =
+                            sqrt(
+                                (position.position.x - position.previousPosition.x).pow(2) +
+                                        (position.position.y - position.previousPosition.y).pow(2)
+                            )
+                        for (i in 1..(distance / boxSize).toInt()) {
+                            val t = (boxSize * i) / distance
+                            add(
+                                Offset(
+                                    ((1 - t) * (position.previousPosition.x) + (t * position.position.x)),
+                                    ((1 - t) * (position.previousPosition.y) + (t * position.position.y))
+                                )
+                            )
+                        }
+                    }
 
-//                    val boxSize = canvasState.boxes.values
-//                        .first()
-//                        .width()
-//                        .toInt()
-//
-//                    val previousPosition = change.position.minus(offset)
-//                    if (offset.x > boxSize || offset.y > boxSize) {
-//                        Timber.d("DragTest pre - ${previousPosition}")
-//
-//                        val testX = when (previousPosition.x > change.position.x) {
-//                            true -> previousPosition.x.toInt()downTo change.position.x.toInt() step boxSize
-//                            else -> previousPosition.x.toInt()..change.position.x.toInt() step boxSize
-//                        }
-//
-//                        val testY = when (previousPosition.y > change.position.y) {
-//                            true -> previousPosition.y.toInt()downTo change.position.y.toInt() step boxSize
-//                            else -> previousPosition.y.toInt()..change.position.y.toInt() step boxSize
-//                        }
-//
-//                        for (c in testX) {
-//                            for (r in testY) {
-//                                list.add(Offset(c.toFloat(), r.toFloat()))
-//                            }
-//                        }
-//                    }
+                    add(position.position)
 
-                    Timber.d("DragTest 2- ${change.position}")
-                    list.add(change.position)
-
-                    list.forEach {
+                    forEach {
                         it.findBox(
                             scaleState,
                             offsetState,
@@ -118,7 +96,7 @@ fun BoxCanvas(
                         }
                     }
                 }
-            )
+            }
         }
         .transformable(
             state = state,
