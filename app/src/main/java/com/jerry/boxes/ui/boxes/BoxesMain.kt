@@ -48,7 +48,8 @@ fun BoxesMain(
         mutableStateOf(
             ButtonsState(
                 eraserSelected = false,
-                showPngBackground = false
+                showPngBackground = false,
+                showGrid = true
             )
         )
     }
@@ -160,6 +161,7 @@ private fun MainCanvas(
             }
             BoxCanvas(
                 canvasState = canvasState,
+                buttonsState = buttonsState,
                 rows = project.project.rows,
                 columns = project.project.columns,
                 scale = scale,
@@ -167,7 +169,6 @@ private fun MainCanvas(
                 size = size,
                 strokeWidth = strokeWidth,
                 state = state,
-                showPngBackgroundSelected = { buttonsState.showPngBackgroundState },
                 onTap = {
                     if (canvasState.hasLayersTurnedOn) {
                         canvasState.onTap(
@@ -287,6 +288,7 @@ private fun handleAction(
             canvasState.clear(canvasState.turnedOnIds)
         }
         is Action.ShowPngBackground -> buttonsState.toggleShowPngBackground()
+        is Action.ShowGrid -> buttonsState.toggleGrid()
         is Action.ResetZoom -> transformerState.reset(scope)
         is Action.Edit -> {
             scope.launch { drawerState.close() }

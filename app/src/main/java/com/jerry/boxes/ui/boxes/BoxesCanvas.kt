@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import com.jerry.boxes.cache.data.Layer
 import com.jerry.boxes.extensions.safeLet
+import com.jerry.boxes.ui.boxes.state.ButtonsState
 import com.jerry.boxes.ui.boxes.state.CanvasState
 import com.jerry.boxes.ui.common.LocalAppBarHeight
 import kotlin.math.abs
@@ -33,6 +34,7 @@ import kotlin.math.sqrt
 @Composable
 fun BoxCanvas(
     canvasState: CanvasState,
+    buttonsState: ButtonsState,
     columns: Int,
     rows: Int,
     scale: Float,
@@ -40,9 +42,8 @@ fun BoxCanvas(
     offset: Offset,
     strokeWidth: Float,
     state: TransformableState,
-    showPngBackgroundSelected: () -> Boolean,
     onTap: (Point) -> Unit,
-    onDrag: (Point) -> Unit,
+    onDrag: (List<Point>) -> Unit,
 ) {
     val contentOffset = LocalAppBarHeight.current
     val appBarExpanded by remember { derivedStateOf { contentOffset.value == 0F } }
@@ -53,7 +54,12 @@ fun BoxCanvas(
         .fillMaxSize()
         .pointerInput(appBarExpanded) {
             detectTapGestures { point ->
-                point.findBox(scaleState, offsetState, sizeState, canvasState.boxes) {
+                point.findBox(
+                    scaleState,
+                    offsetState,
+                    sizeState,
+                    canvasState.boxes
+                )?.let {
                     onTap(it)
                 }
             }
@@ -71,7 +77,9 @@ fun BoxCanvas(
                         val distance =
                             sqrt(
                                 (position.position.x - position.previousPosition.x).pow(2) +
-                                        (position.position.y - position.previousPosition.y).pow(2)
+                                        (position.position.y - position.previousPosition.y).pow(
+                                            2
+                                        )
                             )
                         for (i in 1..(distance / boxSize).toInt()) {
                             val t = (boxSize * i) / distance
@@ -86,16 +94,14 @@ fun BoxCanvas(
 
                     add(position.position)
 
-                    forEach {
-                        it.findBox(
+                    onDrag(
+                        findBoxes(
                             scaleState,
                             offsetState,
                             sizeState,
                             canvasState.boxes
-                        ) {
-                            onDrag(it)
-                        }
-                    }
+                        )
+                    )
                 }
             }
         }
@@ -110,19 +116,21 @@ fun BoxCanvas(
             canvasState = canvasState
         )
 
-        val color = when (showPngBackgroundSelected()) {
-            true -> MaterialTheme.colorScheme.background
-            else -> Color.Gray
+        if (buttonsState.showGridState) {
+            val color = when (buttonsState.showPngBackgroundState) {
+                true -> MaterialTheme.colorScheme.background
+                else -> Color.Gray
+            }
+            Grid(
+                rows = rows,
+                columns = columns,
+                strokeWidth = strokeWidth,
+                strokeColor = color,
+                scale = scale,
+                offset = offset,
+                canvasState = canvasState
+            )
         }
-        Grid(
-            rows = rows,
-            columns = columns,
-            strokeWidth = strokeWidth,
-            strokeColor = color,
-            scale = scale,
-            offset = offset,
-            canvasState = canvasState
-        )
     }
 }
 
@@ -279,12 +287,27 @@ private fun Offset.findBox(
     scale: Float,
     offset: Offset,
     size: Constraints,
-    boxes: Map<Point, RectF>,
-    onBox: (Point) -> Unit
-) {
+    boxes: Map<Point, RectF>
+) = findPoint(scale, offset, size, boxes)
+
+private fun List<Offset>.findBoxes(
+    scale: Float,
+    offset: Offset,
+    size: Constraints,
+    boxes: Map<Point, RectF>
+) = mapNotNull {
+    it.findPoint(scale, offset, size, boxes)
+}
+
+private fun Offset.findPoint(
+    scale: Float,
+    offset: Offset,
+    size: Constraints,
+    boxes: Map<Point, RectF>
+): Point? {
     val point = convert(scale, offset, size)
-    boxes.entries.find { box ->
+    return boxes.entries.find { box ->
         point.x >= box.value.left && point.x <= box.value.right &&
                 point.y >= box.value.top && point.y <= box.value.bottom
-    }?.key?.let { onBox(it) }
+    }?.key
 }

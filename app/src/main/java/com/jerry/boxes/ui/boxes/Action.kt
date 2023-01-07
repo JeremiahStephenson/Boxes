@@ -6,6 +6,7 @@ sealed class Action {
     object Export : Action()
     object ResetZoom: Action()
     object ShowPngBackground : Action()
+    object ShowGrid : Action()
     object Edit : Action()
     object AddLayer: Action()
     data class TurnOnOrOffLayer(val on: Boolean, val layerId: Long) : Action()

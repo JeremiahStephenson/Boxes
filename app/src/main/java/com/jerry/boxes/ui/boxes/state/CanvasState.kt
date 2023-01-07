@@ -10,8 +10,8 @@ import androidx.compose.ui.unit.Constraints
 import com.jerry.boxes.cache.data.Layer
 import com.jerry.boxes.cache.data.LayerAndPixel
 import com.jerry.boxes.ui.boxes.SerializableColor
-import com.jerry.boxes.ui.boxes.shapes.Shape
 import com.jerry.boxes.ui.boxes.generateBoxes
+import com.jerry.boxes.ui.boxes.shapes.Shape
 import kotlin.math.max
 import kotlin.math.min
 
@@ -55,7 +55,7 @@ class CanvasState() {
     ) {
         val colorAndShape = currentColor.copy(shape = currentShape)
         val selection = _selections[point]?.get(layerId)
-        _selections[point] = _selections.getOrDefault(point, mutableStateMapOf())?.apply {
+        _selections.getOrPut(point) { mutableStateMapOf() }?.apply {
             put(
                 layerId, when (selection == colorAndShape) {
                     true -> null
@@ -66,20 +66,22 @@ class CanvasState() {
     }
 
     fun onDrag(
-        point: Point,
+        points: List<Point>,
         layerId: Long,
         currentColor: SerializableColor,
         currentShape: Shape,
         erasing: Boolean
     ) {
-        _selections[point] = _selections.getOrDefault(point, mutableStateMapOf())?.apply {
-            put(
-                layerId, when (erasing) {
-                    true -> null
-                    else -> currentColor.copy(shape = currentShape)
-                }
-            )
-        }
+        _selections.putAll(points.map {
+            it to _selections.getOrDefault(it, mutableStateMapOf())?.apply {
+                put(
+                    layerId, when (erasing) {
+                        true -> null
+                        else -> currentColor.copy(shape = currentShape)
+                    }
+                )
+            }
+        })
     }
 
     fun fillInSelections(layers: List<LayerAndPixel>) {

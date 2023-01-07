@@ -85,10 +85,16 @@ fun DrawerMenu(
                     drawableResOff = R.drawable.ic_baseline_eraser_off_24
                 )
                 IconSelectableMenuButton(
-                    onClick = { onAction(Action.ShowPngBackground) },
-                    isSelected = { buttonsState.showPngBackgroundState },
+                    onClick = { onAction(Action.ShowGrid) },
+                    isSelected = { buttonsState.showGridState },
                     drawableResOn = R.drawable.ic_baseline_grid_on_24,
                     drawableResOff = R.drawable.ic_baseline_grid_off_24
+                )
+                IconSelectableMenuButton(
+                    onClick = { onAction(Action.ShowPngBackground) },
+                    isSelected = { buttonsState.showPngBackgroundState },
+                    drawableResOn = R.drawable.ic_baseline_visibility_on_24,
+                    drawableResOff = R.drawable.ic_baseline_visibility_off_24
                 )
             }
         }
