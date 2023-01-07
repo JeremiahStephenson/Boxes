@@ -15,5 +15,9 @@ enum class Shape(val group: ShapeGroup) {
     ArcRight(ShapeGroup.ARC),
     ArcLeft(ShapeGroup.ARC),
     ArcRightInverse(ShapeGroup.ARC),
-    ArcLeftInverse(ShapeGroup.ARC)
+    ArcLeftInverse(ShapeGroup.ARC),
+    BoxTopLeft(ShapeGroup.CORNER),
+    BoxBottomLeft(ShapeGroup.CORNER),
+    BoxTopRight(ShapeGroup.CORNER),
+    BoxBottomRight(ShapeGroup.CORNER),
 }

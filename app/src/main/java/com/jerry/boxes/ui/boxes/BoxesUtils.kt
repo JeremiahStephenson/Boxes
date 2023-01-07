@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.drawscope.Fill
 import com.jerry.boxes.cache.data.Layer
 import com.jerry.boxes.extensions.safeLet
 import com.jerry.boxes.ui.boxes.shapes.Shape
+import timber.log.Timber
 
 fun generateBoxes(
     numX: Int,
@@ -42,6 +43,7 @@ fun DrawScope.drawShapes(
     selections: Map<Point, Map<Long, SerializableColor?>?>,
     boxes: Map<Point, RectF>
 ) {
+    Timber.d("DrawTest - drawing")
     val layerIds = layers.filter { it.on }.sortedBy { it.index }.map { it.id }
     selections.forEach { (point, pixels) ->
         val position = boxes[point]
@@ -75,6 +77,10 @@ fun DrawScope.drawCustomShape(
         Shape.ArcRightInverse -> drawArcRightInverse(pos, color)
         Shape.Circle -> drawCircle(pos, color)
         Shape.Star -> drawStar(pos, color)
+        Shape.BoxBottomLeft -> drawBoxBottomLeft(pos, color)
+        Shape.BoxBottomRight -> drawBoxBottomRight(pos, color)
+        Shape.BoxTopLeft -> drawBoxTopLeft(pos, color)
+        Shape.BoxTopRight -> drawBoxTopRight(pos, color)
         else -> {}
     }
 }
@@ -287,6 +293,54 @@ private fun DrawScope.drawArcLeftInverse(
         useCenter = true,
         topLeft = Offset(pos.left, pos.top - pos.height()),
         size = Size(pos.width() * 2, pos.height() * 2),
+        color = color.color
+    )
+}
+
+private fun DrawScope.drawBoxTopRight(
+    pos: RectF,
+    color: SerializableColor
+) {
+    drawRect(
+        style = Fill,
+        topLeft = Offset(pos.left + (pos.width() / 2), pos.top),
+        size = Size(pos.width() / 2, pos.height() / 2),
+        color = color.color
+    )
+}
+
+private fun DrawScope.drawBoxTopLeft(
+    pos: RectF,
+    color: SerializableColor
+) {
+    drawRect(
+        style = Fill,
+        topLeft = Offset(pos.left, pos.top),
+        size = Size(pos.width() / 2, pos.height() / 2),
+        color = color.color
+    )
+}
+
+private fun DrawScope.drawBoxBottomRight(
+    pos: RectF,
+    color: SerializableColor
+) {
+    drawRect(
+        style = Fill,
+        topLeft = Offset(pos.left + (pos.width() / 2), pos.top + (pos.height() / 2)),
+        size = Size(pos.width() / 2, pos.height() / 2),
+        color = color.color
+    )
+}
+
+private fun DrawScope.drawBoxBottomLeft(
+    pos: RectF,
+    color: SerializableColor
+) {
+    drawRect(
+        style = Fill,
+        topLeft = Offset(pos.left, pos.top + (pos.height() / 2)),
+        size = Size(pos.width() / 2, pos.height() / 2),
         color = color.color
     )
 }
