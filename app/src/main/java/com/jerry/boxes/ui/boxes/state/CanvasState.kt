@@ -6,6 +6,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.Constraints
 import com.jerry.boxes.cache.data.Layer
 import com.jerry.boxes.cache.data.LayerAndPixel
@@ -17,12 +18,15 @@ import kotlin.math.min
 
 @Stable
 class CanvasState() {
-    private val _boxes = mutableStateMapOf<Point, RectF>()
+    private val _boxes = mutableStateMapOf<Point, Offset>()
     private val _selections =
         mutableStateMapOf<Point, SnapshotStateMap<Long, SerializableColor?>?>()
     private val _layers = mutableStateListOf<Layer>()
 
-    val boxes = _boxes as Map<Point, RectF>
+    var size: Float = 0F
+        private set
+
+    val boxes = _boxes as Map<Point, Offset>
     val selections = _selections as Map<Point, Map<Long, SerializableColor?>?>
     val layers = _layers as List<Layer>
 
@@ -114,6 +118,8 @@ class CanvasState() {
         )
         val xOffSet =
             max(((size.maxWidth - (min * columns)) / 2), 0F)
+
+        this.size = min
 
         _boxes.clear()
         _boxes.putAll(

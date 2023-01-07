@@ -50,7 +50,7 @@ fun BoxCanvas(
         .fillMaxSize()
         .pointerInput(appBarExpanded) {
             detectTapGestures { point ->
-                point.findBox(scaleState, offsetState, sizeState, canvasState.boxes) {
+                point.findBox(scaleState, offsetState, sizeState, canvasState.size, canvasState.boxes) {
                     onTap(it)
                 }
             }
@@ -58,7 +58,7 @@ fun BoxCanvas(
         .pointerInput(appBarExpanded) {
             detectDragGestures { change, _ ->
                 if (state.isTransformInProgress) return@detectDragGestures
-                change.position.findBox(scaleState, offsetState, sizeState, canvasState.boxes) {
+                change.position.findBox(scaleState, offsetState, sizeState, canvasState.size, canvasState.boxes) {
                     onDrag(it)
                 }
             }
@@ -95,7 +95,8 @@ fun SelectionsBoxes(
     scale: Float,
     offset: Offset,
     layers: List<Layer>,
-    boxes: Map<Point, RectF>,
+    size: Float,
+    boxes: Map<Point, Offset>,
     selections: Map<Point, Map<Long, SerializableColor?>?>
 ) {
     Canvas(
@@ -108,7 +109,7 @@ fun SelectionsBoxes(
                 translationY = offset.y
             )
     ) {
-        drawShapes(layers, selections, boxes)
+        drawShapes(layers, size, selections, boxes)
     }
 }
 
@@ -128,7 +129,7 @@ fun SelectionsBoxes(
                 translationY = offset.y
             )
     ) {
-        drawShapes(canvasState.layers, canvasState.selections, canvasState.boxes)
+        drawShapes(canvasState.layers, canvasState.size, canvasState.selections, canvasState.boxes)
     }
 }
 
@@ -194,15 +195,15 @@ private fun Grid(
                 drawLine(
                     strokeWidth = strokeWidth / scale,
                     color = strokeColor,
-                    start = Offset(start.left, start.top),
-                    end = Offset(end.right, end.top)
+                    start = Offset(start.x, start.y),
+                    end = Offset(end.x + canvasState.size, end.y)
                 )
                 if (i == rows - 1) {
                     drawLine(
                         strokeWidth = strokeWidth / scale,
                         color = strokeColor,
-                        start = Offset(start.left, start.bottom),
-                        end = Offset(end.right, end.bottom)
+                        start = Offset(start.x, start.y + canvasState.size),
+                        end = Offset(end.x + canvasState.size, start.y + canvasState.size)
                     )
                 }
             }
@@ -215,15 +216,15 @@ private fun Grid(
                 drawLine(
                     strokeWidth = strokeWidth / scale,
                     color = strokeColor,
-                    start = Offset(start.left, start.top),
-                    end = Offset(end.left, end.bottom)
+                    start = Offset(start.x, start.y),
+                    end = Offset(end.x, end.y + canvasState.size)
                 )
                 if (i == columns - 1) {
                     drawLine(
                         strokeWidth = strokeWidth / scale,
                         color = strokeColor,
-                        start = Offset(start.right, start.top),
-                        end = Offset(end.right, end.bottom)
+                        start = Offset(end.x + canvasState.size, start.y),
+                        end = Offset(end.x + canvasState.size, end.y + canvasState.size)
                     )
                 }
             }
@@ -243,12 +244,13 @@ private fun Offset.findBox(
     scale: Float,
     offset: Offset,
     size: Constraints,
-    boxes: Map<Point, RectF>,
+    boxSize: Float,
+    boxes: Map<Point, Offset>,
     onBox: (Point) -> Unit
 ) {
     val point = convert(scale, offset, size)
     boxes.entries.find { box ->
-        point.x >= box.value.left && point.x <= box.value.right &&
-                point.y >= box.value.top && point.y <= box.value.bottom
+        point.x >= box.value.x && point.x <= (box.value.x + boxSize) &&
+                point.y >= box.value.y && point.y <= (box.value.y + boxSize)
     }?.key?.let { onBox(it) }
 }

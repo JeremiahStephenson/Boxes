@@ -1,7 +1,6 @@
 package com.jerry.boxes.ui.boxes
 
 import android.graphics.Point
-import android.graphics.RectF
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Path
@@ -18,7 +17,7 @@ fun generateBoxes(
     size: Float,
     xOffSet: Float,
     yOffSet: Float
-) = mutableMapOf<Point, RectF>().apply {
+) = mutableMapOf<Point, Offset>().apply {
     for (y in 0 until numY) {
         for (x in 0 until numX) {
             val topLeft = Offset(
@@ -27,12 +26,7 @@ fun generateBoxes(
             )
             put(
                 Point(x, y),
-                RectF(
-                    topLeft.x,
-                    topLeft.y,
-                    (topLeft.x + size),
-                    (topLeft.y + size)
-                )
+                Offset(topLeft.x, topLeft.y)
             )
         }
     }
@@ -40,8 +34,9 @@ fun generateBoxes(
 
 fun DrawScope.drawShapes(
     layers: List<Layer>,
+    size: Float,
     selections: Map<Point, Map<Long, SerializableColor?>?>,
-    boxes: Map<Point, RectF>
+    boxes: Map<Point, Offset>
 ) {
     Timber.d("DrawTest - drawing")
     val layerIds = layers.filter { it.on }.sortedBy { it.index }.map { it.id }
@@ -50,7 +45,7 @@ fun DrawScope.drawShapes(
         safeLet(position, pixels) { pos, selectedPixel ->
             layerIds.forEach {
                 selectedPixel[it]?.let { color ->
-                    drawCustomShape(pos, color)
+                    drawCustomShape(pos, size, color)
                 }
             }
         }
@@ -58,75 +53,79 @@ fun DrawScope.drawShapes(
 }
 
 fun DrawScope.drawCustomShape(
-    pos: RectF,
+    pos: Offset,
+    size: Float,
     color: SerializableColor
 ) {
     when (color.shape) {
-        Shape.Box -> drawBox(pos, color)
-        Shape.TriangleBottomLeft -> drawTriangleBottomLeft(pos, color)
-        Shape.TriangleBottomRight -> drawTriangleBottomRight(pos, color)
-        Shape.TriangleTopRight -> drawTriangleTopRight(pos, color)
-        Shape.TriangleTopLeft -> drawTriangleTopLeft(pos, color)
-        Shape.RectangleTop -> drawRectangleTop(pos, color)
-        Shape.RectangleBottom -> drawRectangleBottom(pos, color)
-        Shape.RectangleLeft -> drawRectangleLeft(pos, color)
-        Shape.RectangleRight -> drawRectangleRight(pos, color)
-        Shape.ArcLeft -> drawArcLeft(pos, color)
-        Shape.ArcLeftInverse -> drawArcLeftInverse(pos, color)
-        Shape.ArcRight -> drawArcRight(pos, color)
-        Shape.ArcRightInverse -> drawArcRightInverse(pos, color)
-        Shape.Circle -> drawCircle(pos, color)
-        Shape.Star -> drawStar(pos, color)
-        Shape.BoxBottomLeft -> drawBoxBottomLeft(pos, color)
-        Shape.BoxBottomRight -> drawBoxBottomRight(pos, color)
-        Shape.BoxTopLeft -> drawBoxTopLeft(pos, color)
-        Shape.BoxTopRight -> drawBoxTopRight(pos, color)
+        Shape.Box -> drawBox(pos, size, color)
+        Shape.TriangleBottomLeft -> drawTriangleBottomLeft(pos, size, color)
+        Shape.TriangleBottomRight -> drawTriangleBottomRight(pos, size, color)
+        Shape.TriangleTopRight -> drawTriangleTopRight(pos, size, color)
+        Shape.TriangleTopLeft -> drawTriangleTopLeft(pos, size, color)
+        Shape.RectangleTop -> drawRectangleTop(pos, size, color)
+        Shape.RectangleBottom -> drawRectangleBottom(pos, size, color)
+        Shape.RectangleLeft -> drawRectangleLeft(pos, size, color)
+        Shape.RectangleRight -> drawRectangleRight(pos, size, color)
+        Shape.ArcLeft -> drawArcLeft(pos, size, color)
+        Shape.ArcLeftInverse -> drawArcLeftInverse(pos, size, color)
+        Shape.ArcRight -> drawArcRight(pos, size, color)
+        Shape.ArcRightInverse -> drawArcRightInverse(pos, size, color)
+        Shape.Circle -> drawCircle(pos, size, color)
+        Shape.Star -> drawStar(pos, size, color)
+        Shape.BoxBottomLeft -> drawBoxBottomLeft(pos, size, color)
+        Shape.BoxBottomRight -> drawBoxBottomRight(pos, size, color)
+        Shape.BoxTopLeft -> drawBoxTopLeft(pos, size, color)
+        Shape.BoxTopRight -> drawBoxTopRight(pos, size, color)
         else -> {}
     }
 }
 
 private fun DrawScope.drawBox(
-    pos: RectF,
+    pos: Offset,
+    size: Float,
     color: SerializableColor
 ) {
     drawRect(
         style = Fill,
-        topLeft = Offset(pos.left, pos.top),
-        size = Size(pos.width(), pos.height()),
+        topLeft = Offset(pos.x, pos.y),
+        size = Size(size, size),
         color = color.color
     )
 }
 
 private fun DrawScope.drawCircle(
-    pos: RectF,
+    pos: Offset,
+    size: Float,
     color: SerializableColor
 ) {
     drawArc(
         startAngle = 0F,
         sweepAngle = 360F,
         useCenter = true,
-        topLeft = Offset(pos.left, pos.top),
-        size = Size(pos.width(), pos.height()),
+        topLeft = Offset(pos.x, pos.y),
+        size = Size(size, size),
         color = color.color
     )
 }
 
 private fun DrawScope.drawStar(
-    pos: RectF,
+    pos: Offset,
+    size: Float,
     color: SerializableColor
 ) {
     drawPath(
         path = Path().apply {
-            moveTo(pos.left + (pos.width() / 2), pos.top)
-            lineTo(pos.left + (pos.width() * 0.63F), pos.top + (pos.height() * 0.38F))
-            lineTo(pos.left + pos.width(), pos.top + (pos.height() * 0.38F))
-            lineTo(pos.left + (pos.width() * 0.72F), pos.top + (pos.height() * 0.61F))
-            lineTo(pos.left + (pos.width() * 0.81F), pos.top + pos.height())
-            lineTo(pos.left + (pos.width() / 2), pos.top + (pos.height() * 0.76F))
-            lineTo(pos.left + (pos.width() * 0.19F), pos.top + pos.height())
-            lineTo(pos.left + (pos.width() * 0.28F), pos.top + (pos.height() * 0.61F))
-            lineTo(pos.left, pos.top + (pos.height() * 0.38F))
-            lineTo(pos.left + (pos.width() * 0.37F), pos.top + (pos.height() * 0.38F))
+            moveTo(pos.x + (size / 2), pos.y)
+            lineTo(pos.x + (size * 0.63F), pos.y + (size * 0.38F))
+            lineTo(pos.x + size, pos.y + (size * 0.38F))
+            lineTo(pos.x + (size * 0.72F), pos.y + (size * 0.61F))
+            lineTo(pos.x + (size * 0.81F), pos.y + size)
+            lineTo(pos.x + (size / 2), pos.y + (size * 0.76F))
+            lineTo(pos.x + (size * 0.19F), pos.y + size)
+            lineTo(pos.x + (size * 0.28F), pos.y + (size * 0.61F))
+            lineTo(pos.x, pos.y + (size * 0.38F))
+            lineTo(pos.x + (size * 0.37F), pos.y + (size * 0.38F))
             close()
         },
         color = color.color
@@ -134,14 +133,15 @@ private fun DrawScope.drawStar(
 }
 
 private fun DrawScope.drawTriangleBottomLeft(
-    pos: RectF,
+    pos: Offset,
+    size: Float,
     color: SerializableColor
 ) {
     drawPath(
         path = Path().apply {
-            moveTo(pos.left, pos.top)
-            lineTo(pos.right, pos.bottom)
-            lineTo(pos.left, pos.bottom)
+            moveTo(pos.x, pos.y)
+            lineTo(pos.x + size, pos.y + size)
+            lineTo(pos.x, pos.y + size)
             close()
         },
         color = color.color
@@ -149,14 +149,15 @@ private fun DrawScope.drawTriangleBottomLeft(
 }
 
 private fun DrawScope.drawTriangleBottomRight(
-    pos: RectF,
+    pos: Offset,
+    size: Float,
     color: SerializableColor
 ) {
     drawPath(
         path = Path().apply {
-            moveTo(pos.left, pos.bottom)
-            lineTo(pos.right, pos.top)
-            lineTo(pos.right, pos.bottom)
+            moveTo(pos.x, pos.y + size)
+            lineTo(pos.x + size, pos.y)
+            lineTo(pos.x + size, pos.y + size)
             close()
         },
         color = color.color
@@ -164,14 +165,15 @@ private fun DrawScope.drawTriangleBottomRight(
 }
 
 private fun DrawScope.drawTriangleTopLeft(
-    pos: RectF,
+    pos: Offset,
+    size: Float,
     color: SerializableColor
 ) {
     drawPath(
         path = Path().apply {
-            moveTo(pos.left, pos.top)
-            lineTo(pos.right, pos.top)
-            lineTo(pos.left, pos.bottom)
+            moveTo(pos.x, pos.y)
+            lineTo(pos.x + size, pos.y)
+            lineTo(pos.x, pos.y + size)
             close()
         },
         color = color.color
@@ -179,14 +181,15 @@ private fun DrawScope.drawTriangleTopLeft(
 }
 
 private fun DrawScope.drawTriangleTopRight(
-    pos: RectF,
+    pos: Offset,
+    size: Float,
     color: SerializableColor
 ) {
     drawPath(
         path = Path().apply {
-            moveTo(pos.left, pos.top)
-            lineTo(pos.right, pos.top)
-            lineTo(pos.right, pos.bottom)
+            moveTo(pos.x, pos.y)
+            lineTo(pos.x + size, pos.y)
+            lineTo(pos.x + size, pos.y + size)
             close()
         },
         color = color.color
@@ -194,153 +197,165 @@ private fun DrawScope.drawTriangleTopRight(
 }
 
 private fun DrawScope.drawRectangleLeft(
-    pos: RectF,
+    pos: Offset,
+    size: Float,
     color: SerializableColor
 ) {
     drawRect(
         style = Fill,
-        topLeft = Offset(pos.left, pos.top),
-        size = Size(pos.width() / 2, pos.height()),
+        topLeft = Offset(pos.x, pos.y),
+        size = Size(size / 2, size),
         color = color.color
     )
 }
 
 private fun DrawScope.drawRectangleRight(
-    pos: RectF,
+    pos: Offset,
+    size: Float,
     color: SerializableColor
 ) {
     drawRect(
         style = Fill,
-        topLeft = Offset(pos.left + (pos.width() / 2), pos.top),
-        size = Size(pos.width() / 2, pos.height()),
+        topLeft = Offset(pos.x + (size / 2), pos.y),
+        size = Size(size / 2, size),
         color = color.color
     )
 }
 
 private fun DrawScope.drawRectangleTop(
-    pos: RectF,
+    pos: Offset,
+    size: Float,
     color: SerializableColor
 ) {
     drawRect(
         style = Fill,
-        topLeft = Offset(pos.left, pos.top),
-        size = Size(pos.width(), pos.height() / 2),
+        topLeft = Offset(pos.x, pos.y),
+        size = Size(size, size / 2F),
         color = color.color
     )
 }
 
 private fun DrawScope.drawRectangleBottom(
-    pos: RectF,
+    pos: Offset,
+    size: Float,
     color: SerializableColor
 ) {
     drawRect(
         style = Fill,
-        topLeft = Offset(pos.left, pos.top + (pos.height() / 2)),
-        size = Size(pos.width(), pos.height() / 2),
+        topLeft = Offset(pos.x, pos.y + (size / 2)),
+        size = Size(size, size / 2),
         color = color.color
     )
 }
 
 private fun DrawScope.drawArcRight(
-    pos: RectF,
+    pos: Offset,
+    size: Float,
     color: SerializableColor
 ) {
     drawArc(
         startAngle = -90F,
         sweepAngle = 90F,
         useCenter = true,
-        topLeft = Offset(pos.left - pos.width(), pos.top),
-        size = Size(pos.width() * 2, pos.height() * 2),
+        topLeft = Offset(pos.x - size, pos.y),
+        size = Size(size * 2, size * 2),
         color = color.color
     )
 }
 
 private fun DrawScope.drawArcLeft(
-    pos: RectF,
+    pos: Offset,
+    size: Float,
     color: SerializableColor
 ) {
     drawArc(
         startAngle = -90F,
         sweepAngle = -90F,
         useCenter = true,
-        topLeft = Offset(pos.left, pos.top),
-        size = Size(pos.width() * 2, pos.height() * 2),
+        topLeft = Offset(pos.x, pos.y),
+        size = Size(size * 2, size * 2),
         color = color.color
     )
 }
 
 private fun DrawScope.drawArcRightInverse(
-    pos: RectF,
+    pos: Offset,
+    size: Float,
     color: SerializableColor
 ) {
     drawArc(
         startAngle = 0F,
         sweepAngle = 90F,
         useCenter = true,
-        topLeft = Offset(pos.left - pos.width(), pos.top - pos.height()),
-        size = Size(pos.width() * 2, pos.height() * 2),
+        topLeft = Offset(pos.x - size, pos.y - size),
+        size = Size(size * 2, size * 2),
         color = color.color
     )
 }
 
 private fun DrawScope.drawArcLeftInverse(
-    pos: RectF,
+    pos: Offset,
+    size: Float,
     color: SerializableColor
 ) {
     drawArc(
         startAngle = 90F,
         sweepAngle = 90F,
         useCenter = true,
-        topLeft = Offset(pos.left, pos.top - pos.height()),
-        size = Size(pos.width() * 2, pos.height() * 2),
+        topLeft = Offset(pos.x, pos.y - size),
+        size = Size(size * 2, size * 2),
         color = color.color
     )
 }
 
 private fun DrawScope.drawBoxTopRight(
-    pos: RectF,
+    pos: Offset,
+    size: Float,
     color: SerializableColor
 ) {
     drawRect(
         style = Fill,
-        topLeft = Offset(pos.left + (pos.width() / 2), pos.top),
-        size = Size(pos.width() / 2, pos.height() / 2),
+        topLeft = Offset(pos.x + (size / 2), pos.y),
+        size = Size(size / 2, size / 2),
         color = color.color
     )
 }
 
 private fun DrawScope.drawBoxTopLeft(
-    pos: RectF,
+    pos: Offset,
+    size: Float,
     color: SerializableColor
 ) {
     drawRect(
         style = Fill,
-        topLeft = Offset(pos.left, pos.top),
-        size = Size(pos.width() / 2, pos.height() / 2),
+        topLeft = Offset(pos.x, pos.y),
+        size = Size(size / 2, size / 2),
         color = color.color
     )
 }
 
 private fun DrawScope.drawBoxBottomRight(
-    pos: RectF,
+    pos: Offset,
+    size: Float,
     color: SerializableColor
 ) {
     drawRect(
         style = Fill,
-        topLeft = Offset(pos.left + (pos.width() / 2), pos.top + (pos.height() / 2)),
-        size = Size(pos.width() / 2, pos.height() / 2),
+        topLeft = Offset(pos.x + (size / 2), pos.y + (size / 2)),
+        size = Size(size / 2, size / 2),
         color = color.color
     )
 }
 
 private fun DrawScope.drawBoxBottomLeft(
-    pos: RectF,
+    pos: Offset,
+    size: Float,
     color: SerializableColor
 ) {
     drawRect(
         style = Fill,
-        topLeft = Offset(pos.left, pos.top + (pos.height() / 2)),
-        size = Size(pos.width() / 2, pos.height() / 2),
+        topLeft = Offset(pos.x, pos.y + (size / 2)),
+        size = Size(size / 2, size / 2),
         color = color.color
     )
 }

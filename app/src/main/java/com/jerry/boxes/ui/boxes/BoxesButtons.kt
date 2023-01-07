@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
@@ -35,7 +36,8 @@ fun ShapeOption(
             .size(26.dp)
     ) {
         drawCustomShape(
-            RectF(0F, 0F, size, size),
+            Offset(0F, 0F),
+            size,
             SerializableColor(
                 shapeColor.hue,
                 shapeColor.saturation,

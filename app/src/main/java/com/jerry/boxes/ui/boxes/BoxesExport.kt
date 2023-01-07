@@ -66,7 +66,8 @@ fun exportCanvas(
                         offset = Offset.Zero,
                         boxes = newBoxes,
                         selections = selections,
-                        layers = layers
+                        layers = layers,
+                        size = 100F
                     )
                 }
                 LaunchedEffect(Unit) {
