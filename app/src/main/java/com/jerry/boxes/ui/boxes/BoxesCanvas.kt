@@ -25,6 +25,7 @@ import com.jerry.boxes.cache.data.Layer
 import com.jerry.boxes.extensions.safeLet
 import com.jerry.boxes.ui.boxes.state.CanvasState
 import com.jerry.boxes.ui.common.LocalAppBarHeight
+import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
@@ -66,7 +67,7 @@ fun BoxCanvas(
                         .width()
                         .toInt()
 
-                    if (change.x > boxSize || change.y > boxSize) {
+                    if (abs(change.x) > boxSize || abs(change.y) > boxSize) {
                         val distance =
                             sqrt(
                                 (position.position.x - position.previousPosition.x).pow(2) +
