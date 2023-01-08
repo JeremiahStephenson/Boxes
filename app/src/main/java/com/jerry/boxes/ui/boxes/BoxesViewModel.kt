@@ -10,17 +10,27 @@ import com.jerry.boxes.cache.BoxesDatabase
 import com.jerry.boxes.cache.data.Layer
 import com.jerry.boxes.cache.data.Pixel
 import com.jerry.boxes.ui.destinations.BoxesMainDestination
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.stateIn
+import com.jerry.boxes.util.SavedHandle
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.Instant
 
 class BoxesViewModel(
-    handle: SavedStateHandle,
+    private val handle: SavedStateHandle,
     private val boxesDao: BoxesDao,
     private val boxesDatabase: BoxesDatabase
 ) : ViewModel() {
+
+    private var layerStateHandle by SavedHandle<MutableMap<Long, Boolean>?>(
+        handle,
+        LAYER_LIST_STATE,
+        null
+    )
+
+    private val layerState = handle.getStateFlow<MutableMap<Long, Boolean>?>(
+        LAYER_LIST_STATE,
+        null
+    )
 
     private val projectId = BoxesMainDestination.argsFrom(handle).projectId
 
@@ -31,6 +41,22 @@ class BoxesViewModel(
             SharingStarted.WhileSubscribed(),
             null
         )
+
+    private val layerFlow = projectFlow.map { it?.layers?.map { it.layer } }
+    val layerStateFlow = combine(layerState, layerFlow) { state, layers ->
+        if (layerStateHandle == null) {
+            layerStateHandle = layers?.filter { it.on }?.associate { it.id to it.on }?.toMutableMap()
+        }
+        layers?.map {
+            it.copy(on = state?.getOrDefault(it.id, it.on) == true).apply { id = it.id }
+        } ?: emptyList()
+    }
+
+    fun setLayerOnOrOff(layerId: Long, on: Boolean) {
+        layerStateHandle = (layerStateHandle?.toMutableMap() ?: mutableMapOf()).apply {
+            put(layerId, on)
+        }
+    }
 
     fun addLayer(
         index: Int,
@@ -88,5 +114,9 @@ class BoxesViewModel(
             }
         boxesDao.insertAllPixels(list)
         boxesDao.deletePixelsFromProject(projectId, now)
+    }
+
+    companion object {
+        private const val LAYER_LIST_STATE = "LAYER_LIST_STATE"
     }
 }

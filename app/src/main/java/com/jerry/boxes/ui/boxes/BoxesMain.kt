@@ -30,6 +30,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.get
 import org.koin.androidx.compose.koinViewModel
+import timber.log.Timber
 
 @Destination
 @Composable
@@ -43,7 +44,8 @@ fun BoxesMain(
     val scope = rememberCoroutineScope()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
 
-    val canvasState = remember { CanvasState() }
+    val layerState = viewModel.layerStateFlow.collectAsStateWithLifecycle(emptyList())
+    val canvasState = remember { CanvasState(layerState) }
     val buttonsState by rememberSaveable {
         mutableStateOf(
             ButtonsState(
@@ -125,6 +127,8 @@ private fun MainCanvas(
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
 
+        Timber.d("RecomposeTest - recomposing")
+
         val density = LocalDensity.current
         val strokeWidth = remember { with(density) { 2.dp.toPx() } }
         val buttonBarOffset = remember { with(density) { 56.dp.toPx() } }
@@ -135,10 +139,6 @@ private fun MainCanvas(
         val size = this.constraints
         LaunchedEffect(project) {
             canvasState.fillInSelections(project.layers)
-        }
-
-        LaunchedEffect(project.layers.size) {
-            canvasState.setLayers(project.layers.map { it.layer })
         }
 
         val contentOffset = LocalAppBarHeight.current
@@ -285,15 +285,13 @@ private fun handleAction(
     ArrayList<Int>(5)
     when (action) {
         is Action.Eraser -> buttonsState.toggleEraserSelected()
-        is Action.Save -> {
-            viewModel.save(
-                if (action.autoSave) null else canvasState.boxes.keys.toList(),
-                canvasState.selections.toMap(),
-                canvasState.layers.map { it.id to it.on }
-            )
-        }
+        is Action.Save -> viewModel.save(
+            if (action.autoSave) null else canvasState.boxes.keys.toList(),
+            canvasState.selections.toMap(),
+            canvasState.layers.map { it.id to it.on }
+        )
         is Action.Clear -> if (canvasState.hasLayersTurnedOn) {
-            canvasState.clear(canvasState.turnedOnIds)
+            canvasState.clear()
         }
         is Action.ShowPngBackground -> buttonsState.toggleShowPngBackground()
         is Action.ShowGrid -> buttonsState.toggleGrid()
@@ -308,8 +306,10 @@ private fun handleAction(
                 canvasState.selections.toMap()
             )
         }
-        is Action.TurnOnOrOffLayer ->
-            canvasState.turnOnOrOffLayer(action.layerId, action.on)
+        is Action.TurnOnOrOffLayer -> {
+            //canvasState.turnOnOrOffLayer(action.layerId, action.on)
+            viewModel.setLayerOnOrOff(action.layerId, action.on)
+        }
         is Action.Export -> exportCanvas(
             rootView = rootView,
             rows = project?.project?.rows ?: 0,

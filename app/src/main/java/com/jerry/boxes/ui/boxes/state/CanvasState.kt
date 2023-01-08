@@ -3,7 +3,8 @@ package com.jerry.boxes.ui.boxes.state
 import android.graphics.Point
 import android.graphics.RectF
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.unit.Constraints
@@ -16,48 +17,25 @@ import kotlin.math.max
 import kotlin.math.min
 
 @Stable
-class CanvasState() {
+class CanvasState(layersState: State<List<Layer>>) {
     private val _boxes = mutableStateMapOf<Point, RectF>()
     private val _selections =
         mutableStateMapOf<Point, SnapshotStateMap<Long, SerializableColor?>?>()
-    private val _layers = mutableStateListOf<Layer>()
+
+    val layers by layersState
 
     val boxes = _boxes as Map<Point, RectF>
     val selections = _selections as Map<Point, Map<Long, SerializableColor?>?>
-    val layers = _layers as List<Layer>
 
-    val max get() = _layers.filter { it.on }.maxBy { it.index }
-    val hasLayersTurnedOn get() = _layers.any { it.on }
-    val turnedOnIds get() = _layers.filter { it.on }.map { it.id }
+    val max get() = layers.filter { it.on }.maxBy { it.index }
+    val hasLayersTurnedOn get() = layers.any { it.on }
 
-    fun setLayers(layerList: List<Layer>) {
-        val newList = layerList.map { item ->
-            when (val old = _layers.find { layer -> item.id == layer.id }) {
-                null -> item
-                else -> {
-                    item.copy(on = old.on).apply { id = old.id }
-                }
-            }
-        }
-        _layers.clear()
-        _layers.addAll(newList)
-    }
-
-    fun turnOnOrOffLayer(layerId: Long, on: Boolean) {
-        val layer = _layers.find { it.id == layerId }
-        layer?.let {
-            val index = _layers.indexOf(it)
-            _layers.remove(it)
-            _layers.add(index, it.copy(on = on).apply { id = layerId })
-        }
-    }
-
-    fun clear(layers: List<Long>) {
+    fun clear() {
         _selections
             .filter { it.value != null }
             .forEach {
                 _selections.getOrDefault(it.key, mutableStateMapOf())?.apply {
-                    layers.forEach { layerId ->
+                    layers.filter { it.on }.map { it.id }.forEach { layerId ->
                         put(layerId, null)
                     }
                 }
