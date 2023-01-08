@@ -44,26 +44,17 @@ class BoxesViewModel(
         }
     }
 
-    fun turnOnOrOffLayer(
-        on: Boolean,
-        layerId: Long,
-        selections: Map<Point, Map<Long, SerializableColor?>?>
-    ) {
-        viewModelScope.launch {
-            updateDatabase {
-                saveProject(selections = selections)
-                boxesDao.turnOnOrOffLayer(on, layerId)
-            }
-        }
-    }
-
     fun save(
         boxes: List<Point>? = null,
-        selections: Map<Point, Map<Long, SerializableColor?>?>
+        selections: Map<Point, Map<Long, SerializableColor?>?>,
+        layers: List<Pair<Long, Boolean>>
     ) {
         viewModelScope.launch {
             updateDatabase {
                 saveProject(boxes, selections)
+                layers.forEach {
+                    boxesDao.turnOnOrOffLayer(it.second, it.first)
+                }
             }
         }
     }

@@ -134,8 +134,11 @@ private fun MainCanvas(
 
         val size = this.constraints
         LaunchedEffect(project) {
-            canvasState.setLayers(project.layers.map { it.layer })
             canvasState.fillInSelections(project.layers)
+        }
+
+        LaunchedEffect(project.layers.size) {
+            canvasState.setLayers(project.layers.map { it.layer })
         }
 
         val contentOffset = LocalAppBarHeight.current
@@ -197,9 +200,11 @@ private fun MainCanvas(
             color = currentColor,
             shape = currentShape,
             onColorChosen = {
+                buttonsState.turnOffEraser()
                 currentColor = it
             },
             onShapeChosen = {
+                buttonsState.turnOffEraser()
                 currentShape = it
             },
             onAction = onAction
@@ -280,10 +285,13 @@ private fun handleAction(
     ArrayList<Int>(5)
     when (action) {
         is Action.Eraser -> buttonsState.toggleEraserSelected()
-        is Action.Save -> viewModel.save(
-            if (action.autoSave) null else canvasState.boxes.keys.toList(),
-            canvasState.selections.toMap()
-        )
+        is Action.Save -> {
+            viewModel.save(
+                if (action.autoSave) null else canvasState.boxes.keys.toList(),
+                canvasState.selections.toMap(),
+                canvasState.layers.map { it.id to it.on }
+            )
+        }
         is Action.Clear -> if (canvasState.hasLayersTurnedOn) {
             canvasState.clear(canvasState.turnedOnIds)
         }
@@ -300,13 +308,8 @@ private fun handleAction(
                 canvasState.selections.toMap()
             )
         }
-        is Action.TurnOnOrOffLayer -> {
-            viewModel.turnOnOrOffLayer(
-                action.on,
-                action.layerId,
-                canvasState.selections.toMap()
-            )
-        }
+        is Action.TurnOnOrOffLayer ->
+            canvasState.turnOnOrOffLayer(action.layerId, action.on)
         is Action.Export -> exportCanvas(
             rootView = rootView,
             rows = project?.project?.rows ?: 0,

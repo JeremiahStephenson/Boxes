@@ -31,8 +31,25 @@ class CanvasState() {
     val turnedOnIds get() = _layers.filter { it.on }.map { it.id }
 
     fun setLayers(layerList: List<Layer>) {
+        val newList = layerList.map { item ->
+            when (val old = _layers.find { layer -> item.id == layer.id }) {
+                null -> item
+                else -> {
+                    item.copy(on = old.on).apply { id = old.id }
+                }
+            }
+        }
         _layers.clear()
-        _layers.addAll(layerList)
+        _layers.addAll(newList)
+    }
+
+    fun turnOnOrOffLayer(layerId: Long, on: Boolean) {
+        val layer = _layers.find { it.id == layerId }
+        layer?.let {
+            val index = _layers.indexOf(it)
+            _layers.remove(it)
+            _layers.add(index, it.copy(on = on).apply { id = layerId })
+        }
     }
 
     fun clear(layers: List<Long>) {

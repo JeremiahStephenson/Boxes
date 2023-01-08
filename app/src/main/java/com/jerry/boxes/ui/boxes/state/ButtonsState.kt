@@ -39,4 +39,8 @@ class ButtonsState(
     fun toggleGrid() {
         showGridState = !showGridState
     }
+
+    fun turnOffEraser() {
+        eraserSelectedState = false
+    }
 }
