@@ -29,8 +29,17 @@ import com.ramcosta.composedestinations.animations.rememberAnimatedNavHostEngine
 fun MainContent(
     onBackPressed: () -> Unit
 ) {
+    var fab by remember { mutableStateOf<FloatButtonProperties?>(null) }
+    var title by remember { mutableStateOf<Pair<String?, Boolean>>(null to false) }
+    var actions by remember { mutableStateOf<(@Composable RowScope.() -> Unit)?>(null) }
+
+    // todo figure out how to fix the issue of the appbar scrolling itself
     val scrollBehavior =
-        TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+        TopAppBarDefaults.pinnedScrollBehavior()
+//        TopAppBarDefaults.enterAlwaysScrollBehavior(
+//            state = rememberTopAppBarState(),
+//            canScroll = { !title.second }
+//        )
 
     val engine = rememberAnimatedNavHostEngine(
         rootDefaultAnimations = RootNavGraphDefaultAnimations(
@@ -48,9 +57,6 @@ fun MainContent(
         }
     }
 
-    var fab by remember { mutableStateOf<FloatButtonProperties?>(null) }
-    var title by remember { mutableStateOf<Pair<String?, Boolean>>(null to false) }
-    var actions by remember { mutableStateOf<(@Composable RowScope.() -> Unit)?>(null) }
     CompositionLocalProvider(
         LocalAppBarTitle provides { title = it },
         LocalFloatingActionBarButton provides { fab = it },
@@ -58,13 +64,7 @@ fun MainContent(
         LocalAppBarHeight provides rememberUpdatedState(scrollBehavior.state.heightOffset)
     ) {
         Scaffold(
-            modifier = Modifier
-                .run {
-                    when (title.second) {
-                        true -> this
-                        else -> nestedScroll(scrollBehavior.nestedScrollConnection)
-                    }
-                },
+            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {
                 val showBackArrow by remember(navController.appCurrentDestinationAsState().value) {
                     derivedStateOf { navController.previousBackStackEntry != null }
