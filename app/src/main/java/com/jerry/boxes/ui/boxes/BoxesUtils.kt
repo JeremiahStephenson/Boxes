@@ -71,16 +71,25 @@ fun DrawScope.drawCustomShape(
         Shape.RectangleBottom -> drawRectangleBottom(pos, color)
         Shape.RectangleLeft -> drawRectangleLeft(pos, color)
         Shape.RectangleRight -> drawRectangleRight(pos, color)
-        Shape.ArcLeft -> drawArcLeft(pos, color)
-        Shape.ArcLeftInverse -> drawArcLeftInverse(pos, color)
-        Shape.ArcRight -> drawArcRight(pos, color)
-        Shape.ArcRightInverse -> drawArcRightInverse(pos, color)
+        Shape.ArcCornerLeft -> drawCornerArcLeft(pos, color)
+        Shape.ArcCornerLeftInverse -> drawCornerArcLeftInverse(pos, color)
+        Shape.ArcCornerRight -> drawCornerArcRight(pos, color)
+        Shape.ArcCornerRightInverse -> drawCornerArcRightInverse(pos, color)
         Shape.Circle -> drawCircle(pos, color)
         Shape.Star -> drawStar(pos, color)
         Shape.BoxBottomLeft -> drawBoxBottomLeft(pos, color)
         Shape.BoxBottomRight -> drawBoxBottomRight(pos, color)
         Shape.BoxTopLeft -> drawBoxTopLeft(pos, color)
         Shape.BoxTopRight -> drawBoxTopRight(pos, color)
+        Shape.Diamond -> drawDiamond(pos, color)
+        Shape.ArcRight -> drawArcRight(pos, color)
+        Shape.ArcTop -> drawArcTop(pos, color)
+        Shape.ArcLeft -> drawArcLeft(pos, color)
+        Shape.ArcBottom -> drawArcBottom(pos, color)
+        Shape.BottomLeftToTopRightLine -> drawBottomLeftToTopRightLine(pos, color)
+        Shape.TopLeftToBottomRightLine -> drawTopLeftToBottomRightLine(pos, color)
+        Shape.HorizontalLine -> drawHorizontalLine(pos, color)
+        Shape.VerticalLine -> drawVerticalLine(pos, color)
         else -> {}
     }
 }
@@ -241,7 +250,7 @@ private fun DrawScope.drawRectangleBottom(
     )
 }
 
-private fun DrawScope.drawArcRight(
+private fun DrawScope.drawCornerArcRight(
     pos: RectF,
     color: SerializableColor
 ) {
@@ -255,7 +264,7 @@ private fun DrawScope.drawArcRight(
     )
 }
 
-private fun DrawScope.drawArcLeft(
+private fun DrawScope.drawCornerArcLeft(
     pos: RectF,
     color: SerializableColor
 ) {
@@ -269,7 +278,7 @@ private fun DrawScope.drawArcLeft(
     )
 }
 
-private fun DrawScope.drawArcRightInverse(
+private fun DrawScope.drawCornerArcRightInverse(
     pos: RectF,
     color: SerializableColor
 ) {
@@ -283,7 +292,7 @@ private fun DrawScope.drawArcRightInverse(
     )
 }
 
-private fun DrawScope.drawArcLeftInverse(
+private fun DrawScope.drawCornerArcLeftInverse(
     pos: RectF,
     color: SerializableColor
 ) {
@@ -341,6 +350,138 @@ private fun DrawScope.drawBoxBottomLeft(
         style = Fill,
         topLeft = Offset(pos.left, pos.top + (pos.height() / 2)),
         size = Size(pos.width() / 2, pos.height() / 2),
+        color = color.color
+    )
+}
+
+private fun DrawScope.drawDiamond(
+    pos: RectF,
+    color: SerializableColor
+) {
+    drawPath(
+        path = Path().apply {
+            moveTo(pos.left + (pos.width() / 2), pos.top)
+            lineTo(pos.left + pos.width(), pos.top + (pos.height() / 2))
+            lineTo(pos.left + (pos.width() / 2), pos.top + pos.height())
+            lineTo(pos.left, pos.top + (pos.height() / 2))
+            close()
+        },
+        color = color.color
+    )
+}
+
+private fun DrawScope.drawArcRight(
+    pos: RectF,
+    color: SerializableColor
+) {
+    drawArc(
+        startAngle = -90F,
+        sweepAngle = -180F,
+        useCenter = true,
+        topLeft = Offset(pos.left + (pos.width() / 2), pos.top),
+        size = Size(pos.width(), pos.height()),
+        color = color.color
+    )
+}
+
+private fun DrawScope.drawArcTop(
+    pos: RectF,
+    color: SerializableColor
+) {
+    drawArc(
+        startAngle = -180F,
+        sweepAngle = -180F,
+        useCenter = true,
+        topLeft = Offset(pos.left, pos.top - (pos.height() / 2)),
+        size = Size(pos.width(), pos.height()),
+        color = color.color
+    )
+}
+
+private fun DrawScope.drawArcLeft(
+    pos: RectF,
+    color: SerializableColor
+) {
+    drawArc(
+        startAngle = -90F,
+        sweepAngle = 180F,
+        useCenter = true,
+        topLeft = Offset(pos.left - (pos.width() / 2), pos.top),
+        size = Size(pos.width(), pos.height()),
+        color = color.color
+    )
+}
+
+private fun DrawScope.drawArcBottom(
+    pos: RectF,
+    color: SerializableColor
+) {
+    drawArc(
+        startAngle = -180F,
+        sweepAngle = 180F,
+        useCenter = true,
+        topLeft = Offset(pos.left, pos.top + (pos.height() / 2)),
+        size = Size(pos.width(), pos.height()),
+        color = color.color
+    )
+}
+
+private fun DrawScope.drawBottomLeftToTopRightLine(
+    pos:RectF,
+    color: SerializableColor
+) {
+    drawPath(
+        path = Path().apply {
+            moveTo(pos.left + (pos.width() * 0.75F), pos.top)
+            lineTo(pos.left + pos.width(), pos.top)
+            lineTo(pos.left + pos.width(), pos.top + (pos.height() * 0.25F))
+            lineTo(pos.left + (pos.width() * 0.25F), pos.top + pos.height())
+            lineTo(pos.left, pos.top + pos.height())
+            lineTo(pos.left, pos.top + (pos.height() * 0.75F))
+            close()
+        },
+        color = color.color
+    )
+}
+
+private fun DrawScope.drawTopLeftToBottomRightLine(
+    pos:RectF,
+    color: SerializableColor
+) {
+    drawPath(
+        path = Path().apply {
+            moveTo(pos.left, pos.top)
+            lineTo(pos.left + (pos.width() * 0.25F), pos.top)
+            lineTo(pos.left + pos.width(), pos.top + (pos.height() * 0.75F))
+            lineTo(pos.left + pos.width(), pos.top + pos.height())
+            lineTo(pos.left + (pos.width() * 0.75F), pos.top + pos.height())
+            lineTo(pos.left, pos.top + (pos.height() * 0.25F))
+            close()
+        },
+        color = color.color
+    )
+}
+
+private fun DrawScope.drawVerticalLine(
+    pos:RectF,
+    color: SerializableColor
+) {
+    drawRect(
+        style = Fill,
+        topLeft = Offset(pos.left + (pos.width() * 0.4F), pos.top),
+        size = Size(pos.width() * 0.2F, pos.height()),
+        color = color.color
+    )
+}
+
+private fun DrawScope.drawHorizontalLine(
+    pos:RectF,
+    color: SerializableColor
+) {
+    drawRect(
+        style = Fill,
+        topLeft = Offset(pos.left, pos.top + (pos.height() * 0.4F)),
+        size = Size(pos.width(), pos.height() * 0.2F),
         color = color.color
     )
 }

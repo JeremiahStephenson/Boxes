@@ -74,7 +74,7 @@ fun ShapePickerDialog(
     onDismiss: () -> Unit
 ) {
     Dialog(onDismissRequest = onDismiss) {
-        val shapes = remember { Shape.values() }
+        val shapes = remember { Shape.values().groupBy { it.group }.flatMap { it.value } }
         LazyVerticalGrid(
             modifier = Modifier
                 .clip(MaterialTheme.shapes.large)
