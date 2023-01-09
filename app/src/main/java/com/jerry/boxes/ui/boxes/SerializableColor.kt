@@ -22,8 +22,7 @@ data class SerializableColor(
 ) : Serializable {
 
     @Transient
-    val hsvColor: HsvColor = HsvColor(hue, saturation, value, alpha)
-
-    @Transient
-    val color: Color = hsvColor.toColor()
+    private var _color: Color? = null
+    val color: Color get() =
+        _color ?: HsvColor(hue, saturation, value, alpha).toColor().also { _color = it }
 }
