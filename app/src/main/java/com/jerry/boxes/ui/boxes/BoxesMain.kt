@@ -17,7 +17,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jerry.boxes.R
 import com.jerry.boxes.cache.data.ProjectAndLayer
 import com.jerry.boxes.extensions.asSerializableColor
-import com.jerry.boxes.ui.boxes.history.HistoryClearItem
 import com.jerry.boxes.ui.boxes.history.HistoryItem
 import com.jerry.boxes.ui.boxes.shapes.Shape
 import com.jerry.boxes.ui.boxes.state.ButtonsState
@@ -164,6 +163,7 @@ private fun MainCanvas(
             if (buttonsState.showPngBackgroundState) {
                 PngBackground()
             }
+            val currentLayer by remember { derivedStateOf { canvasState.max.id } }
             BoxCanvas(
                 canvasState = canvasState,
                 buttonsState = buttonsState,
@@ -176,30 +176,37 @@ private fun MainCanvas(
                 state = state,
                 onTap = { point ->
                     if (canvasState.hasLayersTurnedOn) {
-                        onAction(Action.AddToHistory(
-                            HistoryItem(
-                                canvasState.getCurrentSelection(point, canvasState.max.id),
-                                canvasState.max.id,
-                                point
+                        onAction(
+                            Action.AddToHistory(
+                                canvasState.getTapHistoryItem(point, currentLayer)
                             )
-                        ))
+                        )
                         canvasState.onTap(
                             point,
-                            canvasState.max.id,
+                            currentLayer,
                             currentColor,
                             currentShape
                         )
                     }
                 },
                 onDrag = {
+                    Timber.d("DragTest - ${it}")
                     if (canvasState.hasLayersTurnedOn) {
+                        canvasState.addToDragHistory(currentLayer, it)
                         canvasState.onDrag(
                             it,
-                            canvasState.max.id,
+                            currentLayer,
                             if (buttonsState.eraserSelectedState) null else currentColor,
                             currentShape
                         )
                     }
+                },
+                onDragStart = {},
+                onDragEnd = {
+                    val test = Action.AddToHistory(
+                        canvasState.closeDragHistory(currentLayer)
+                    )
+                    onAction(test)
                 }
             )
         }
@@ -305,21 +312,20 @@ private fun handleAction(
             canvasState.layers.map { it.id to it.on }
         )
         is Action.Clear -> if (canvasState.hasLayersTurnedOn) {
-            //viewModel.addToHistory(action.history)
             scope.launch {
-                viewModel.addToHistory(HistoryClearItem(canvasState.getCurrentSelectedLayerSelections()))
+                viewModel.addToHistory(
+                    HistoryItem.HistoryClearItem(
+                        canvasState.getCurrentSelectedLayerSelections()
+                    )
+                )
                 canvasState.clear()
             }
         }
-        is Action.Undo -> {
-            scope.launch {
-                val undo = viewModel.undoSelection()
-                canvasState.onUndo(undo)
-                // todo call out to viewmodel
-            }
+        is Action.Undo -> scope.launch {
+            canvasState.onUndo(viewModel.getLastHistoryItem())
         }
         is Action.AddToHistory -> scope.launch {
-            viewModel.addToHistory(action.history)
+            viewModel.addToHistory(action.historyItem)
         }
         is Action.ShowPngBackground -> buttonsState.toggleShowPngBackground()
         is Action.ShowGrid -> buttonsState.toggleGrid()
@@ -328,16 +334,13 @@ private fun handleAction(
             scope.launch { drawerState.close() }
             navController.navigate(CreateMainDestination(project?.project?.id))
         }
-        is Action.AddLayer -> {
+        is Action.AddLayer ->
             viewModel.addLayer(
                 (project?.layers?.maxOf { it.layer.index } ?: -1) + 1,
                 canvasState.selections.toMap()
             )
-        }
-        is Action.TurnOnOrOffLayer -> {
-            //canvasState.turnOnOrOffLayer(action.layerId, action.on)
+        is Action.TurnOnOrOffLayer ->
             viewModel.setLayerOnOrOff(action.layerId, action.on)
-        }
         is Action.Export -> exportCanvas(
             rootView = rootView,
             rows = project?.project?.rows ?: 0,

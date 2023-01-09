@@ -17,6 +17,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Constraints
@@ -44,6 +45,8 @@ fun BoxCanvas(
     state: TransformableState,
     onTap: (Point) -> Unit,
     onDrag: (List<Point>) -> Unit,
+    onDragStart: () -> Unit,
+    onDragEnd: () -> Unit
 ) {
     val contentOffset = LocalAppBarHeight.current
     val appBarExpanded by remember { derivedStateOf { contentOffset.value == 0F } }
@@ -54,48 +57,28 @@ fun BoxCanvas(
         .fillMaxSize()
         .pointerInput(appBarExpanded) {
             detectTapGestures { point ->
-                point.findBox(
-                    scaleState,
-                    offsetState,
-                    sizeState,
-                    canvasState.boxes
-                )?.let {
-                    onTap(it)
-                }
+                if (state.isTransformInProgress) return@detectTapGestures
+                point
+                    .findBox(
+                        scaleState,
+                        offsetState,
+                        sizeState,
+                        canvasState.boxes
+                    )
+                    ?.let {
+                        onTap(it)
+                    }
             }
         }
         .pointerInput(appBarExpanded) {
-            detectDragGestures { position, change ->
-                if (state.isTransformInProgress) return@detectDragGestures
-                mutableListOf<Offset>().apply {
-                    val boxSize = canvasState.boxes.values
-                        .first()
-                        .width()
-                        .toInt()
-
-                    if (abs(change.x) > boxSize || abs(change.y) > boxSize) {
-                        val distance =
-                            sqrt(
-                                (position.position.x - position.previousPosition.x).pow(2) +
-                                        (position.position.y - position.previousPosition.y).pow(
-                                            2
-                                        )
-                            )
-                        for (i in 1..(distance / boxSize).toInt()) {
-                            val t = (boxSize * i) / distance
-                            add(
-                                Offset(
-                                    ((1 - t) * (position.previousPosition.x) + (t * position.position.x)),
-                                    ((1 - t) * (position.previousPosition.y) + (t * position.position.y))
-                                )
-                            )
-                        }
-                    }
-
-                    add(position.position)
-
+            detectDragGestures(
+                onDragStart = { onDragStart() },
+                onDragEnd = { onDragEnd() },
+                onDragCancel = { onDragEnd() },
+                onDrag = { position, change ->
+                    if (state.isTransformInProgress) return@detectDragGestures
                     onDrag(
-                        findBoxes(
+                        getDragPoints(canvasState, change, position).findBoxes(
                             scaleState,
                             offsetState,
                             sizeState,
@@ -103,7 +86,7 @@ fun BoxCanvas(
                         )
                     )
                 }
-            }
+            )
         }
         .transformable(
             state = state,
@@ -272,6 +255,40 @@ private fun Grid(
                 }
             }
         }
+    }
+}
+
+private fun getDragPoints(
+    canvasState: CanvasState,
+    change: Offset,
+    position: PointerInputChange
+): List<Offset> {
+    return mutableListOf<Offset>().apply {
+        val boxSize = canvasState.boxes.values
+            .first()
+            .width()
+            .toInt()
+
+        if (abs(change.x) > boxSize || abs(change.y) > boxSize) {
+            val distance =
+                sqrt(
+                    (position.position.x - position.previousPosition.x).pow(2) +
+                            (position.position.y - position.previousPosition.y).pow(
+                                2
+                            )
+                )
+            for (i in 1..(distance / boxSize).toInt()) {
+                val t = (boxSize * i) / distance
+                add(
+                    Offset(
+                        ((1 - t) * (position.previousPosition.x) + (t * position.position.x)),
+                        ((1 - t) * (position.previousPosition.y) + (t * position.position.y))
+                    )
+                )
+            }
+        }
+
+        add(position.position)
     }
 }
 

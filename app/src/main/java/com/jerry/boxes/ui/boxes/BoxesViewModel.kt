@@ -9,7 +9,7 @@ import com.jerry.boxes.cache.BoxesDao
 import com.jerry.boxes.cache.BoxesDatabase
 import com.jerry.boxes.cache.data.Layer
 import com.jerry.boxes.cache.data.Pixel
-import com.jerry.boxes.ui.boxes.history.History
+import com.jerry.boxes.ui.boxes.history.HistoryItem
 import com.jerry.boxes.ui.destinations.BoxesMainDestination
 import com.jerry.boxes.util.SavedHandle
 import kotlinx.coroutines.flow.*
@@ -37,7 +37,7 @@ class BoxesViewModel(
 
     private val historyMutex = Mutex()
     private var historyStateHandle
-            by SavedHandle<MutableList<History>>(
+            by SavedHandle<MutableList<HistoryItem>>(
                 handle,
                 HISTORY_STATE,
                 mutableListOf()
@@ -70,7 +70,7 @@ class BoxesViewModel(
         }
     }
 
-    suspend fun addToHistory(historyItem: History) {
+    suspend fun addToHistory(historyItem: HistoryItem) {
         historyMutex.withLock {
             historyStateHandle?.add(historyItem)
             if ((historyStateHandle?.size ?: 0) > 20) {
@@ -79,7 +79,7 @@ class BoxesViewModel(
         }
     }
 
-    suspend fun undoSelection(): History? {
+    suspend fun getLastHistoryItem(): HistoryItem? {
         return historyMutex.withLock {
             historyStateHandle?.lastOrNull()?.also {
                 historyStateHandle?.removeLast()
