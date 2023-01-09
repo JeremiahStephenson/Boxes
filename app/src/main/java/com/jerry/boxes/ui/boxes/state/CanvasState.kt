@@ -10,8 +10,13 @@ import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.unit.Constraints
 import com.jerry.boxes.cache.data.Layer
 import com.jerry.boxes.cache.data.LayerAndPixel
+import com.jerry.boxes.extensions.asList
+import com.jerry.boxes.ui.boxes.history.HistoryItem
 import com.jerry.boxes.ui.boxes.SerializableColor
 import com.jerry.boxes.ui.boxes.generateBoxes
+import com.jerry.boxes.ui.boxes.history.History
+import com.jerry.boxes.ui.boxes.history.HistoryClearItem
+import com.jerry.boxes.ui.boxes.history.HistoryDragItem
 import com.jerry.boxes.ui.boxes.shapes.Shape
 import kotlin.math.max
 import kotlin.math.min
@@ -42,39 +47,65 @@ class CanvasState(layersState: State<List<Layer>>) {
             }
     }
 
+    fun getCurrentSelectedLayerSelections(): Map<Point, Map<Long, SerializableColor?>?> {
+        val selectedLayers = layers.filter { it.on }.map { it.id }
+        return _selections.map { it.key to it.value?.filter { data -> selectedLayers.contains(data.key) } }
+            .toMap()
+    }
+
+    fun getCurrentSelection(
+        point: Point,
+        layerId: Long
+    ): SerializableColor? {
+        return _selections[point]?.get(layerId)
+    }
+
+    fun onUndo(historyItem: History?) {
+        historyItem?.let { item ->
+            when (historyItem) {
+                is HistoryItem -> (item as? HistoryItem)?.let {
+                    onDrag(item.point.asList, item.layerId, item.color, item.color?.shape)
+                }
+                is HistoryClearItem -> (item as? HistoryClearItem)?.let { restoreClear(it) }
+                is HistoryDragItem -> {
+                    (item as? HistoryDragItem)?.let { historyItem ->
+                        historyItem.points.forEach { (point, selection) ->
+                            _selections.getOrPut(point) { mutableStateMapOf() }
+                                ?.put(historyItem.layerId, selection)
+                        }
+                    }
+                }
+                else -> {}
+            }
+        }
+    }
+
     fun onTap(
         point: Point,
         layerId: Long,
         currentColor: SerializableColor,
         currentShape: Shape
-    ) {
+    ): SerializableColor? {
         val colorAndShape = currentColor.copy(shape = currentShape)
-        val selection = _selections[point]?.get(layerId)
-        _selections.getOrPut(point) { mutableStateMapOf() }?.apply {
-            put(
-                layerId, when (selection == colorAndShape) {
-                    true -> null
-                    else -> colorAndShape
-                }
-            )
+        val selection = when (_selections[point]?.get(layerId) == colorAndShape) {
+            true -> null
+            else -> colorAndShape
         }
+        _selections.getOrPut(point) { mutableStateMapOf() }?.apply {
+            put(layerId, selection)
+        }
+        return selection
     }
 
     fun onDrag(
-        points: List<Point>,
+        points: Collection<Point>,
         layerId: Long,
-        currentColor: SerializableColor,
-        currentShape: Shape,
-        erasing: Boolean
+        currentColor: SerializableColor?,
+        currentShape: Shape?
     ) {
         _selections.putAll(points.map {
             it to _selections.getOrDefault(it, mutableStateMapOf())?.apply {
-                put(
-                    layerId, when (erasing) {
-                        true -> null
-                        else -> currentColor.copy(shape = currentShape)
-                    }
-                )
+                put(layerId, currentColor?.copy(shape = currentShape ?: Shape.Box))
             }
         })
     }
@@ -122,5 +153,15 @@ class CanvasState(layersState: State<List<Layer>>) {
                 offset + yOffSet
             )
         )
+    }
+
+    private fun restoreClear(item: HistoryClearItem) {
+        item.data.forEach { map ->
+            _selections.getOrPut(map.key) { mutableStateMapOf() }?.apply {
+                map.value?.forEach { entries ->
+                    put(entries.key, entries.value)
+                }
+            }
+        }
     }
 }

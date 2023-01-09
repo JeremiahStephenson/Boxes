@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.drawscope.Fill
 import com.jerry.boxes.cache.data.Layer
 import com.jerry.boxes.extensions.safeLet
 import com.jerry.boxes.ui.boxes.shapes.Shape
+import timber.log.Timber
 
 fun generateBoxes(
     numX: Int,
@@ -42,6 +43,7 @@ fun DrawScope.drawShapes(
     selections: Map<Point, Map<Long, SerializableColor?>?>,
     boxes: Map<Point, RectF>
 ) {
+    Timber.d("DrawTest - drawing")
     val layerIds = layers.filter { it.on }.sortedBy { it.index }.map { it.id }
     selections.forEach { (point, pixels) ->
         val position = boxes[point]

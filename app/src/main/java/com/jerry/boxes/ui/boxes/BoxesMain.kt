@@ -17,6 +17,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jerry.boxes.R
 import com.jerry.boxes.cache.data.ProjectAndLayer
 import com.jerry.boxes.extensions.asSerializableColor
+import com.jerry.boxes.ui.boxes.history.HistoryClearItem
+import com.jerry.boxes.ui.boxes.history.HistoryItem
 import com.jerry.boxes.ui.boxes.shapes.Shape
 import com.jerry.boxes.ui.boxes.state.ButtonsState
 import com.jerry.boxes.ui.boxes.state.CanvasState
@@ -172,10 +174,17 @@ private fun MainCanvas(
                 size = size,
                 strokeWidth = strokeWidth,
                 state = state,
-                onTap = {
+                onTap = { point ->
                     if (canvasState.hasLayersTurnedOn) {
+                        onAction(Action.AddToHistory(
+                            HistoryItem(
+                                canvasState.getCurrentSelection(point, canvasState.max.id),
+                                canvasState.max.id,
+                                point
+                            )
+                        ))
                         canvasState.onTap(
-                            it,
+                            point,
                             canvasState.max.id,
                             currentColor,
                             currentShape
@@ -187,9 +196,8 @@ private fun MainCanvas(
                         canvasState.onDrag(
                             it,
                             canvasState.max.id,
-                            currentColor,
-                            currentShape,
-                            buttonsState.eraserSelectedState
+                            if (buttonsState.eraserSelectedState) null else currentColor,
+                            currentShape
                         )
                     }
                 }
@@ -263,6 +271,13 @@ private fun ButtonBar(
         Spacer(modifier = Modifier.weight(1F))
 
         IconMenuButton(
+            onClick = { onAction(Action.Undo) },
+            drawableRes = R.drawable.ic_baseline_undo_24
+        )
+
+        Spacer(modifier = Modifier.weight(1F))
+
+        IconMenuButton(
             onClick = { onAction(Action.ResetZoom) },
             drawableRes = R.drawable.ic_baseline_zoom_out_map_24
         )
@@ -282,7 +297,6 @@ private fun handleAction(
     navController: DestinationsNavigator,
     action: Action
 ) {
-    ArrayList<Int>(5)
     when (action) {
         is Action.Eraser -> buttonsState.toggleEraserSelected()
         is Action.Save -> viewModel.save(
@@ -291,7 +305,21 @@ private fun handleAction(
             canvasState.layers.map { it.id to it.on }
         )
         is Action.Clear -> if (canvasState.hasLayersTurnedOn) {
-            canvasState.clear()
+            //viewModel.addToHistory(action.history)
+            scope.launch {
+                viewModel.addToHistory(HistoryClearItem(canvasState.getCurrentSelectedLayerSelections()))
+                canvasState.clear()
+            }
+        }
+        is Action.Undo -> {
+            scope.launch {
+                val undo = viewModel.undoSelection()
+                canvasState.onUndo(undo)
+                // todo call out to viewmodel
+            }
+        }
+        is Action.AddToHistory -> scope.launch {
+            viewModel.addToHistory(action.history)
         }
         is Action.ShowPngBackground -> buttonsState.toggleShowPngBackground()
         is Action.ShowGrid -> buttonsState.toggleGrid()
