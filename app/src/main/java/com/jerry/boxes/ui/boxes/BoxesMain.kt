@@ -31,7 +31,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.get
 import org.koin.androidx.compose.koinViewModel
-import timber.log.Timber
 
 @Destination
 @Composable
@@ -128,8 +127,6 @@ private fun MainCanvas(
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
 
-        Timber.d("RecomposeTest - recomposing")
-
         val density = LocalDensity.current
         val strokeWidth = remember { with(density) { 2.dp.toPx() } }
         val buttonBarOffset = remember { with(density) { 56.dp.toPx() } }
@@ -190,7 +187,6 @@ private fun MainCanvas(
                     }
                 },
                 onDrag = {
-                    Timber.d("DragTest - ${it}")
                     if (canvasState.hasLayersTurnedOn) {
                         canvasState.addToDragHistory(currentLayer, it)
                         canvasState.onDrag(
@@ -203,10 +199,11 @@ private fun MainCanvas(
                 },
                 onDragStart = {},
                 onDragEnd = {
-                    val test = Action.AddToHistory(
-                        canvasState.closeDragHistory(currentLayer)
-                    )
-                    onAction(test)
+                    if (canvasState.hasLayersTurnedOn) {
+                        onAction(Action.AddToHistory(
+                            canvasState.closeDragHistory(currentLayer)
+                        ))
+                    }
                 }
             )
         }
