@@ -12,6 +12,8 @@ sealed class Action {
     object Edit : Action()
     object AddLayer: Action()
     object Undo : Action()
+    object ColorPicker : Action()
+    data class AddColorToUsedList(val color: SerializableColor) : Action()
     data class AddToHistory(val historyItem: HistoryItem) : Action()
     data class TurnOnOrOffLayer(val on: Boolean, val layerId: Long) : Action()
     data class Save(val autoSave: Boolean) : Action()

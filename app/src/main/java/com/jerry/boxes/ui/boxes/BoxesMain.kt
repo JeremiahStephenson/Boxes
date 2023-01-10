@@ -51,7 +51,8 @@ fun BoxesMain(
             ButtonsState(
                 eraserSelected = false,
                 showPngBackground = false,
-                showGrid = true
+                showGrid = true,
+                colorPickerOn = false
             )
         )
     }
@@ -110,7 +111,8 @@ fun BoxesMain(
                     canvasState = canvasState,
                     buttonsState = buttonsState,
                     transformerState = transformerState,
-                    onAction = handleAction
+                    onAction = handleAction,
+                    getUsedColorList = { viewModel.usedColors }
                 )
             }
         }
@@ -123,6 +125,7 @@ private fun MainCanvas(
     canvasState: CanvasState,
     buttonsState: ButtonsState,
     transformerState: TransformerState,
+    getUsedColorList: () -> List<SerializableColor>,
     onAction: (Action) -> Unit
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
@@ -157,9 +160,6 @@ private fun MainCanvas(
         }
 
         Transformer(transformerState) { scale, offset, state ->
-            if (buttonsState.showPngBackgroundState) {
-                PngBackground()
-            }
             val currentLayer by remember { derivedStateOf { canvasState.max.id } }
             BoxCanvas(
                 canvasState = canvasState,
@@ -173,17 +173,24 @@ private fun MainCanvas(
                 state = state,
                 onTap = { point ->
                     if (canvasState.hasLayersTurnedOn) {
-                        onAction(
-                            Action.AddToHistory(
-                                canvasState.getTapHistoryItem(point, currentLayer)
-                            )
-                        )
-                        canvasState.onTap(
-                            point,
-                            currentLayer,
-                            currentColor,
-                            currentShape
-                        )
+                        when (buttonsState.colorPickerOnState) {
+                            true -> canvasState.getCurrentSelection(point)?.let {
+                                currentColor = it
+                            }
+                            else -> {
+                                onAction(
+                                    Action.AddToHistory(
+                                        canvasState.getTapHistoryItem(point, currentLayer)
+                                    )
+                                )
+                                canvasState.onTap(
+                                    point,
+                                    currentLayer,
+                                    currentColor,
+                                    currentShape
+                                )
+                            }
+                        }
                     }
                 },
                 onDrag = {
@@ -200,9 +207,11 @@ private fun MainCanvas(
                 onDragStart = {},
                 onDragEnd = {
                     if (canvasState.hasLayersTurnedOn) {
-                        onAction(Action.AddToHistory(
-                            canvasState.closeDragHistory(currentLayer)
-                        ))
+                        onAction(
+                            Action.AddToHistory(
+                                canvasState.closeDragHistory(currentLayer)
+                            )
+                        )
                     }
                 }
             )
@@ -211,15 +220,18 @@ private fun MainCanvas(
         ButtonBar(
             color = currentColor,
             shape = currentShape,
+            buttonsState = buttonsState,
             onColorChosen = {
                 buttonsState.turnOffEraser()
                 currentColor = it
+                onAction(Action.AddColorToUsedList(it))
             },
             onShapeChosen = {
                 buttonsState.turnOffEraser()
                 currentShape = it
             },
-            onAction = onAction
+            onAction = onAction,
+            getUsedColorList = getUsedColorList
         )
     }
 }
@@ -228,9 +240,11 @@ private fun MainCanvas(
 private fun ButtonBar(
     color: SerializableColor,
     shape: Shape,
+    buttonsState: ButtonsState,
+    getUsedColorList: () -> List<SerializableColor>,
     onAction: (Action) -> Unit,
     onColorChosen: (SerializableColor) -> Unit,
-    onShapeChosen: (Shape) -> Unit
+    onShapeChosen: (Shape) -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -243,6 +257,7 @@ private fun ButtonBar(
         if (colorPicker) {
             ColorPickerDialog(
                 color = color,
+                usedColors = getUsedColorList(),
                 onColorChosen = onColorChosen
             ) {
                 colorPicker = false
@@ -260,9 +275,19 @@ private fun ButtonBar(
         }
 
         IconMenuButton(
-            onClick = { colorPicker = true },
+            onClick = {
+                when (buttonsState.colorPickerOnState) {
+                    true -> buttonsState.turnOnOrOffColorPicker(on = false)
+                    else -> {
+                        colorPicker = true
+                    }
+                }
+            },
             color = color,
-            drawableRes = R.drawable.ic_baseline_color_lens_24
+            drawableRes = when (buttonsState.colorPickerOnState) {
+                true -> R.drawable.ic_baseline_colorize_24
+                else -> R.drawable.ic_baseline_color_lens_24
+            }
         )
 
         ShapeOption(
@@ -303,6 +328,7 @@ private fun handleAction(
 ) {
     when (action) {
         is Action.Eraser -> buttonsState.toggleEraserSelected()
+        is Action.ColorPicker -> buttonsState.toggleColorPicker()
         is Action.Save -> viewModel.save(
             if (action.autoSave) null else canvasState.boxes.keys.toList(),
             canvasState.selections.toMap(),
@@ -338,6 +364,8 @@ private fun handleAction(
             )
         is Action.TurnOnOrOffLayer ->
             viewModel.setLayerOnOrOff(action.layerId, action.on)
+        is Action.AddColorToUsedList ->
+            scope.launch { viewModel.addUsedColor(action.color) }
         is Action.Export -> exportCanvas(
             rootView = rootView,
             rows = project?.project?.rows ?: 0,

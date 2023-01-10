@@ -18,6 +18,7 @@ import com.jerry.boxes.ui.common.unboundClickable
 
 @Composable
 fun ShapeOption(
+    modifier: Modifier = Modifier,
     shape: Shape,
     color: SerializableColor? = null,
     onClick: () -> Unit
@@ -33,6 +34,7 @@ fun ShapeOption(
             }
             .padding(16.dp)
             .size(26.dp)
+            .then(modifier)
     ) {
         drawCustomShape(
             RectF(0F, 0F, size, size),

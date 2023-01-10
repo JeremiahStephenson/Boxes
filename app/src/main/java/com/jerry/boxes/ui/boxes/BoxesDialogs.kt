@@ -1,6 +1,7 @@
 package com.jerry.boxes.ui.boxes
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -14,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -22,10 +24,13 @@ import com.godaddy.android.colorpicker.HsvColor
 import com.jerry.boxes.R
 import com.jerry.boxes.extensions.asSerializableColor
 import com.jerry.boxes.ui.boxes.shapes.Shape
+import com.jerry.boxes.ui.common.pngBackground
+import com.jerry.boxes.ui.common.unboundClickable
 
 @Composable
 fun ColorPickerDialog(
     color: SerializableColor,
+    usedColors: List<SerializableColor>,
     onColorChosen: (SerializableColor) -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -34,20 +39,58 @@ fun ColorPickerDialog(
         Column(
             modifier = Modifier
                 .clip(MaterialTheme.shapes.large)
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-                .padding(16.dp),
+                .background(MaterialTheme.colorScheme.surfaceVariant),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            val showTopSpace by remember { derivedStateOf { usedColors.isNotEmpty() } }
+            if (showTopSpace) {
+                Spacer(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(16.dp)
+                )
+            }
+            val size = with(LocalDensity.current) { 10.dp.toPx() }
+            LazyVerticalGrid(
+                modifier = Modifier.fillMaxWidth(),
+                columns = GridCells.Fixed(5),
+                contentPadding = PaddingValues(8.dp)
+            ) {
+                items(usedColors) {
+                    Box {
+                        Box(
+                            modifier = Modifier
+                                .unboundClickable {
+                                    onColorChosen(it)
+                                    onDismiss()
+                                }
+                                .padding(8.dp)
+                                .size(34.dp)
+                                .border(width = 1.dp, color = MaterialTheme.colorScheme.onSurface)
+                                .pngBackground(true, size)
+                                .background(color = it.color)
+                        )
+                    }
+                }
+            }
+
+            Spacer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(16.dp)
+            )
             ClassicColorPicker(
                 color = color.color,
-                modifier = Modifier.fillMaxHeight(0.5F),
+                modifier = Modifier
+                    .height(200.dp)
+                    .padding(horizontal = 16.dp),
                 onColorChanged = { color: HsvColor ->
                     currentColor = color.asSerializableColor
                 }
             )
             Button(
                 modifier = Modifier
-                    .padding(vertical = 16.dp)
+                    .padding(vertical = 16.dp, horizontal = 16.dp)
                     .fillMaxWidth(),
                 onClick = {
                     onColorChosen(currentColor)
@@ -58,6 +101,7 @@ fun ColorPickerDialog(
             OutlinedButton(
                 modifier = Modifier
                     .padding(bottom = 16.dp)
+                    .padding(horizontal = 16.dp)
                     .fillMaxWidth(),
                 onClick = onDismiss
             ) {
@@ -88,11 +132,13 @@ fun ShapePickerDialog(
                 span = { item ->
                     val groupSize = shapes.count { it.group == item.group }
                     val indexInGroup = shapes.filter { it.group == item.group }.indexOf(item) + 1
-                    val end = indexInGroup  % COLUMN_COUNT != 0 && groupSize == indexInGroup
-                    GridItemSpan(when (end) {
-                        true -> COLUMN_COUNT - (indexInGroup - 1)
-                        else -> 1
-                    })
+                    val end = indexInGroup % COLUMN_COUNT != 0 && groupSize == indexInGroup
+                    GridItemSpan(
+                        when (end) {
+                            true -> COLUMN_COUNT - (indexInGroup - 1)
+                            else -> 1
+                        }
+                    )
                 }
             ) {
                 Box {
@@ -110,3 +156,4 @@ fun ShapePickerDialog(
 }
 
 private const val COLUMN_COUNT = 4
+private const val COLOR_COLUMN_COUNT = 10

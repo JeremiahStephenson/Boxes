@@ -96,6 +96,10 @@ fun DrawerMenu(
                     drawableResOn = R.drawable.ic_baseline_visibility_on_24,
                     drawableResOff = R.drawable.ic_baseline_visibility_off_24
                 )
+                IconMenuButton(
+                    onClick = { onAction(Action.ColorPicker) },
+                    drawableRes = R.drawable.ic_baseline_colorize_24
+                )
             }
         }
 

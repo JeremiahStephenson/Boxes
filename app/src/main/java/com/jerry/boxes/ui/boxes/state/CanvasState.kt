@@ -161,11 +161,17 @@ class CanvasState(layersState: State<List<Layer>>) {
         )
     }
 
-    private fun getCurrentSelection(
+    fun getCurrentSelection(
         point: Point,
         layerId: Long
     ): SerializableColor? {
         return _selections[point]?.get(layerId)
+    }
+
+    fun getCurrentSelection(point: Point): SerializableColor? {
+        val turnedOnLayers = layers.filter { it.on }.sortedBy { it.index }.reversed()
+        return turnedOnLayers.firstOrNull { _selections[point]?.get(it.id) != null }
+            ?.let { getCurrentSelection(point, it.id) }
     }
 
     private fun getCurrentSelections(

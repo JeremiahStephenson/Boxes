@@ -12,9 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerInputChange
@@ -27,9 +25,9 @@ import com.jerry.boxes.extensions.safeLet
 import com.jerry.boxes.ui.boxes.state.ButtonsState
 import com.jerry.boxes.ui.boxes.state.CanvasState
 import com.jerry.boxes.ui.common.LocalAppBarHeight
+import com.jerry.boxes.ui.common.pngBackground
 import kotlin.math.abs
 import kotlin.math.pow
-import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
 @Composable
@@ -53,8 +51,10 @@ fun BoxCanvas(
     val scaleState by rememberUpdatedState(scale)
     val offsetState by rememberUpdatedState(offset)
     val sizeState by rememberUpdatedState(size)
+    val pngBoxSize = with(LocalDensity.current) { 10.dp.toPx() }
     Box(modifier = Modifier
         .fillMaxSize()
+        .pngBackground(buttonsState.showPngBackgroundState, pngBoxSize)
         .pointerInput(appBarExpanded) {
             detectTapGestures { point ->
                 if (state.isTransformInProgress) return@detectTapGestures
@@ -158,40 +158,6 @@ fun SelectionsBoxes(
         drawShapes(canvasState.layers, canvasState.selections, canvasState.boxes)
     }
 }
-
-@Composable
-fun PngBackground() {
-    val size = with(LocalDensity.current) { 10.dp.toPx() }
-    Canvas(
-        modifier = Modifier
-            .fillMaxSize()
-            .clipToBounds()
-    ) {
-        val columns = (this.size.width / size).roundToInt()
-        val rows = (this.size.height / size).roundToInt()
-        for (r in 0..rows) {
-            for (c in 0..columns) {
-                drawRect(
-                    color = Color.Gray,
-                    topLeft = Offset(c * size, r * size),
-                    size = Size(size, size),
-                    alpha = when (r % 2 == 0) {
-                        true -> when (c % 2 == 0) {
-                            true -> 1F
-                            else -> GRID_ODD_ALPHA
-                        }
-                        else -> when (c % 2 == 0) {
-                            true -> GRID_ODD_ALPHA
-                            else -> 1F
-                        }
-                    }
-                )
-            }
-        }
-    }
-}
-
-private const val GRID_ODD_ALPHA = 0.5F
 
 @Composable
 private fun Grid(

@@ -13,7 +13,8 @@ import kotlinx.parcelize.Parcelize
 class ButtonsState(
     private val eraserSelected: Boolean,
     private val showPngBackground: Boolean,
-    private val showGrid: Boolean
+    private val showGrid: Boolean,
+    private val colorPickerOn: Boolean
 ) : Parcelable {
 
     @IgnoredOnParcel
@@ -26,6 +27,10 @@ class ButtonsState(
 
     @IgnoredOnParcel
     var showGridState by mutableStateOf(showGrid)
+        private set
+
+    @IgnoredOnParcel
+    var colorPickerOnState by mutableStateOf(colorPickerOn)
         private set
 
     fun toggleEraserSelected() {
@@ -42,5 +47,13 @@ class ButtonsState(
 
     fun turnOffEraser() {
         eraserSelectedState = false
+    }
+
+    fun turnOnOrOffColorPicker(on: Boolean) {
+        colorPickerOnState = on
+    }
+
+    fun toggleColorPicker() {
+        colorPickerOnState = !colorPickerOnState
     }
 }

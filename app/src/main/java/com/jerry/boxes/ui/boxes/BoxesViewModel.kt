@@ -9,6 +9,7 @@ import com.jerry.boxes.cache.BoxesDao
 import com.jerry.boxes.cache.BoxesDatabase
 import com.jerry.boxes.cache.data.Layer
 import com.jerry.boxes.cache.data.Pixel
+import com.jerry.boxes.extensions.addIfNotFound
 import com.jerry.boxes.ui.boxes.history.HistoryItem
 import com.jerry.boxes.ui.destinations.BoxesMainDestination
 import com.jerry.boxes.util.SavedHandle
@@ -35,6 +36,12 @@ class BoxesViewModel(
         null
     )
 
+    private var usedColorsHandle by SavedHandle<MutableList<SerializableColor>>(
+        handle,
+        USED_COLORS_STATE,
+        mutableListOf()
+    )
+
     private val historyMutex = Mutex()
     private var historyStateHandle
             by SavedHandle<MutableList<HistoryItem>>(
@@ -44,6 +51,9 @@ class BoxesViewModel(
             )
 
     private val projectId = BoxesMainDestination.argsFrom(handle).projectId
+
+    private val colorsMutex = Mutex()
+    val usedColors get() = usedColorsHandle as List<SerializableColor>
 
     val projectFlow = boxesDao.getFullProjectFlowById(projectId)
         .filterNotNull()
@@ -83,6 +93,15 @@ class BoxesViewModel(
         return historyMutex.withLock {
             historyStateHandle?.lastOrNull()?.also {
                 historyStateHandle?.removeLast()
+            }
+        }
+    }
+
+    suspend fun addUsedColor(color: SerializableColor) {
+        colorsMutex.withLock {
+            usedColorsHandle?.addIfNotFound(color)
+            if ((usedColorsHandle?.size ?: 0) > 10) {
+                usedColorsHandle?.removeFirst()
             }
         }
     }
@@ -149,5 +168,6 @@ class BoxesViewModel(
     companion object {
         private const val LAYER_LIST_STATE = "LAYER_LIST_STATE"
         private const val HISTORY_STATE = "HISTORY_STATE"
+        private const val USED_COLORS_STATE = "USED_COLOR_STATE"
     }
 }
