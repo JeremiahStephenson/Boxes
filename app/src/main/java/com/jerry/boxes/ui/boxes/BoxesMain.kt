@@ -7,7 +7,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
@@ -16,11 +15,11 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jerry.boxes.R
 import com.jerry.boxes.cache.data.ProjectAndLayer
-import com.jerry.boxes.extensions.asSerializableColor
 import com.jerry.boxes.ui.boxes.history.HistoryItem
 import com.jerry.boxes.ui.boxes.shapes.Shape
 import com.jerry.boxes.ui.boxes.state.ButtonsState
 import com.jerry.boxes.ui.boxes.state.CanvasState
+import com.jerry.boxes.ui.boxes.state.ColorAndShapeState
 import com.jerry.boxes.ui.boxes.state.TransformerState
 import com.jerry.boxes.ui.common.*
 import com.jerry.boxes.ui.destinations.CreateMainDestination
@@ -56,6 +55,12 @@ fun BoxesMain(
             )
         )
     }
+    val colorAndShapeState by rememberUpdatedState(rememberSaveable(
+        project?.project?.currentColor,
+        project?.project?.currentShape
+    ) {
+        ColorAndShapeState(project?.project?.currentColor, project?.project?.currentShape)
+    })
 
     DefaultContainer(
         title = project?.project?.name.orEmpty(),
@@ -86,6 +91,7 @@ fun BoxesMain(
                     buttonsState,
                     transformerState,
                     drawerState,
+                    colorAndShapeState,
                     viewModel,
                     project,
                     scope,
@@ -111,6 +117,7 @@ fun BoxesMain(
                     canvasState = canvasState,
                     buttonsState = buttonsState,
                     transformerState = transformerState,
+                    colorAndShapeState = colorAndShapeState,
                     onAction = handleAction,
                     getUsedColorList = { viewModel.usedColors }
                 )
@@ -125,6 +132,7 @@ private fun MainCanvas(
     canvasState: CanvasState,
     buttonsState: ButtonsState,
     transformerState: TransformerState,
+    colorAndShapeState: ColorAndShapeState,
     getUsedColorList: () -> List<SerializableColor>,
     onAction: (Action) -> Unit
 ) {
@@ -133,9 +141,6 @@ private fun MainCanvas(
         val density = LocalDensity.current
         val strokeWidth = remember { with(density) { 2.dp.toPx() } }
         val buttonBarOffset = remember { with(density) { 56.dp.toPx() } }
-
-        var currentColor by rememberSaveable { mutableStateOf(Color.Green.asSerializableColor) }
-        var currentShape by rememberSaveable { mutableStateOf(Shape.Box) }
 
         val size = this.constraints
         LaunchedEffect(project) {
@@ -175,7 +180,7 @@ private fun MainCanvas(
                     if (canvasState.hasLayersTurnedOn) {
                         when (buttonsState.colorPickerOnState) {
                             true -> canvasState.getCurrentSelection(point)?.let {
-                                currentColor = it
+                                colorAndShapeState.setColor(it)
                             }
                             else -> {
                                 onAction(
@@ -186,8 +191,8 @@ private fun MainCanvas(
                                 canvasState.onTap(
                                     point,
                                     currentLayer,
-                                    currentColor,
-                                    currentShape
+                                    colorAndShapeState.colorState,
+                                    colorAndShapeState.shapeState
                                 )
                             }
                         }
@@ -199,8 +204,8 @@ private fun MainCanvas(
                         canvasState.onDrag(
                             it,
                             currentLayer,
-                            if (buttonsState.eraserSelectedState) null else currentColor,
-                            currentShape
+                            if (buttonsState.eraserSelectedState) null else colorAndShapeState.colorState,
+                            colorAndShapeState.shapeState
                         )
                     }
                 },
@@ -218,17 +223,17 @@ private fun MainCanvas(
         }
 
         ButtonBar(
-            color = currentColor,
-            shape = currentShape,
+            color = colorAndShapeState.colorState,
+            shape = colorAndShapeState.shapeState,
             buttonsState = buttonsState,
             onColorChosen = {
                 buttonsState.turnOffEraser()
-                currentColor = it
+                colorAndShapeState.setColor(it)
                 onAction(Action.AddColorToUsedList(it))
             },
             onShapeChosen = {
                 buttonsState.turnOffEraser()
-                currentShape = it
+                colorAndShapeState.setShape(it)
             },
             onAction = onAction,
             getUsedColorList = getUsedColorList
@@ -318,6 +323,7 @@ private fun handleAction(
     buttonsState: ButtonsState,
     transformerState: TransformerState,
     drawerState: DrawerState,
+    colorAndShapeState: ColorAndShapeState,
     viewModel: BoxesViewModel,
     project: ProjectAndLayer?,
     scope: CoroutineScope,
@@ -332,7 +338,9 @@ private fun handleAction(
         is Action.Save -> viewModel.save(
             if (action.autoSave) null else canvasState.boxes.keys.toList(),
             canvasState.selections.toMap(),
-            canvasState.layers.map { it.id to it.on }
+            canvasState.layers.map { it.id to it.on },
+            colorAndShapeState.colorState,
+            colorAndShapeState.shapeState
         )
         is Action.SelectLayer -> viewModel.selectLayer(action.layerId)
         is Action.Clear -> if (canvasState.hasLayersTurnedOn) {

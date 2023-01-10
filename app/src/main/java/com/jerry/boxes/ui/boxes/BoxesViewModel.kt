@@ -1,6 +1,7 @@
 package com.jerry.boxes.ui.boxes
 
 import android.graphics.Point
+import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -10,8 +11,10 @@ import com.jerry.boxes.cache.BoxesDatabase
 import com.jerry.boxes.cache.data.Layer
 import com.jerry.boxes.cache.data.Pixel
 import com.jerry.boxes.extensions.addIfNotFound
-import com.jerry.boxes.ui.boxes.history.HistoryItem
+import com.jerry.boxes.extensions.safeLet
 import com.jerry.boxes.ui.boxes.data.LayerUi
+import com.jerry.boxes.ui.boxes.history.HistoryItem
+import com.jerry.boxes.ui.boxes.shapes.Shape
 import com.jerry.boxes.ui.destinations.BoxesMainDestination
 import com.jerry.boxes.util.SavedHandle
 import kotlinx.coroutines.flow.*
@@ -153,11 +156,13 @@ class BoxesViewModel(
     fun save(
         boxes: List<Point>? = null,
         selections: Map<Point, Map<Long, SerializableColor?>?>,
-        layers: List<Pair<Long, Boolean>>
+        layers: List<Pair<Long, Boolean>>,
+        currentColor: SerializableColor,
+        currentShape: Shape
     ) {
         viewModelScope.launch {
             updateDatabase {
-                saveProject(boxes, selections)
+                saveProject(boxes, selections, currentColor, currentShape)
                 layers.forEach {
                     boxesDao.turnOnOrOffLayer(it.second, it.first)
                 }
@@ -173,7 +178,9 @@ class BoxesViewModel(
 
     private suspend fun saveProject(
         boxes: List<Point>? = null,
-        selections: Map<Point, Map<Long, SerializableColor?>?>
+        selections: Map<Point, Map<Long, SerializableColor?>?>,
+        currentColor: SerializableColor? = null,
+        currentShape: Shape? = null
     ) {
         val now = Instant.now().toEpochMilli()
         val list =
@@ -195,6 +202,13 @@ class BoxesViewModel(
                 }
         boxesDao.insertAllPixels(list)
         boxesDao.deletePixelsFromProject(projectId, now)
+        safeLet(currentColor, currentShape) { color, shape ->
+            boxesDao.updateProjectColorAndShape(
+                color.color.toArgb(),
+                shape,
+                projectId
+            )
+        }
     }
 
     companion object {

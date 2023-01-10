@@ -1,11 +1,14 @@
 package com.jerry.boxes.ui.create
 
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jerry.boxes.cache.BoxesDao
 import com.jerry.boxes.cache.data.Layer
 import com.jerry.boxes.cache.data.Project
+import com.jerry.boxes.ui.boxes.shapes.Shape
 import com.jerry.boxes.ui.destinations.CreateMainDestination
 import com.jerry.boxes.util.Resource
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -27,7 +30,8 @@ class CreateViewModel(
 
     val isSave get() = projectId != null
 
-    val projectFlow = boxesDao.takeIf { projectId != null }?.getProjectFlowById(projectId!!) ?: emptyFlow()
+    val projectFlow =
+        boxesDao.takeIf { projectId != null }?.getProjectFlowById(projectId!!) ?: emptyFlow()
 
     fun saveProject(name: String, columns: Int, rows: Int) {
         viewModelScope.launch(CoroutineExceptionHandler { _, error ->
@@ -35,7 +39,15 @@ class CreateViewModel(
         }) {
             val id = when (projectId) {
                 null -> {
-                    val projectId = boxesDao.insertProject(Project(name, columns, rows))
+                    val projectId = boxesDao.insertProject(
+                        Project(
+                            name,
+                            columns,
+                            rows,
+                            Color.Green.toArgb(),
+                            Shape.Box
+                        )
+                    )
                     boxesDao.insertLayer(Layer(projectId, 0, "Layer 1", true))
                     projectId
                 }
