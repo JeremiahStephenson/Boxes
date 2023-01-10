@@ -11,6 +11,7 @@ import com.jerry.boxes.cache.data.Layer
 import com.jerry.boxes.cache.data.Pixel
 import com.jerry.boxes.extensions.addIfNotFound
 import com.jerry.boxes.ui.boxes.history.HistoryItem
+import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.destinations.BoxesMainDestination
 import com.jerry.boxes.util.SavedHandle
 import kotlinx.coroutines.flow.*
@@ -31,10 +32,18 @@ class BoxesViewModel(
         null
     )
 
+    private var selectedLayerStateHandle by SavedHandle<Long?>(
+        handle,
+        SELECTED_LAYER,
+        null
+    )
+
     private val layerState = handle.getStateFlow<MutableMap<Long, Boolean>?>(
         LAYER_LIST_STATE,
         null
     )
+
+    private val selectedLayerStateFlow = handle.getStateFlow<Long?>(SELECTED_LAYER, null)
 
     private var usedColorsHandle by SavedHandle<MutableList<SerializableColor>>(
         handle,
@@ -63,20 +72,39 @@ class BoxesViewModel(
             null
         )
 
-    private val layerFlow = projectFlow.map { it?.layers?.map { it.layer } }
-    val layerStateFlow = combine(layerState, layerFlow) { state, layers ->
+    private val layerFlow = projectFlow.map { it?.layers?.map { layerAndPixel -> layerAndPixel.layer } }
+    val layerStateFlow = combine(layerState, layerFlow, selectedLayerStateFlow) { state, layers, selectedLayer ->
         if (layerStateHandle == null) {
             layerStateHandle =
                 layers?.filter { it.on }?.associate { it.id to it.on }?.toMutableMap()
         }
+        val selected = selectedLayer ?: layers?.lastOrNull { it.on }?.id
+
+        layers?.forEach {
+            state?.putIfAbsent(it.id, true)
+        }
+
         layers?.map {
-            it.copy(on = state?.getOrDefault(it.id, it.on) == true).apply { id = it.id }
+            val isOn = state?.getOrDefault(it.id, it.on) == true
+            LayerUi(it.id,
+                it.projectId,
+                it.index,
+                it.name,
+                on = isOn,
+                selected = selected == it.id,
+                visibilityEnabled = !(isOn && state?.count { it.value } == 1),
+                showControls = layers.size > 1
+            )
         } ?: emptyList()
-    }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(1000), emptyList())
 
     fun setLayerOnOrOff(layerId: Long, on: Boolean) {
+        if (!on && (layerStateHandle?.count { it.value } ?: 0) <= 1) return
         layerStateHandle = (layerStateHandle?.toMutableMap() ?: mutableMapOf()).apply {
             put(layerId, on)
+        }
+        if (!on && (layerId == selectedLayerStateHandle || selectedLayerStateHandle == null)) {
+            selectedLayerStateHandle = layerStateFlow.value.lastOrNull { it.on }?.id
         }
     }
 
@@ -104,6 +132,10 @@ class BoxesViewModel(
                 usedColorsHandle?.removeFirst()
             }
         }
+    }
+
+    fun selectLayer(layerId: Long) {
+        selectedLayerStateHandle = layerId
     }
 
     fun addLayer(
@@ -169,5 +201,6 @@ class BoxesViewModel(
         private const val LAYER_LIST_STATE = "LAYER_LIST_STATE"
         private const val HISTORY_STATE = "HISTORY_STATE"
         private const val USED_COLORS_STATE = "USED_COLOR_STATE"
+        private const val SELECTED_LAYER = "SELECTED_LAYER"
     }
 }

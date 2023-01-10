@@ -12,7 +12,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.view.doOnLayout
 import com.jerry.boxes.R
-import com.jerry.boxes.cache.data.Layer
+import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.util.CoroutineContextProvider
 import com.jerry.boxes.util.storeImage
 import dev.shreyaspatil.capturable.Capturable
@@ -24,7 +24,7 @@ fun exportCanvas(
     rootView: View,
     rows: Int,
     columns: Int,
-    layers: List<Layer>,
+    layers: List<LayerUi>,
     selections: Map<Point, Map<Long, SerializableColor?>?>,
     cc: CoroutineContextProvider
 ) {

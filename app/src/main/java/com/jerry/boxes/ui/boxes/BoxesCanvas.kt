@@ -20,10 +20,10 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
-import com.jerry.boxes.cache.data.Layer
 import com.jerry.boxes.extensions.safeLet
 import com.jerry.boxes.ui.boxes.state.ButtonsState
 import com.jerry.boxes.ui.boxes.state.CanvasState
+import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.common.LocalAppBarHeight
 import com.jerry.boxes.ui.common.pngBackground
 import kotlin.math.abs
@@ -121,7 +121,7 @@ fun BoxCanvas(
 fun SelectionsBoxes(
     scale: Float,
     offset: Offset,
-    layers: List<Layer>,
+    layers: List<LayerUi>,
     boxes: Map<Point, RectF>,
     selections: Map<Point, Map<Long, SerializableColor?>?>
 ) {

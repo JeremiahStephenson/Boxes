@@ -8,10 +8,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.unit.Constraints
-import com.jerry.boxes.cache.data.Layer
 import com.jerry.boxes.cache.data.LayerAndPixel
 import com.jerry.boxes.extensions.asList
 import com.jerry.boxes.ui.boxes.SerializableColor
+import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.boxes.generateBoxes
 import com.jerry.boxes.ui.boxes.history.HistoryItem
 import com.jerry.boxes.ui.boxes.shapes.Shape
@@ -19,7 +19,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 @Stable
-class CanvasState(layersState: State<List<Layer>>) {
+class CanvasState(layersState: State<List<LayerUi>>) {
     private val _boxes = mutableStateMapOf<Point, RectF>()
     private val _selections =
         mutableStateMapOf<Point, SnapshotStateMap<Long, SerializableColor?>?>()
@@ -29,7 +29,8 @@ class CanvasState(layersState: State<List<Layer>>) {
     val boxes = _boxes as Map<Point, RectF>
     val selections = _selections as Map<Point, Map<Long, SerializableColor?>?>
 
-    val max get() = layers.filter { it.on }.maxBy { it.index }
+    val selectedLayer get() = layers.firstOrNull { it.selected }
+        ?: layers.filter { it.on }.maxBy { it.index }
     val hasLayersTurnedOn get() = layers.any { it.on }
 
     private var currentDragHistory: MutableMap<Point, SerializableColor?> = mutableMapOf()

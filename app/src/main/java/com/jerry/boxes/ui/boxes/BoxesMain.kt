@@ -160,7 +160,7 @@ private fun MainCanvas(
         }
 
         Transformer(transformerState) { scale, offset, state ->
-            val currentLayer by remember { derivedStateOf { canvasState.max.id } }
+            val currentLayer by remember { derivedStateOf { canvasState.selectedLayer.id } }
             BoxCanvas(
                 canvasState = canvasState,
                 buttonsState = buttonsState,
@@ -334,6 +334,7 @@ private fun handleAction(
             canvasState.selections.toMap(),
             canvasState.layers.map { it.id to it.on }
         )
+        is Action.SelectLayer -> viewModel.selectLayer(action.layerId)
         is Action.Clear -> if (canvasState.hasLayersTurnedOn) {
             scope.launch {
                 viewModel.addToHistory(

@@ -4,18 +4,18 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Divider
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.flowlayout.FlowRow
 import com.jerry.boxes.R
+import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.boxes.state.ButtonsState
 import com.jerry.boxes.ui.boxes.state.CanvasState
 import com.jerry.boxes.ui.common.IconMenuButton
@@ -49,14 +49,40 @@ fun DrawerMenu(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    modifier = Modifier.weight(1F),
+                    modifier = Modifier
+                        .weight(1F)
+                        .padding(vertical = if (layer.showControls) 0.dp else 8.dp),
                     text = layer.name
                 )
-                Switch(
-                    checked = layer.on,
-                    onCheckedChange = {
-                        onAction(Action.TurnOnOrOffLayer(it, layer.id))
-                    })
+                if (layer.showControls) {
+                    Checkbox(
+                        checked = layer.selected,
+                        enabled = layer.on,
+                        onCheckedChange = {
+                            onAction(Action.SelectLayer(layer.id))
+                        }
+                    )
+                    Switch(
+                        checked = layer.on,
+                        enabled = layer.visibilityEnabled,
+                        onCheckedChange = {
+                            onAction(Action.TurnOnOrOffLayer(it, layer.id))
+                        },
+                        thumbContent = {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_baseline_visibility_on_24),
+                                contentDescription = null,
+                                tint = switchColors(layer = layer)
+                            )
+                        },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = Color.Transparent,
+                            disabledCheckedThumbColor = Color.Transparent,
+                            disabledUncheckedThumbColor = Color.Transparent,
+                            uncheckedThumbColor = Color.Transparent
+                        )
+                    )
+                }
             }
         }
 
@@ -130,6 +156,22 @@ fun DrawerMenu(
                     drawableRes = R.drawable.ic_auto_renew
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun switchColors(layer: LayerUi) = when {
+    layer.on -> {
+        when (layer.visibilityEnabled) {
+            true -> MaterialTheme.colorScheme.surface
+            else -> MaterialTheme.colorScheme.surface.copy(alpha = 0.5F)
+        }
+    }
+    else -> {
+        when (layer.visibilityEnabled) {
+            true -> MaterialTheme.colorScheme.onSurface
+            else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5F)
         }
     }
 }

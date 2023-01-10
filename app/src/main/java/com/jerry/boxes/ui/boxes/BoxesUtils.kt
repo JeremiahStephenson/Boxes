@@ -7,9 +7,9 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
-import com.jerry.boxes.cache.data.Layer
 import com.jerry.boxes.extensions.safeLet
 import com.jerry.boxes.ui.boxes.shapes.Shape
+import com.jerry.boxes.ui.boxes.data.LayerUi
 import timber.log.Timber
 
 fun generateBoxes(
@@ -39,7 +39,7 @@ fun generateBoxes(
 }
 
 fun DrawScope.drawShapes(
-    layers: List<Layer>,
+    layers: List<LayerUi>,
     selections: Map<Point, Map<Long, SerializableColor?>?>,
     boxes: Map<Point, RectF>
 ) {
