@@ -49,7 +49,8 @@ fun HomeMain(
     ) {
         val items = viewModel.projectsFlow.collectAsLazyPagingItems()
         LazyColumn(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(bottom = 84.dp)
         ) {
             itemsIndexed(items) { index, item ->
                 if (index > 0) {

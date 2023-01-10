@@ -36,7 +36,22 @@ fun DrawerMenu(
         contentPadding = PaddingValues(vertical = 8.dp)
     ) {
         item {
-            ButtonHeader(R.string.layers)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Bottom
+            ) {
+                Text(
+                    modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 8.dp),
+                    text = stringResource(R.string.layers)
+                )
+                Spacer(modifier = Modifier.weight(1F))
+                IconMenuButton(
+                    padding = PaddingValues(8.dp),
+                    onClick = { onAction(Action.GoToLayerEdit) },
+                    drawableRes = R.drawable.ic_baseline_edit_24
+                )
+            }
+            Divider(modifier = Modifier.padding(horizontal = 16.dp))
         }
 
         items(
@@ -51,7 +66,9 @@ fun DrawerMenu(
                 Text(
                     modifier = Modifier
                         .weight(1F)
-                        .padding(vertical = if (layer.showControls) 0.dp else 8.dp),
+                        .padding(
+                            top = if (layer.showControls) 0.dp else 16.dp,
+                            bottom = if (layer.showControls) 0.dp else 8.dp),
                     text = layer.name
                 )
                 if (layer.showControls) {

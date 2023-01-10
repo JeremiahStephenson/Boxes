@@ -13,6 +13,7 @@ sealed class Action {
     object AddLayer: Action()
     object Undo : Action()
     object ColorPicker : Action()
+    object GoToLayerEdit : Action()
     data class SelectLayer(val layerId: Long) : Action()
     data class AddColorToUsedList(val color: SerializableColor) : Action()
     data class AddToHistory(val historyItem: HistoryItem) : Action()

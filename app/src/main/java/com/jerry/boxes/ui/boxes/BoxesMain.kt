@@ -1,6 +1,7 @@
 package com.jerry.boxes.ui.boxes
 
 import android.view.View
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -13,6 +14,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.godaddy.android.colorpicker.HsvColor
 import com.jerry.boxes.R
 import com.jerry.boxes.cache.data.ProjectAndLayer
 import com.jerry.boxes.ui.boxes.history.HistoryItem
@@ -23,6 +25,7 @@ import com.jerry.boxes.ui.boxes.state.ColorAndShapeState
 import com.jerry.boxes.ui.boxes.state.TransformerState
 import com.jerry.boxes.ui.common.*
 import com.jerry.boxes.ui.destinations.CreateMainDestination
+import com.jerry.boxes.ui.destinations.LayersEditMainDestination
 import com.jerry.boxes.util.CoroutineContextProvider
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
@@ -59,13 +62,32 @@ fun BoxesMain(
         project?.project?.currentColor,
         project?.project?.currentShape
     ) {
-        ColorAndShapeState(project?.project?.currentColor, project?.project?.currentShape)
+        ColorAndShapeState(project?.project?.currentColor, project?.project?.currentShape).also { state ->
+            project?.project?.currentColor?.let {
+                scope.launch { viewModel.addUsedColor(state.colorState) }
+            }
+        }
     })
+
+    BackHandler(drawerState.isOpen) {
+        scope.launch {
+            drawerState.close()
+        }
+    }
 
     DefaultContainer(
         title = project?.project?.name.orEmpty(),
         disableAppbarScroll = true,
         appBarActions = {
+            Icon(
+                modifier = Modifier
+                    .unboundClickable {
+                        navController.navigate(LayersEditMainDestination(projectId))
+                    }
+                    .padding(16.dp),
+                painter = painterResource(R.drawable.ic_baseline_layers_24),
+                contentDescription = null
+            )
             Icon(
                 modifier = Modifier
                     .unboundClickable {
@@ -76,7 +98,7 @@ fun BoxesMain(
                             }
                         }
                     }
-                    .padding(8.dp),
+                    .padding(16.dp),
                 painter = painterResource(R.drawable.ic_baseline_menu_24),
                 contentDescription = null
             )
@@ -375,6 +397,11 @@ private fun handleAction(
             viewModel.setLayerOnOrOff(action.layerId, action.on)
         is Action.AddColorToUsedList ->
             scope.launch { viewModel.addUsedColor(action.color) }
+        is Action.GoToLayerEdit -> {
+            project?.project?.id?.let {
+                navController.navigate(LayersEditMainDestination(it))
+            }
+        }
         is Action.Export -> exportCanvas(
             rootView = rootView,
             rows = project?.project?.rows ?: 0,

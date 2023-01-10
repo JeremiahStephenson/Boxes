@@ -2,6 +2,7 @@ package com.jerry.boxes.ui.common
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -20,6 +21,7 @@ import com.jerry.boxes.ui.boxes.SerializableColor
 fun IconMenuButton(
     onClick: () -> Unit,
     color: SerializableColor? = null,
+    padding: PaddingValues = PaddingValues(16.dp),
     @DrawableRes drawableRes: Int
 ) {
     Icon(
@@ -28,7 +30,7 @@ fun IconMenuButton(
             .clickable {
                 onClick()
             }
-            .padding(16.dp),
+            .padding(padding),
         painter = painterResource(drawableRes),
         tint = color?.color ?: LocalContentColor.current,
         contentDescription = null

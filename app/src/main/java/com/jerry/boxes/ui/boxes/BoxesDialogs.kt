@@ -53,8 +53,7 @@ fun ColorPickerDialog(
             val size = with(LocalDensity.current) { 10.dp.toPx() }
             LazyVerticalGrid(
                 modifier = Modifier.fillMaxWidth(),
-                columns = GridCells.Fixed(5),
-                contentPadding = PaddingValues(8.dp)
+                columns = GridCells.Fixed(5)
             ) {
                 items(usedColors) {
                     Box {
@@ -64,7 +63,7 @@ fun ColorPickerDialog(
                                     onColorChosen(it)
                                     onDismiss()
                                 }
-                                .padding(8.dp)
+                                .padding(16.dp)
                                 .size(34.dp)
                                 .border(width = 1.dp, color = MaterialTheme.colorScheme.onSurface)
                                 .pngBackground(true, size)
@@ -82,7 +81,7 @@ fun ColorPickerDialog(
             ClassicColorPicker(
                 color = color.color,
                 modifier = Modifier
-                    .height(200.dp)
+                    .height(250.dp)
                     .padding(horizontal = 16.dp),
                 onColorChanged = { color: HsvColor ->
                     currentColor = color.asSerializableColor
