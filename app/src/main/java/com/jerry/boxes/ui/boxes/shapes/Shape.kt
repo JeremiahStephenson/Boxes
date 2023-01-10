@@ -28,5 +28,9 @@ enum class Shape(val group: ShapeGroup) {
     VerticalLine(ShapeGroup.LINE),
     HorizontalLine(ShapeGroup.LINE),
     TopLeftToBottomRightLine(ShapeGroup.LINE),
-    BottomLeftToTopRightLine(ShapeGroup.LINE)
+    BottomLeftToTopRightLine(ShapeGroup.LINE),
+    TopLeftElbow(ShapeGroup.CORNER),
+    TopRightElbow(ShapeGroup.CORNER),
+    BottomLeftElbow(ShapeGroup.CORNER),
+    BottomRightElbow(ShapeGroup.CORNER)
 }
