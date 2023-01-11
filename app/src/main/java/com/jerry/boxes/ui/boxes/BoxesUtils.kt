@@ -2,15 +2,41 @@ package com.jerry.boxes.ui.boxes
 
 import android.graphics.Point
 import android.graphics.RectF
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
+import com.jerry.boxes.cache.data.LayerAndPixel
 import com.jerry.boxes.extensions.safeLet
-import com.jerry.boxes.ui.boxes.shapes.Shape
 import com.jerry.boxes.ui.boxes.data.LayerUi
+import com.jerry.boxes.ui.boxes.shapes.Shape
 import timber.log.Timber
+import kotlin.math.roundToInt
+
+fun generateSelectionsSnapshot(layers: List<LayerAndPixel>): Map<out Point, SnapshotStateMap<Long, SerializableColor?>?> =
+    layers.flatMap {
+        it.pixels
+    }.groupBy {
+        Point(it.x, it.y)
+    }.mapValues {
+        it.value.associateTo(SnapshotStateMap()) { pixel ->
+            pixel.layerId to pixel.asSerializableColor
+        }
+    }
+
+fun generateSelectionsMap(layers: List<LayerAndPixel>): Map<Point, Map<Long, SerializableColor?>?> =
+    layers.flatMap {
+        it.pixels
+    }.groupBy {
+        Point(it.x, it.y)
+    }.mapValues {
+        it.value.associateTo(SnapshotStateMap()) { pixel ->
+            pixel.layerId to pixel.asSerializableColor
+        }
+    }
 
 fun generateBoxes(
     numX: Int,
@@ -53,6 +79,30 @@ fun DrawScope.drawShapes(
                     drawCustomShape(pos, color)
                 }
             }
+        }
+    }
+}
+
+fun DrawScope.pngBackground(size: Float) {
+    val columns = (this.size.width / size).roundToInt()
+    val rows = (this.size.height / size).roundToInt()
+    for (r in 0..rows) {
+        for (c in 0..columns) {
+            drawRect(
+                color = Color.Gray,
+                topLeft = Offset(c * size, r * size),
+                size = Size(size, size),
+                alpha = when (r % 2 == 0) {
+                    true -> when (c % 2 == 0) {
+                        true -> 1F
+                        else -> GRID_ODD_ALPHA
+                    }
+                    else -> when (c % 2 == 0) {
+                        true -> GRID_ODD_ALPHA
+                        else -> 1F
+                    }
+                }
+            )
         }
     }
 }
@@ -561,3 +611,5 @@ private fun DrawScope.drawTopRightElbow(
         color = color.color
     )
 }
+
+private const val GRID_ODD_ALPHA = 0.5F

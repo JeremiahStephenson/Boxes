@@ -25,6 +25,9 @@ interface BoxesDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertLayer(layer: Layer)
 
+    @Query("UPDATE layer SET `index` = :index WHERE id = :layerId")
+    suspend fun setLayerIndex(layerId: Long, index: Int)
+
     @Query("UPDATE layer SET `on` = :on WHERE id = :layerId")
     suspend fun turnOnOrOffLayer(on: Boolean, layerId: Long)
 

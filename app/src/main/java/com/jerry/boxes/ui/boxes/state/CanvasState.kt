@@ -15,6 +15,7 @@ import com.jerry.boxes.cache.data.LayerAndPixel
 import com.jerry.boxes.ui.boxes.SerializableColor
 import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.boxes.generateBoxes
+import com.jerry.boxes.ui.boxes.generateSelectionsSnapshot
 import com.jerry.boxes.ui.boxes.history.UserHistory
 import com.jerry.boxes.ui.boxes.shapes.Shape
 import kotlin.math.max
@@ -125,16 +126,7 @@ class CanvasState(layersState: State<List<LayerUi>>) {
 
     fun fillInSelections(layers: List<LayerAndPixel>) {
         _selections.clear()
-        _selections.putAll(
-            layers.flatMap {
-                it.pixels
-            }.groupBy {
-                Point(it.x, it.y)
-            }.mapValues {
-                it.value.associateTo(SnapshotStateMap()) { pixel ->
-                    pixel.layerId to pixel.asSerializableColor
-                }
-            })
+        _selections.putAll(generateSelectionsSnapshot(layers))
     }
 
     fun fillInBoxes(

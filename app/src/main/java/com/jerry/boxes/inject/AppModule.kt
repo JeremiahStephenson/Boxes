@@ -12,7 +12,7 @@ val appModule = module {
     viewModel { BoxesViewModel(get(), get(), get()) }
     viewModel { HomeViewModel(get()) }
     viewModel { CreateViewModel(get(), get()) }
-    viewModel { LayersEditViewModel(get(), get(), get())}
+    viewModel { LayersEditViewModel(get(), get(), get(), get())}
 
     single<CoroutineContextProvider> { CoroutineContextProvider.MainCoroutineContext }
 }

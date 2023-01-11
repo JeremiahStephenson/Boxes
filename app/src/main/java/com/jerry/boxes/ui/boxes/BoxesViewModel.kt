@@ -63,6 +63,7 @@ class BoxesViewModel(
 
     val projectFlow = boxesDao.getFullProjectFlowById(projectId)
         .filterNotNull()
+        .map { it.copy(layers = it.layers.sortedBy { layer -> layer.layer.index }) }
         .stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(),

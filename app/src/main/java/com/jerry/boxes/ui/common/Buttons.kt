@@ -19,6 +19,7 @@ import com.jerry.boxes.ui.boxes.SerializableColor
 
 @Composable
 fun IconMenuButton(
+    modifier: Modifier = Modifier,
     onClick: () -> Unit,
     color: SerializableColor? = null,
     padding: PaddingValues = PaddingValues(16.dp),
@@ -30,7 +31,8 @@ fun IconMenuButton(
             .clickable {
                 onClick()
             }
-            .padding(padding),
+            .padding(padding)
+            .then(modifier),
         painter = painterResource(drawableRes),
         tint = color?.color ?: LocalContentColor.current,
         contentDescription = null
