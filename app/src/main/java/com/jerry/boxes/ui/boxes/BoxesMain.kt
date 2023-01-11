@@ -367,8 +367,9 @@ private fun handleAction(
         is Action.Clear -> if (canvasState.hasLayersTurnedOn) {
             scope.launch {
                 viewModel.addToHistory(
-                    UserHistory.HistoryClear(
-                        canvasState.getCurrentSelectedLayerSelections()
+                    UserHistory(
+                        canvasState.selectedLayer.id,
+                        canvasState.getCurrentSelectedLayerSelections(canvasState.selectedLayer.id)
                     )
                 )
                 canvasState.clear()

@@ -56,14 +56,6 @@ class BoxesViewModel(
         mutableListOf()
     )
 
-    private val historyMutex = Mutex()
-    private var historyStateHandle
-            by SavedHandle<MutableList<UserHistory>>(
-                handle,
-                HISTORY_STATE,
-                mutableListOf()
-            )
-
     private val projectId = BoxesMainDestination.argsFrom(handle).projectId
 
     private val colorsMutex = Mutex()
@@ -77,31 +69,33 @@ class BoxesViewModel(
             null
         )
 
-    private val layerFlow = projectFlow.map { it?.layers?.map { layerAndPixel -> layerAndPixel.layer } }
-    val layerStateFlow = combine(layerState, layerFlow, selectedLayerStateFlow) { state, layers, selectedLayer ->
-        if (layerStateHandle == null) {
-            layerStateHandle =
-                layers?.filter { it.on }?.associate { it.id to it.on }?.toMutableMap()
-        }
-        val selected = selectedLayer ?: layers?.lastOrNull { it.on }?.id
+    private val layerFlow =
+        projectFlow.map { it?.layers?.map { layerAndPixel -> layerAndPixel.layer } }
+    val layerStateFlow =
+        combine(layerState, layerFlow, selectedLayerStateFlow) { state, layers, selectedLayer ->
+            if (layerStateHandle == null) {
+                layerStateHandle =
+                    layers?.filter { it.on }?.associate { it.id to it.on }?.toMutableMap()
+            }
+            val selected = selectedLayer ?: layers?.lastOrNull { it.on }?.id
 
-        layers?.forEach {
-            state?.putIfAbsent(it.id, it.on)
-        }
+            layers?.forEach {
+                state?.putIfAbsent(it.id, it.on)
+            }
 
-        layers?.map {
-            val isOn = state?.getOrDefault(it.id, it.on) == true
-            LayerUi(it.id,
-                it.projectId,
-                it.index,
-                it.name,
-                on = isOn,
-                selected = selected == it.id,
-                visibilityEnabled = !(isOn && state?.count { it.value } == 1),
-                showControls = layers.size > 1
-            )
-        } ?: emptyList()
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(1000), emptyList())
+            layers?.map {
+                val isOn = state?.getOrDefault(it.id, it.on) == true
+                LayerUi(it.id,
+                    it.projectId,
+                    it.index,
+                    it.name,
+                    on = isOn,
+                    selected = selected == it.id,
+                    visibilityEnabled = !(isOn && state?.count { it.value } == 1),
+                    showControls = layers.size > 1
+                )
+            } ?: emptyList()
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(1000), emptyList())
 
     fun setLayerOnOrOff(layerId: Long, on: Boolean) {
         if (!on && (layerStateHandle?.count { it.value } ?: 0) <= 1) return
@@ -115,33 +109,8 @@ class BoxesViewModel(
 
     suspend fun addToHistory(userHistory: UserHistory) {
         viewModelScope.launch {
-            boxesDatabase.withTransaction {
-                when (userHistory) {
-                    is UserHistory.HistoryTap -> {
-                        val index = boxesDao.findMaxIndexForHistory(userHistory.layerId)
-                        val historyId = boxesDao.insertHistory(History(userHistory.layerId, index + 1))
-                        boxesDao.insertHistoryItem(
-                            HistoryItem(
-                                historyId,
-                                userHistory.point.x,
-                                userHistory.point.y,
-                                userHistory.color?.color?.toArgb(),
-                                userHistory.color?.shape
-                            )
-                        )
-                        if (index >= 20) {
-                            val min = boxesDao.findMinIndexForHistory(userHistory.layerId)
-                            boxesDao.cleanHistory(min, userHistory.layerId)
-                            boxesDao.updateIndicies(userHistory.layerId)
-                        }
-                    }
-                    is UserHistory.HistoryClear -> {
-
-                    }
-                    is UserHistory.HistoryDrag -> {
-
-                    }
-                }
+            updateDatabase {
+                updateHistory(userHistory.layerId, userHistory.points)
             }
         }
     }
@@ -239,10 +208,33 @@ class BoxesViewModel(
         }
     }
 
+    private suspend fun updateHistory(layerId: Long, points: Map<Point, SerializableColor?>) {
+        val index = boxesDao.findMaxIndexForHistory(layerId)
+        val historyId = boxesDao.insertHistory(History(layerId, index + 1))
+        points.forEach { (point, color) ->
+            boxesDao.insertHistoryItem(
+                HistoryItem(
+                    historyId,
+                    point.x,
+                    point.y,
+                    color?.color?.toArgb(),
+                    color?.shape
+                )
+            )
+        }
+        if (index >= MAX_HISTORY_PER_LAYER) {
+            val min = boxesDao.findMinIndexForHistory(layerId)
+            boxesDao.cleanHistory(min, layerId)
+            boxesDao.updateIndicies(layerId)
+        }
+    }
+
     companion object {
         private const val LAYER_LIST_STATE = "LAYER_LIST_STATE"
         private const val HISTORY_STATE = "HISTORY_STATE"
         private const val USED_COLORS_STATE = "USED_COLOR_STATE"
         private const val SELECTED_LAYER = "SELECTED_LAYER"
+
+        private const val MAX_HISTORY_PER_LAYER = 20
     }
 }

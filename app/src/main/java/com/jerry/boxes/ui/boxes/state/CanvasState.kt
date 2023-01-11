@@ -8,13 +8,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.Constraints
 import com.godaddy.android.colorpicker.HsvColor
 import com.jerry.boxes.cache.data.HistoryItem
 import com.jerry.boxes.cache.data.LayerAndPixel
-import com.jerry.boxes.extensions.asList
-import com.jerry.boxes.extensions.asSerializableColor
 import com.jerry.boxes.ui.boxes.SerializableColor
 import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.boxes.generateBoxes
@@ -34,8 +31,9 @@ class CanvasState(layersState: State<List<LayerUi>>) {
     val boxes = _boxes as Map<Point, RectF>
     val selections = _selections as Map<Point, Map<Long, SerializableColor?>?>
 
-    val selectedLayer get() = layers.firstOrNull { it.selected }
-        ?: layers.filter { it.on }.maxBy { it.index }
+    val selectedLayer
+        get() = layers.firstOrNull { it.selected }
+            ?: layers.filter { it.on }.maxBy { it.index }
     val hasLayersTurnedOn get() = layers.any { it.on }
 
     private var currentDragHistory: MutableMap<Point, SerializableColor?> = mutableMapOf()
@@ -45,24 +43,23 @@ class CanvasState(layersState: State<List<LayerUi>>) {
             .filter { it.value != null }
             .forEach {
                 _selections.getOrDefault(it.key, mutableStateMapOf())?.apply {
-                    layers.filter { it.on }.map { it.id }.forEach { layerId ->
-                        put(layerId, null)
-                    }
+                    layers.filter { layer -> layer.selected }.map { layer -> layer.id }
+                        .forEach { layerId ->
+                            put(layerId, null)
+                        }
                 }
             }
     }
 
-    fun getCurrentSelectedLayerSelections(): Map<Point, Map<Long, SerializableColor?>?> {
-        val selectedLayers = layers.filter { it.on }.map { it.id }
-        return _selections.map { it.key to it.value?.filter { data -> selectedLayers.contains(data.key) } }
-            .toMap()
-    }
+    fun getCurrentSelectedLayerSelections(layerId: Long) = _selections
+        .filter { it.value?.containsKey(layerId) == true }
+        .mapValues { it.value?.values?.firstOrNull() }
 
     fun getTapHistoryItem(point: Point, layerId: Long) =
-        UserHistory.HistoryTap(getCurrentSelection(point, layerId), layerId, point)
+        UserHistory(layerId, mapOf(point to getCurrentSelection(point, layerId)))
 
     fun closeDragHistory(layerId: Long) =
-        UserHistory.HistoryDrag(layerId, currentDragHistory.toMap()).also {
+        UserHistory(layerId, currentDragHistory.toMap()).also {
             currentDragHistory.clear()
         }
 
@@ -84,31 +81,17 @@ class CanvasState(layersState: State<List<LayerUi>>) {
             _selections.getOrPut(Point(item.x, item.y)) { mutableStateMapOf() }
                 ?.put(layerId, item.color?.let {
                     with(HsvColor.from(Color(it))) {
-                        SerializableColor(this.hue, this.saturation, this.value, this.alpha, item.shape ?: Shape.Box)
+                        SerializableColor(
+                            this.hue,
+                            this.saturation,
+                            this.value,
+                            this.alpha,
+                            item.shape ?: Shape.Box
+                        )
                     }
                 })
         }
-
-//        historyItem.points.forEach { (point, selection) ->
-//            _selections.getOrPut(point) { mutableStateMapOf() }
-//                ?.put(historyItem.layerId, selection)
-//        }
     }
-
-//    fun onUndo(historyItem: UserHistory?) {
-//        historyItem?.let { item ->
-//            when (historyItem) {
-//                is UserHistory.HistoryTap ->
-//                    (item as? UserHistory.HistoryTap)?.let {
-//                        onDrag(item.point.asList, item.layerId, item.color, item.color?.shape)
-//                    }
-//                is UserHistory.HistoryClear ->
-//                    (item as? UserHistory.HistoryClear)?.let { restoreClear(it) }
-//                is UserHistory.HistoryDrag ->
-//                    (item as? UserHistory.HistoryDrag)?.let { restoreDrag(it) }
-//            }
-//        }
-//    }
 
     fun onTap(
         point: Point,
@@ -185,7 +168,7 @@ class CanvasState(layersState: State<List<LayerUi>>) {
         )
     }
 
-    fun getCurrentSelection(
+    private fun getCurrentSelection(
         point: Point,
         layerId: Long
     ): SerializableColor? {
@@ -207,22 +190,5 @@ class CanvasState(layersState: State<List<LayerUi>>) {
             .map { item ->
                 item.key to (item.value?.get(layerId))
             }.toMap()
-    }
-
-    private fun restoreClear(item: UserHistory.HistoryClear) {
-        item.data.forEach { map ->
-            _selections.getOrPut(map.key) { mutableStateMapOf() }?.apply {
-                map.value?.forEach { entries ->
-                    put(entries.key, entries.value)
-                }
-            }
-        }
-    }
-
-    private fun restoreDrag(historyItem: UserHistory.HistoryDrag) {
-        historyItem.points.forEach { (point, selection) ->
-            _selections.getOrPut(point) { mutableStateMapOf() }
-                ?.put(historyItem.layerId, selection)
-        }
     }
 }
