@@ -84,7 +84,7 @@ class BoxesViewModel(
         val selected = selectedLayer ?: layers?.lastOrNull { it.on }?.id
 
         layers?.forEach {
-            state?.putIfAbsent(it.id, true)
+            state?.putIfAbsent(it.id, it.on)
         }
 
         layers?.map {

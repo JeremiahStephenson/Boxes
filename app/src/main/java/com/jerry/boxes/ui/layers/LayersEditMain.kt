@@ -35,9 +35,7 @@ fun LayersEditMain(
     viewModel: LayersEditViewModel = koinViewModel()
 ) {
     DefaultContainer(title = stringResource(R.string.edit)) {
-
         val projectState by viewModel.projectFlow.collectAsStateWithLifecycle()
-
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             items(projectState?.layers ?: emptyList(), key = { layer -> layer.layer.id }) { layer ->
                 Column(modifier = Modifier.fillMaxWidth()) {

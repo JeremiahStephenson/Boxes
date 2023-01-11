@@ -65,9 +65,11 @@ class CanvasState(layersState: State<List<LayerUi>>) {
         layerId: Long,
         points: List<Point>
     ) {
-        points.forEach {
+        val filtered = points.filter { !currentDragHistory.keys.contains(it) }
+        val currentSelection = getCurrentSelections(filtered, layerId)
+        filtered.forEach {
             if (!currentDragHistory.keys.contains(it)) {
-                currentDragHistory[it] = getCurrentSelections(points, layerId).get(it)
+                currentDragHistory[it] = currentSelection[it]
             }
         }
     }
@@ -182,8 +184,7 @@ class CanvasState(layersState: State<List<LayerUi>>) {
         return _selections
             .filter { points.contains(it.key) }
             .map { item ->
-                val test = (item.value?.get(layerId))
-                item.key to test
+                item.key to (item.value?.get(layerId))
             }.toMap()
     }
 
