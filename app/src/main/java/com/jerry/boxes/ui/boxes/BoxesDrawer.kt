@@ -5,8 +5,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -20,6 +20,7 @@ import com.jerry.boxes.ui.boxes.state.ButtonsState
 import com.jerry.boxes.ui.boxes.state.CanvasState
 import com.jerry.boxes.ui.common.IconMenuButton
 import com.jerry.boxes.ui.common.IconSelectableMenuButton
+import com.jerry.boxes.ui.common.SetNameDialog
 import com.jerry.boxes.util.ArrangementLastItem
 
 @Composable
@@ -41,7 +42,9 @@ fun DrawerMenu(
                 verticalAlignment = Alignment.Bottom
             ) {
                 Text(
-                    modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 8.dp),
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 8.dp),
                     text = stringResource(R.string.layers)
                 )
                 Spacer(modifier = Modifier.weight(1F))
@@ -57,66 +60,17 @@ fun DrawerMenu(
         items(
             items = canvasState.layers,
             key = { it.id }) { layer ->
-            Row(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    modifier = Modifier
-                        .weight(1F)
-                        .padding(
-                            top = if (layer.showControls) 0.dp else 16.dp,
-                            bottom = if (layer.showControls) 0.dp else 8.dp),
-                    text = layer.name
-                )
-                if (layer.showControls) {
-                    Checkbox(
-                        checked = layer.selected,
-                        enabled = layer.on,
-                        onCheckedChange = {
-                            onAction(Action.SelectLayer(layer.id))
-                        }
-                    )
-                    Switch(
-                        checked = layer.on,
-                        enabled = layer.visibilityEnabled,
-                        onCheckedChange = {
-                            onAction(Action.TurnOnOrOffLayer(it, layer.id))
-                        },
-                        thumbContent = {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_baseline_visibility_on_24),
-                                contentDescription = null,
-                                tint = switchColors(layer = layer)
-                            )
-                        },
-                        colors = SwitchDefaults.colors(
-                            checkedThumbColor = Color.Transparent,
-                            disabledCheckedThumbColor = Color.Transparent,
-                            disabledUncheckedThumbColor = Color.Transparent,
-                            uncheckedThumbColor = Color.Transparent
-                        )
-                    )
-                }
-            }
+            LayerItem(
+                layer = layer,
+                onAction = onAction
+            )
         }
 
         item {
-            if (canvasState.layers.size < 5) {
-                OutlinedButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .padding(top = 8.dp),
-                    onClick = {
-                        onAction(Action.AddLayer)
-                    }) {
-                    Text(stringResource(R.string.add_layer))
-                }
-            }
-            Spacer(modifier = Modifier.height(16.dp))
+            AddLayerBtn(
+                canvasState = canvasState,
+                onAction = onAction
+            )
         }
 
         item {
@@ -147,14 +101,6 @@ fun DrawerMenu(
         }
 
         item {
-            ButtonSection(R.string.export) {
-                IconMenuButton(
-                    onClick = { onAction(Action.Export) },
-                    drawableRes = R.drawable.ic_baseline_image_24
-                )
-            }
-        }
-        item {
             ButtonSection(R.string.save) {
                 IconMenuButton(
                     onClick = { onAction(Action.Save(false)) },
@@ -166,6 +112,16 @@ fun DrawerMenu(
                 )
             }
         }
+
+        item {
+            ButtonSection(R.string.export) {
+                IconMenuButton(
+                    onClick = { onAction(Action.Export) },
+                    drawableRes = R.drawable.ic_baseline_image_24
+                )
+            }
+        }
+
         item {
             ButtonSection(R.string.clear) {
                 IconMenuButton(
@@ -178,6 +134,88 @@ fun DrawerMenu(
 }
 
 @Composable
+private fun AddLayerBtn(
+    canvasState: CanvasState,
+    onAction: (Action) -> Unit
+) {
+    var showNameDialog by rememberSaveable { mutableStateOf(false) }
+    if (canvasState.layers.size < 5) {
+        OutlinedButton(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .padding(top = 8.dp),
+            onClick = {
+                showNameDialog = true
+            }) {
+            Text(stringResource(R.string.add_layer))
+        }
+    }
+    Spacer(modifier = Modifier.height(16.dp))
+    if (showNameDialog) {
+        SetNameDialog(
+            existingName = "",
+            dismiss = { showNameDialog = false },
+            onName = {
+                onAction(Action.AddLayer(it))
+            }
+        )
+    }
+}
+
+@Composable
+private fun LayerItem(
+    layer: LayerUi,
+    onAction: (Action) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            modifier = Modifier
+                .weight(1F)
+                .padding(
+                    top = if (layer.showControls) 0.dp else 16.dp,
+                    bottom = if (layer.showControls) 0.dp else 8.dp
+                ),
+            text = layer.name
+        )
+        if (layer.showControls) {
+            Checkbox(
+                checked = layer.selected,
+                enabled = layer.on,
+                onCheckedChange = {
+                    onAction(Action.SelectLayer(layer.id))
+                }
+            )
+            Switch(
+                checked = layer.on,
+                enabled = layer.visibilityEnabled,
+                onCheckedChange = {
+                    onAction(Action.TurnOnOrOffLayer(it, layer.id))
+                },
+                thumbContent = {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_baseline_visibility_on_24),
+                        contentDescription = null,
+                        tint = switchColors(layer = layer)
+                    )
+                },
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = Color.Transparent,
+                    disabledCheckedThumbColor = Color.Transparent,
+                    disabledUncheckedThumbColor = Color.Transparent,
+                    uncheckedThumbColor = Color.Transparent
+                )
+            )
+        }
+    }
+}
+
+@Composable
 private fun switchColors(layer: LayerUi) = when {
     layer.on -> {
         when (layer.visibilityEnabled) {
@@ -185,12 +223,7 @@ private fun switchColors(layer: LayerUi) = when {
             else -> MaterialTheme.colorScheme.surface.copy(alpha = 0.5F)
         }
     }
-    else -> {
-        when (layer.visibilityEnabled) {
-            true -> MaterialTheme.colorScheme.onSurface
-            else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5F)
-        }
-    }
+    else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5F)
 }
 
 @Composable

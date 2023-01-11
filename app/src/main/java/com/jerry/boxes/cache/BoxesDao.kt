@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface BoxesDao {
 
-    @Query("SELECT * FROM project")
+    @Query("SELECT * FROM project ORDER BY name DESC")
     fun findAllProjects(): PagingSource<Int, Project>
 
     @Transaction
@@ -30,6 +30,12 @@ interface BoxesDao {
 
     @Query("UPDATE layer SET `on` = :on WHERE id = :layerId")
     suspend fun turnOnOrOffLayer(on: Boolean, layerId: Long)
+
+    @Query("DELETE FROM layer WHERE id = :layerId")
+    suspend fun deleteLayer(layerId: Long)
+
+    @Query("UPDATE layer SET name = :name WHERE id = :layerId")
+    suspend fun setLayerName(layerId: Long, name: String)
 
     @Query("UPDATE project SET name = :name, rows = :rows, columns = :columns WHERE id = :id")
     suspend fun updateProject(name: String, columns: Int, rows: Int, id: Long)

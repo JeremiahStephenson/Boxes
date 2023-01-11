@@ -1,7 +1,6 @@
 package com.jerry.boxes.ui.layers
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
@@ -11,10 +10,10 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -26,9 +25,7 @@ import com.jerry.boxes.ui.boxes.SelectionsBoxes
 import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.boxes.generateBoxes
 import com.jerry.boxes.ui.boxes.generateSelectionsMap
-import com.jerry.boxes.ui.common.DefaultContainer
-import com.jerry.boxes.ui.common.IconMenuButton
-import com.jerry.boxes.ui.common.pngBackground
+import com.jerry.boxes.ui.common.*
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import org.koin.androidx.compose.koinViewModel
@@ -65,12 +62,24 @@ fun LayersEditMain(
                     showDivider = {
                         index > 0
                     },
-                    onDirection = { lyr, position ->
+                    onMoveItem = { lyr, position ->
                         viewModel.changeLayerIndex(
                             projectState!!.layers.map { it.layer },
                             lyr,
                             position
                         )
+                    },
+                    onDeleteItem = {
+                        viewModel.deleteLayer(
+                            projectState!!.layers.map { it.layer },
+                            layer.layer.id
+                        )
+                    },
+                    showDeleteBtn = {
+                        projectState!!.layers.size > 1
+                    },
+                    onLayerName = {
+                        viewModel.setLayerName(layer.layer.id, it)
                     }
                 )
             }
@@ -87,7 +96,10 @@ private fun LazyItemScope.LayerItem(
     showUpArrow: () -> Boolean,
     showDownArrow: () -> Boolean,
     showDivider: () -> Boolean,
-    onDirection: (Long, Int) -> Unit
+    showDeleteBtn: () -> Boolean,
+    onDeleteItem: () -> Unit,
+    onLayerName: (String) -> Unit,
+    onMoveItem: (Long, Int) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -106,33 +118,79 @@ private fun LazyItemScope.LayerItem(
             style = MaterialTheme.typography.titleLarge,
             color = LocalContentColor.current
         )
-        Row(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth()
+        ) {
             CanvasItem(
                 columns = columns,
                 rows = rows,
                 layer = layer
             )
             Spacer(modifier = Modifier.weight(1F))
-            Column(modifier = Modifier
-                .padding(top = 16.dp)
-                .height(CANVAS_SIZE)
+            Column(
+                modifier = Modifier
+                    .padding(top = 16.dp)
+                    .height(CANVAS_SIZE)
             ) {
                 IconMenuButton(
                     modifier = Modifier.alpha(if (showUpArrow()) 1F else 0F),
-                    onClick = {
-                        onDirection(layer.layer.id, layer.layer.index - 1)
-                    },
+                    onClick = { onMoveItem(layer.layer.id, layer.layer.index - 1) },
                     drawableRes = R.drawable.ic_baseline_arrow_upward_24
                 )
                 Spacer(modifier = Modifier.weight(1F))
                 IconMenuButton(
                     modifier = Modifier.alpha(if (showDownArrow()) 1F else 0F),
-                    onClick = {
-                        onDirection(layer.layer.id, layer.layer.index + 1)
-                    },
+                    onClick = { onMoveItem(layer.layer.id, layer.layer.index + 1) },
                     drawableRes = R.drawable.ic_baseline_arrow_downward_24
                 )
             }
+        }
+        var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
+        var showNameDialog by rememberSaveable { mutableStateOf(false) }
+        ButtonRow(
+            onShowDeleteDialog = { showDeleteDialog = true },
+            onShowNameDialog = { showNameDialog = true },
+            showDeleteBtn = showDeleteBtn
+        )
+
+        if (showDeleteDialog) {
+            AreYouSureDialog(
+                title = stringResource(R.string.are_you_sure_layer, layer.layer.name),
+                dismiss = { showDeleteDialog = false },
+                onDelete = onDeleteItem
+            )
+        }
+
+        if (showNameDialog) {
+            SetNameDialog(
+                existingName = layer.layer.name,
+                dismiss = { showNameDialog = false },
+                onName =  onLayerName
+            )
+        }
+    }
+}
+
+@Composable
+private fun ButtonRow(
+    showDeleteBtn: () -> Boolean,
+    onShowNameDialog: () -> Unit,
+    onShowDeleteDialog: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+    ) {
+        IconMenuButton(
+            onClick = onShowNameDialog,
+            drawableRes = R.drawable.ic_baseline_edit_24
+        )
+        if (showDeleteBtn()) {
+            IconMenuButton(
+                onClick = onShowDeleteDialog,
+                drawableRes = R.drawable.ic_baseline_delete_24
+            )
         }
     }
 }
@@ -178,7 +236,8 @@ private fun CanvasItem(
 
     Box(
         modifier = Modifier
-            .padding(16.dp)
+            .padding(horizontal = 16.dp)
+            .padding(top = 16.dp)
             .width(width)
             .height(height)
             .pngBackground(

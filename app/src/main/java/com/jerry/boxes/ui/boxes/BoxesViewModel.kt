@@ -140,13 +140,14 @@ class BoxesViewModel(
     }
 
     fun addLayer(
+        name: String,
         index: Int,
         selections: Map<Point, Map<Long, SerializableColor?>?>
     ) {
         viewModelScope.launch {
             updateDatabase {
                 saveProject(selections = selections)
-                boxesDao.insertLayer(Layer(projectId, index, "Layer ${index + 1}", true))
+                boxesDao.insertLayer(Layer(projectId, index, name, true))
             }
         }
     }
@@ -232,7 +233,6 @@ class BoxesViewModel(
 
     companion object {
         private const val LAYER_LIST_STATE = "LAYER_LIST_STATE"
-        private const val HISTORY_STATE = "HISTORY_STATE"
         private const val USED_COLORS_STATE = "USED_COLOR_STATE"
         private const val SELECTED_LAYER = "SELECTED_LAYER"
 

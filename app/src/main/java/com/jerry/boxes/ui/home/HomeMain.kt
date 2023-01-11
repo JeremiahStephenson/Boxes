@@ -1,6 +1,5 @@
 package com.jerry.boxes.ui.home
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -9,16 +8,14 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemsIndexed
 import com.jerry.boxes.R
 import com.jerry.boxes.cache.data.Project
+import com.jerry.boxes.ui.common.AreYouSureDialog
 import com.jerry.boxes.ui.common.DefaultContainer
 import com.jerry.boxes.ui.common.unboundClickable
 import com.jerry.boxes.ui.destinations.BoxesMainDestination
@@ -61,6 +58,7 @@ fun HomeMain(
                         item = project,
                         editMode = editMode,
                         onGoToProject = {
+                            editMode = false
                             navController.navigate(
                                 BoxesMainDestination(it)
                             )
@@ -94,18 +92,15 @@ private fun ProjectItem(
                 }
                 .padding(horizontal = 16.dp, vertical = 24.dp),
             style = MaterialTheme.typography.titleLarge,
-            text = item.name.orEmpty()
+            text = item.name
         )
 
         var showConfirmationDialog by remember { mutableStateOf(false) }
         if (showConfirmationDialog) {
             AreYouSureDialog(
-                projectTitle = item.name,
+                title = stringResource(R.string.are_you_sure_project, item.name),
                 dismiss = { showConfirmationDialog = false },
-                delete = {
-                    onDeleteProject(item.id)
-                    showConfirmationDialog = false
-                }
+                onDelete = { onDeleteProject(item.id) }
             )
         }
         if (editMode) {
@@ -118,45 +113,6 @@ private fun ProjectItem(
                 painter = painterResource(R.drawable.ic_baseline_delete_24),
                 contentDescription = null // todo
             )
-        }
-    }
-}
-
-@Composable
-private fun AreYouSureDialog(
-    projectTitle: String,
-    dismiss: () -> Unit,
-    delete: () -> Unit
-) {
-    Dialog(onDismissRequest = dismiss) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(MaterialTheme.shapes.large)
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(bottom = 16.dp),
-                text = stringResource(R.string.are_you_sure, projectTitle),
-                textAlign = TextAlign.Center
-            )
-            OutlinedButton(
-                modifier = Modifier.fillMaxWidth(),
-                onClick = delete
-            ) {
-                Text(text = stringResource(R.string.yes))
-            }
-            Button(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
-                onClick = dismiss
-            ) {
-                Text(text = stringResource(R.string.no))
-            }
         }
     }
 }

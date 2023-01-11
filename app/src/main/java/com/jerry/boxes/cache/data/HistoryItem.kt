@@ -8,7 +8,7 @@ import com.jerry.boxes.ui.boxes.shapes.Shape
 
 @Entity(
     tableName = HistoryItem.TABLE_NAME,
-    indices = [(Index(value = ["id", "historyId", "x", "y"], unique = true))],
+    indices = [(Index(value = ["id", "historyId", "x", "y"], unique = true)), Index("historyId")],
     foreignKeys = [(ForeignKey(
         entity = History::class,
         parentColumns = ["id"],

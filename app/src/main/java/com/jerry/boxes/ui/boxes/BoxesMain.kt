@@ -393,8 +393,9 @@ private fun handleAction(
         }
         is Action.AddLayer ->
             viewModel.addLayer(
-                (project?.layers?.maxOf { it.layer.index } ?: -1) + 1,
-                canvasState.selections.toMap()
+                name = action.name,
+                index = (project?.layers?.maxOf { it.layer.index } ?: -1) + 1,
+                selections = canvasState.selections.toMap()
             )
         is Action.TurnOnOrOffLayer ->
             viewModel.setLayerOnOrOff(action.layerId, action.on)

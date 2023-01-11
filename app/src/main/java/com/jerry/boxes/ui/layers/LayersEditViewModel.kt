@@ -50,4 +50,30 @@ class LayersEditViewModel(
             }
         }
     }
+
+    fun deleteLayer(
+        layers: List<Layer>,
+        layerId: Long
+    ) {
+        viewModelScope.launch(cc.io) {
+            boxesDatabase.withTransaction {
+                val indexOfDelete = layers.indexOfFirst { it.id == layerId }
+                for (i in indexOfDelete + 1 until layers.size) {
+                    val layer = layers.firstOrNull { it.index == i }
+                    layer?.let {
+                        boxesDao.setLayerIndex(it.id, i - 1)
+                    }
+                }
+                boxesDao.deleteLayer(layerId)
+            }
+        }
+    }
+
+    fun setLayerName(layerId: Long, name: String) {
+        viewModelScope.launch(cc.io) {
+            boxesDatabase.withTransaction {
+                boxesDao.setLayerName(layerId, name)
+            }
+        }
+    }
 }
