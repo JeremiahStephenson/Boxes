@@ -1,13 +1,13 @@
-package com.jerry.boxes.ui.boxes.shapes
+package com.jerry.boxes.ui.shapes
 
 enum class Shape(val group: ShapeGroup) {
     Box(ShapeGroup.BASIC),
     Circle(ShapeGroup.BASIC),
     Star(ShapeGroup.BASIC),
-    TriangleBottomLeft(ShapeGroup.CORNER),
-    TriangleBottomRight(ShapeGroup.CORNER),
-    TriangleTopLeft(ShapeGroup.CORNER),
-    TriangleTopRight(ShapeGroup.CORNER),
+    TriangleBottomLeft(ShapeGroup.CORNER_TRIANGLE),
+    TriangleBottomRight(ShapeGroup.CORNER_TRIANGLE),
+    TriangleTopLeft(ShapeGroup.CORNER_TRIANGLE),
+    TriangleTopRight(ShapeGroup.CORNER_TRIANGLE),
     RectangleLeft(ShapeGroup.RECTANGLE),
     RectangleRight(ShapeGroup.RECTANGLE),
     RectangleTop(ShapeGroup.RECTANGLE),
@@ -32,5 +32,13 @@ enum class Shape(val group: ShapeGroup) {
     TopLeftElbow(ShapeGroup.CORNER),
     TopRightElbow(ShapeGroup.CORNER),
     BottomLeftElbow(ShapeGroup.CORNER),
-    BottomRightElbow(ShapeGroup.CORNER)
+    BottomRightElbow(ShapeGroup.CORNER),
+    TriangleBottomLeftSmall(ShapeGroup.CORNER_TRIANGLE),
+    TriangleBottomRightSmall(ShapeGroup.CORNER_TRIANGLE),
+    TriangleTopLeftSmall(ShapeGroup.CORNER_TRIANGLE),
+    TriangleTopRightSmall(ShapeGroup.CORNER_TRIANGLE),
+    TriangleBottomLeftSmallest(ShapeGroup.CORNER_TRIANGLE),
+    TriangleBottomRightSmallest(ShapeGroup.CORNER_TRIANGLE),
+    TriangleTopLeftSmallest(ShapeGroup.CORNER_TRIANGLE),
+    TriangleTopRightSmallest(ShapeGroup.CORNER_TRIANGLE),
 }

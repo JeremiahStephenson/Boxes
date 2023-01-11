@@ -23,7 +23,7 @@ import com.godaddy.android.colorpicker.ClassicColorPicker
 import com.godaddy.android.colorpicker.HsvColor
 import com.jerry.boxes.R
 import com.jerry.boxes.extensions.asSerializableColor
-import com.jerry.boxes.ui.boxes.shapes.Shape
+import com.jerry.boxes.ui.shapes.Shape
 import com.jerry.boxes.ui.common.pngBackground
 import com.jerry.boxes.ui.common.unboundClickable
 

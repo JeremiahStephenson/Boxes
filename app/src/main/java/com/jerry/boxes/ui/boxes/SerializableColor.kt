@@ -2,7 +2,7 @@ package com.jerry.boxes.ui.boxes
 
 import androidx.compose.ui.graphics.Color
 import com.godaddy.android.colorpicker.HsvColor
-import com.jerry.boxes.ui.boxes.shapes.Shape
+import com.jerry.boxes.ui.shapes.Shape
 import java.io.Serializable
 
 data class SerializableColor(

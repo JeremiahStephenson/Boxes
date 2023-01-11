@@ -5,7 +5,7 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.jerry.boxes.ui.boxes.SerializableColor
-import com.jerry.boxes.ui.boxes.shapes.Shape
+import com.jerry.boxes.ui.shapes.Shape
 import java.io.Serializable
 
 @Entity(

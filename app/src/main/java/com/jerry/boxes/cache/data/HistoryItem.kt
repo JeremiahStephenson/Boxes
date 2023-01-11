@@ -4,7 +4,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.jerry.boxes.ui.boxes.shapes.Shape
+import com.jerry.boxes.ui.shapes.Shape
 
 @Entity(
     tableName = HistoryItem.TABLE_NAME,

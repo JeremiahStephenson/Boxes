@@ -8,7 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.jerry.boxes.cache.BoxesDao
 import com.jerry.boxes.cache.data.Layer
 import com.jerry.boxes.cache.data.Project
-import com.jerry.boxes.ui.boxes.shapes.Shape
+import com.jerry.boxes.ui.shapes.Shape
 import com.jerry.boxes.ui.destinations.CreateMainDestination
 import com.jerry.boxes.util.Resource
 import kotlinx.coroutines.CoroutineExceptionHandler

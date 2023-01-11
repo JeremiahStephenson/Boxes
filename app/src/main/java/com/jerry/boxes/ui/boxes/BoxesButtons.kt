@@ -13,7 +13,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import com.godaddy.android.colorpicker.HsvColor
 import com.jerry.boxes.extensions.asSerializableColor
-import com.jerry.boxes.ui.boxes.shapes.Shape
+import com.jerry.boxes.ui.shapes.Shape
 import com.jerry.boxes.ui.common.unboundClickable
 
 @Composable

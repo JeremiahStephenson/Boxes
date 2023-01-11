@@ -16,7 +16,7 @@ import com.jerry.boxes.extensions.addIfNotFound
 import com.jerry.boxes.extensions.safeLet
 import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.boxes.history.UserHistory
-import com.jerry.boxes.ui.boxes.shapes.Shape
+import com.jerry.boxes.ui.shapes.Shape
 import com.jerry.boxes.ui.destinations.BoxesMainDestination
 import com.jerry.boxes.util.SavedHandle
 import kotlinx.coroutines.flow.*

@@ -2,7 +2,7 @@ package com.jerry.boxes.cache.data
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.jerry.boxes.ui.boxes.shapes.Shape
+import com.jerry.boxes.ui.shapes.Shape
 import java.io.Serializable
 
 @Entity(
