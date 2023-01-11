@@ -42,4 +42,31 @@ interface BoxesDao {
 
     @Query("DELETE FROM project WHERE id = :id")
     suspend fun deleteProject(id: Long)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertHistory(history: History): Long
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertHistoryItem(historyItem: HistoryItem)
+
+    @Query("SELECT MAX(`index`) FROM history WHERE layerId = :layerId")
+    suspend fun findMaxIndexForHistory(layerId: Long): Int
+
+    @Query("SELECT MIN(`index`) FROM history WHERE layerId = :layerId")
+    suspend fun findMinIndexForHistory(layerId: Long): Int
+
+    @Query("DELETE FROM history WHERE `index` <= :index AND layerId = :layerId")
+    suspend fun cleanHistory(index: Int, layerId: Long)
+
+    @Query("DELETE FROM history WHERE id = :id")
+    suspend fun deleteHistory(id: Long)
+
+    @Query("UPDATE history SET `index` = `index` - 1 WHERE layerId = :layerId")
+    suspend fun updateIndicies(layerId: Long)
+
+    @Query("SELECT * FROM history WHERE layerId = :layerId AND `index` = :index")
+    suspend fun findMaxHistory(layerId: Long, index: Int): History?
+
+    @Query("SELECT * FROM historyItem WHERE historyId = :historyId")
+    suspend fun findAllHistoryItems(historyId: Long): List<HistoryItem>
 }

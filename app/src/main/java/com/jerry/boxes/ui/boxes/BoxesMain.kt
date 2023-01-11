@@ -14,10 +14,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.godaddy.android.colorpicker.HsvColor
 import com.jerry.boxes.R
 import com.jerry.boxes.cache.data.ProjectAndLayer
-import com.jerry.boxes.ui.boxes.history.HistoryItem
+import com.jerry.boxes.ui.boxes.history.UserHistory
 import com.jerry.boxes.ui.boxes.shapes.Shape
 import com.jerry.boxes.ui.boxes.state.ButtonsState
 import com.jerry.boxes.ui.boxes.state.CanvasState
@@ -368,7 +367,7 @@ private fun handleAction(
         is Action.Clear -> if (canvasState.hasLayersTurnedOn) {
             scope.launch {
                 viewModel.addToHistory(
-                    HistoryItem.HistoryClearItem(
+                    UserHistory.HistoryClear(
                         canvasState.getCurrentSelectedLayerSelections()
                     )
                 )
@@ -376,7 +375,10 @@ private fun handleAction(
             }
         }
         is Action.Undo -> scope.launch {
-            canvasState.onUndo(viewModel.getLastHistoryItem())
+            canvasState.onUndo(
+                canvasState.selectedLayer.id,
+                viewModel.getLastHistoryItem(canvasState.selectedLayer.id)
+            )
         }
         is Action.AddToHistory -> scope.launch {
             viewModel.addToHistory(action.historyItem)

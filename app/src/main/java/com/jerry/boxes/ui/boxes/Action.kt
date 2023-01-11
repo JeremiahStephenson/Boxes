@@ -1,6 +1,6 @@
 package com.jerry.boxes.ui.boxes
 
-import com.jerry.boxes.ui.boxes.history.HistoryItem
+import com.jerry.boxes.ui.boxes.history.UserHistory
 
 sealed class Action {
     object Clear : Action()
@@ -16,7 +16,7 @@ sealed class Action {
     object GoToLayerEdit : Action()
     data class SelectLayer(val layerId: Long) : Action()
     data class AddColorToUsedList(val color: SerializableColor) : Action()
-    data class AddToHistory(val historyItem: HistoryItem) : Action()
+    data class AddToHistory(val historyItem: UserHistory) : Action()
     data class TurnOnOrOffLayer(val on: Boolean, val layerId: Long) : Action()
     data class Save(val autoSave: Boolean) : Action()
 }

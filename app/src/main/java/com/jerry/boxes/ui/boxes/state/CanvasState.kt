@@ -7,13 +7,18 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.Constraints
+import com.godaddy.android.colorpicker.HsvColor
+import com.jerry.boxes.cache.data.HistoryItem
 import com.jerry.boxes.cache.data.LayerAndPixel
 import com.jerry.boxes.extensions.asList
+import com.jerry.boxes.extensions.asSerializableColor
 import com.jerry.boxes.ui.boxes.SerializableColor
 import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.boxes.generateBoxes
-import com.jerry.boxes.ui.boxes.history.HistoryItem
+import com.jerry.boxes.ui.boxes.history.UserHistory
 import com.jerry.boxes.ui.boxes.shapes.Shape
 import kotlin.math.max
 import kotlin.math.min
@@ -54,10 +59,10 @@ class CanvasState(layersState: State<List<LayerUi>>) {
     }
 
     fun getTapHistoryItem(point: Point, layerId: Long) =
-        HistoryItem.HistoryTapItem(getCurrentSelection(point, layerId), layerId, point)
+        UserHistory.HistoryTap(getCurrentSelection(point, layerId), layerId, point)
 
     fun closeDragHistory(layerId: Long) =
-        HistoryItem.HistoryDragItem(layerId, currentDragHistory.toMap()).also {
+        UserHistory.HistoryDrag(layerId, currentDragHistory.toMap()).also {
             currentDragHistory.clear()
         }
 
@@ -74,20 +79,36 @@ class CanvasState(layersState: State<List<LayerUi>>) {
         }
     }
 
-    fun onUndo(historyItem: HistoryItem?) {
-        historyItem?.let { item ->
-            when (historyItem) {
-                is HistoryItem.HistoryTapItem ->
-                    (item as? HistoryItem.HistoryTapItem)?.let {
-                        onDrag(item.point.asList, item.layerId, item.color, item.color?.shape)
+    fun onUndo(layerId: Long, historyItems: List<HistoryItem>) {
+        historyItems.forEach { item ->
+            _selections.getOrPut(Point(item.x, item.y)) { mutableStateMapOf() }
+                ?.put(layerId, item.color?.let {
+                    with(HsvColor.from(Color(it))) {
+                        SerializableColor(this.hue, this.saturation, this.value, this.alpha, item.shape ?: Shape.Box)
                     }
-                is HistoryItem.HistoryClearItem ->
-                    (item as? HistoryItem.HistoryClearItem)?.let { restoreClear(it) }
-                is HistoryItem.HistoryDragItem ->
-                    (item as? HistoryItem.HistoryDragItem)?.let { restoreDrag(it) }
-            }
+                })
         }
+
+//        historyItem.points.forEach { (point, selection) ->
+//            _selections.getOrPut(point) { mutableStateMapOf() }
+//                ?.put(historyItem.layerId, selection)
+//        }
     }
+
+//    fun onUndo(historyItem: UserHistory?) {
+//        historyItem?.let { item ->
+//            when (historyItem) {
+//                is UserHistory.HistoryTap ->
+//                    (item as? UserHistory.HistoryTap)?.let {
+//                        onDrag(item.point.asList, item.layerId, item.color, item.color?.shape)
+//                    }
+//                is UserHistory.HistoryClear ->
+//                    (item as? UserHistory.HistoryClear)?.let { restoreClear(it) }
+//                is UserHistory.HistoryDrag ->
+//                    (item as? UserHistory.HistoryDrag)?.let { restoreDrag(it) }
+//            }
+//        }
+//    }
 
     fun onTap(
         point: Point,
@@ -188,7 +209,7 @@ class CanvasState(layersState: State<List<LayerUi>>) {
             }.toMap()
     }
 
-    private fun restoreClear(item: HistoryItem.HistoryClearItem) {
+    private fun restoreClear(item: UserHistory.HistoryClear) {
         item.data.forEach { map ->
             _selections.getOrPut(map.key) { mutableStateMapOf() }?.apply {
                 map.value?.forEach { entries ->
@@ -198,7 +219,7 @@ class CanvasState(layersState: State<List<LayerUi>>) {
         }
     }
 
-    private fun restoreDrag(historyItem: HistoryItem.HistoryDragItem) {
+    private fun restoreDrag(historyItem: UserHistory.HistoryDrag) {
         historyItem.points.forEach { (point, selection) ->
             _selections.getOrPut(point) { mutableStateMapOf() }
                 ?.put(historyItem.layerId, selection)

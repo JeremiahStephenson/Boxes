@@ -5,22 +5,22 @@ import android.os.Parcelable
 import com.jerry.boxes.ui.boxes.SerializableColor
 import kotlinx.parcelize.Parcelize
 
-sealed class HistoryItem {
+sealed class UserHistory {
     @Parcelize
-    data class HistoryClearItem(
+    data class HistoryClear(
         val data: Map<Point, Map<Long, SerializableColor?>?>
-    ) : HistoryItem(), Parcelable
+    ) : UserHistory(), Parcelable
 
     @Parcelize
-    data class HistoryDragItem(
+    data class HistoryDrag(
         val layerId: Long,
         val points: Map<Point, SerializableColor?>
-    ) : HistoryItem(), Parcelable
+    ) : UserHistory(), Parcelable
 
     @Parcelize
-    data class HistoryTapItem(
+    data class HistoryTap(
         val color: SerializableColor?,
         val layerId: Long,
         val point: Point
-    ) : HistoryItem(), Parcelable
+    ) : UserHistory(), Parcelable
 }

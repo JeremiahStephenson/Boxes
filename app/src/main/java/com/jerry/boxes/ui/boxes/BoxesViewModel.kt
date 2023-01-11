@@ -8,12 +8,14 @@ import androidx.lifecycle.viewModelScope
 import androidx.room.withTransaction
 import com.jerry.boxes.cache.BoxesDao
 import com.jerry.boxes.cache.BoxesDatabase
+import com.jerry.boxes.cache.data.History
+import com.jerry.boxes.cache.data.HistoryItem
 import com.jerry.boxes.cache.data.Layer
 import com.jerry.boxes.cache.data.Pixel
 import com.jerry.boxes.extensions.addIfNotFound
 import com.jerry.boxes.extensions.safeLet
 import com.jerry.boxes.ui.boxes.data.LayerUi
-import com.jerry.boxes.ui.boxes.history.HistoryItem
+import com.jerry.boxes.ui.boxes.history.UserHistory
 import com.jerry.boxes.ui.boxes.shapes.Shape
 import com.jerry.boxes.ui.destinations.BoxesMainDestination
 import com.jerry.boxes.util.SavedHandle
@@ -56,7 +58,7 @@ class BoxesViewModel(
 
     private val historyMutex = Mutex()
     private var historyStateHandle
-            by SavedHandle<MutableList<HistoryItem>>(
+            by SavedHandle<MutableList<UserHistory>>(
                 handle,
                 HISTORY_STATE,
                 mutableListOf()
@@ -111,20 +113,46 @@ class BoxesViewModel(
         }
     }
 
-    suspend fun addToHistory(historyItem: HistoryItem) {
-        historyMutex.withLock {
-            historyStateHandle?.add(historyItem)
-            if ((historyStateHandle?.size ?: 0) > 20) {
-                historyStateHandle?.removeAt(0)
+    suspend fun addToHistory(userHistory: UserHistory) {
+        viewModelScope.launch {
+            boxesDatabase.withTransaction {
+                when (userHistory) {
+                    is UserHistory.HistoryTap -> {
+                        val index = boxesDao.findMaxIndexForHistory(userHistory.layerId)
+                        val historyId = boxesDao.insertHistory(History(userHistory.layerId, index + 1))
+                        boxesDao.insertHistoryItem(
+                            HistoryItem(
+                                historyId,
+                                userHistory.point.x,
+                                userHistory.point.y,
+                                userHistory.color?.color?.toArgb(),
+                                userHistory.color?.shape
+                            )
+                        )
+                        if (index >= 20) {
+                            val min = boxesDao.findMinIndexForHistory(userHistory.layerId)
+                            boxesDao.cleanHistory(min, userHistory.layerId)
+                            boxesDao.updateIndicies(userHistory.layerId)
+                        }
+                    }
+                    is UserHistory.HistoryClear -> {
+
+                    }
+                    is UserHistory.HistoryDrag -> {
+
+                    }
+                }
             }
         }
     }
 
-    suspend fun getLastHistoryItem(): HistoryItem? {
-        return historyMutex.withLock {
-            historyStateHandle?.lastOrNull()?.also {
-                historyStateHandle?.removeLast()
-            }
+    suspend fun getLastHistoryItem(layerId: Long): List<HistoryItem> {
+        val max = boxesDao.findMaxIndexForHistory(layerId)
+        val history = boxesDao.findMaxHistory(layerId, max)
+        return (history?.let {
+            boxesDao.findAllHistoryItems(history.id)
+        } ?: emptyList()).also {
+            history?.let { boxesDao.deleteHistory(it.id) }
         }
     }
 
