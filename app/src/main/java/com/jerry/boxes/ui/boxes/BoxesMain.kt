@@ -84,7 +84,7 @@ fun BoxesMain(
                         navController.navigate(LayersEditMainDestination(projectId))
                     }
                     .padding(16.dp),
-                painter = painterResource(R.drawable.ic_baseline_layers_24),
+                painter = painterResource(R.drawable.ic_layers_24),
                 contentDescription = null
             )
             Icon(
@@ -98,7 +98,7 @@ fun BoxesMain(
                         }
                     }
                     .padding(16.dp),
-                painter = painterResource(R.drawable.ic_baseline_menu_24),
+                painter = painterResource(R.drawable.ic_menu_24),
                 contentDescription = null
             )
         }
@@ -311,8 +311,8 @@ private fun ButtonBar(
             },
             color = color,
             drawableRes = when (buttonsState.colorPickerOnState) {
-                true -> R.drawable.ic_baseline_colorize_24
-                else -> R.drawable.ic_baseline_color_lens_24
+                true -> R.drawable.ic_colorize_24
+                else -> R.drawable.ic_color_lens_24
             }
         )
 
@@ -327,14 +327,14 @@ private fun ButtonBar(
 
         IconMenuButton(
             onClick = { onAction(Action.Undo) },
-            drawableRes = R.drawable.ic_baseline_undo_24
+            drawableRes = R.drawable.ic_undo_24
         )
 
         Spacer(modifier = Modifier.weight(1F))
 
         IconMenuButton(
             onClick = { onAction(Action.ResetZoom) },
-            drawableRes = R.drawable.ic_baseline_zoom_out_map_24
+            drawableRes = R.drawable.ic_zoom_out_map_24
         )
     }
 }

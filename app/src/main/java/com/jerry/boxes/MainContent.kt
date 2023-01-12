@@ -87,7 +87,7 @@ fun MainContent(
                         onClick = fab?.onClick ?: {}
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.ic_baseline_add_24),
+                            painter = painterResource(R.drawable.ic_add_24),
                             contentDescription = null
                         )
                     }
@@ -139,7 +139,7 @@ fun Toolbar(
                             onBack()
                         }
                         .padding(8.dp),
-                    painter = painterResource(R.drawable.ic_baseline_arrow_back_24),
+                    painter = painterResource(R.drawable.ic_arrow_back_24),
                     contentDescription = stringResource(R.string.back)
                 )
             }

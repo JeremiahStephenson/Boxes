@@ -110,7 +110,7 @@ private fun ProjectItem(
                         showConfirmationDialog = true
                     }
                     .padding(16.dp),
-                painter = painterResource(R.drawable.ic_baseline_delete_24),
+                painter = painterResource(R.drawable.ic_delete_24),
                 contentDescription = null // todo
             )
         }

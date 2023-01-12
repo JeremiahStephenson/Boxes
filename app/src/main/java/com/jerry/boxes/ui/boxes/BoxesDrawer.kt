@@ -51,7 +51,7 @@ fun DrawerMenu(
                 IconMenuButton(
                     padding = PaddingValues(8.dp),
                     onClick = { onAction(Action.GoToLayerEdit) },
-                    drawableRes = R.drawable.ic_baseline_edit_24
+                    drawableRes = R.drawable.ic_edit_24
                 )
             }
             Divider(modifier = Modifier.padding(horizontal = 16.dp))
@@ -78,24 +78,24 @@ fun DrawerMenu(
                 IconSelectableMenuButton(
                     onClick = { onAction(Action.Eraser) },
                     isSelected = { buttonsState.eraserSelectedState },
-                    drawableResOn = R.drawable.ic_baseline_eraser_on_24,
-                    drawableResOff = R.drawable.ic_baseline_eraser_off_24
+                    drawableResOn = R.drawable.ic_eraser_on_24,
+                    drawableResOff = R.drawable.ic_eraser_off_24
                 )
                 IconSelectableMenuButton(
                     onClick = { onAction(Action.ShowGrid) },
                     isSelected = { buttonsState.showGridState },
-                    drawableResOn = R.drawable.ic_baseline_grid_on_24,
-                    drawableResOff = R.drawable.ic_baseline_grid_off_24
+                    drawableResOn = R.drawable.ic_grid_on_24,
+                    drawableResOff = R.drawable.ic_grid_off_24
                 )
                 IconSelectableMenuButton(
                     onClick = { onAction(Action.ShowPngBackground) },
                     isSelected = { buttonsState.showPngBackgroundState },
-                    drawableResOn = R.drawable.ic_baseline_visibility_on_24,
-                    drawableResOff = R.drawable.ic_baseline_visibility_off_24
+                    drawableResOn = R.drawable.ic_visibility_on_24,
+                    drawableResOff = R.drawable.ic_visibility_off_24
                 )
                 IconMenuButton(
                     onClick = { onAction(Action.ColorPicker) },
-                    drawableRes = R.drawable.ic_baseline_colorize_24
+                    drawableRes = R.drawable.ic_colorize_24
                 )
             }
         }
@@ -104,11 +104,11 @@ fun DrawerMenu(
             ButtonSection(R.string.save) {
                 IconMenuButton(
                     onClick = { onAction(Action.Save(false)) },
-                    drawableRes = R.drawable.ic_baseline_save_24
+                    drawableRes = R.drawable.ic_save_24
                 )
                 IconMenuButton(
                     onClick = { onAction(Action.Edit) },
-                    drawableRes = R.drawable.ic_baseline_edit_24
+                    drawableRes = R.drawable.ic_edit_24
                 )
             }
         }
@@ -117,7 +117,7 @@ fun DrawerMenu(
             ButtonSection(R.string.export) {
                 IconMenuButton(
                     onClick = { onAction(Action.Export) },
-                    drawableRes = R.drawable.ic_baseline_image_24
+                    drawableRes = R.drawable.ic_image_24
                 )
             }
         }
@@ -199,7 +199,7 @@ private fun LayerItem(
                 },
                 thumbContent = {
                     Icon(
-                        painter = painterResource(R.drawable.ic_baseline_visibility_on_24),
+                        painter = painterResource(R.drawable.ic_visibility_on_24),
                         contentDescription = null,
                         tint = switchColors(layer = layer)
                     )
