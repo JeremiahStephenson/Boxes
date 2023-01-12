@@ -17,7 +17,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jerry.boxes.R
 import com.jerry.boxes.cache.data.ProjectAndLayer
 import com.jerry.boxes.ui.boxes.history.UserHistory
-import com.jerry.boxes.ui.shapes.Shape
 import com.jerry.boxes.ui.boxes.state.ButtonsState
 import com.jerry.boxes.ui.boxes.state.CanvasState
 import com.jerry.boxes.ui.boxes.state.ColorAndShapeState
@@ -25,6 +24,7 @@ import com.jerry.boxes.ui.boxes.state.TransformerState
 import com.jerry.boxes.ui.common.*
 import com.jerry.boxes.ui.destinations.CreateMainDestination
 import com.jerry.boxes.ui.destinations.LayersEditMainDestination
+import com.jerry.boxes.ui.shapes.Shape
 import com.jerry.boxes.util.CoroutineContextProvider
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
@@ -55,19 +55,6 @@ fun BoxesMain(
             colorPickerOn = false
         )
     }
-    val colorAndShapeState by rememberUpdatedState(rememberSaveable(
-        project?.project?.currentColor,
-        project?.project?.currentShape
-    ) {
-        ColorAndShapeState(
-            project?.project?.currentColor,
-            project?.project?.currentShape
-        ).also { state ->
-            project?.project?.currentColor?.let {
-                scope.launch { viewModel.addUsedColor(state.colorState) }
-            }
-        }
-    })
 
     BackHandler(drawerState.isOpen) {
         scope.launch {
@@ -104,6 +91,18 @@ fun BoxesMain(
             )
         }
     ) {
+        val projectNotNull by remember { derivedStateOf { project != null }}
+        val colorAndShapeState = when (projectNotNull) {
+            true -> rememberSaveable {
+                ColorAndShapeState(
+                    project!!.project.currentColor,
+                    project!!.project.currentShape
+                )
+            }
+            else -> remember { ColorAndShapeState(null, null) }
+        }
+        val colorAndShapeUpdatedState by rememberUpdatedState(colorAndShapeState)
+
         val transformerState = remember { TransformerState() }
         val rootView = LocalView.current.rootView
         val handleAction: (Action) -> Unit = remember {
@@ -113,7 +112,7 @@ fun BoxesMain(
                     buttonsState,
                     transformerState,
                     drawerState,
-                    colorAndShapeState,
+                    colorAndShapeUpdatedState,
                     viewModel,
                     project,
                     scope,
@@ -139,7 +138,7 @@ fun BoxesMain(
                     canvasState = canvasState,
                     buttonsState = buttonsState,
                     transformerState = transformerState,
-                    colorAndShapeState = colorAndShapeState,
+                    colorAndShapeState = colorAndShapeUpdatedState,
                     onAction = handleAction,
                     getUsedColorList = { viewModel.usedColors }
                 )

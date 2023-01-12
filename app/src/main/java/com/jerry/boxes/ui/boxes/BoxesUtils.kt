@@ -67,7 +67,7 @@ fun DrawScope.drawShapes(
     selections: Map<Point, Map<Long, SerializableColor?>?>,
     boxes: Map<Point, RectF>
 ) {
-    Timber.d("DrawTest - drawing")
+    Timber.d("DrawTest - drawing: ${selections.size}")
     val layerIds = layers.filter { it.on }.sortedBy { it.index }.map { it.id }
     selections.forEach { (point, pixels) ->
         val position = boxes[point]
