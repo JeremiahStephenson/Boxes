@@ -34,7 +34,7 @@ class CanvasState(layersState: State<List<LayerUi>>) {
 
     val selectedLayer
         get() = layers.firstOrNull { it.selected }
-            ?: layers.filter { it.on }.maxBy { it.index }
+            ?: layers.filter { it.on }.maxByOrNull { it.index } ?: layers.first()
     val hasLayersTurnedOn get() = layers.any { it.on }
 
     private var currentDragHistory: MutableMap<Point, SerializableColor?> = mutableMapOf()
@@ -77,7 +77,8 @@ class CanvasState(layersState: State<List<LayerUi>>) {
         }
     }
 
-    fun onUndo(layerId: Long, historyItems: List<HistoryItem>) {
+    fun onUndo(layerId: Long?, historyItems: List<HistoryItem>) {
+        if (layerId == null) return
         historyItems.forEach { item ->
             _selections.getOrPut(Point(item.x, item.y)) { mutableStateMapOf() }
                 ?.put(layerId, item.color?.let {

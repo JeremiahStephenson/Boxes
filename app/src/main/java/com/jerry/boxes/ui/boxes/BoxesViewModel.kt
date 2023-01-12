@@ -78,7 +78,12 @@ class BoxesViewModel(
                 layerStateHandle =
                     layers?.filter { it.on }?.associate { it.id to it.on }?.toMutableMap()
             }
-            val selected = selectedLayer ?: layers?.lastOrNull { it.on }?.id
+
+            val selected = if (selectedLayer != null && layers?.any { it.id == selectedLayer } == true) {
+                selectedLayer
+            } else {
+                layers?.lastOrNull { it.on }?.id
+            }
 
             layers?.forEach {
                 state?.putIfAbsent(it.id, it.on)
