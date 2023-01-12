@@ -21,6 +21,7 @@ import com.chargemap.compose.numberpicker.NumberPicker
 import com.jerry.boxes.R
 import com.jerry.boxes.cache.data.Project
 import com.jerry.boxes.ui.common.DefaultContainer
+import com.jerry.boxes.ui.common.FadeAnimatedVisibility
 import com.jerry.boxes.ui.destinations.BoxesMainDestination
 import com.jerry.boxes.ui.destinations.CreateMainDestination
 import com.ramcosta.composedestinations.annotation.Destination
@@ -92,17 +93,33 @@ private fun CreateForm(
         var text by rememberSaveable(project) { mutableStateOf(project?.name.orEmpty()) }
         var columnValue by remember(project) { mutableStateOf(project?.columns ?: 16) }
         var rowValue by remember(project) { mutableStateOf(project?.rows ?: 16) }
+        var nameError by remember { mutableStateOf(false) }
 
-        OutlinedTextField(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 16.dp),
-            value = text,
-            onValueChange = {
-                if (it.length < 50) {
-                    text = it
-                }
-            })
+                .padding(vertical = 16.dp)
+        ) {
+            OutlinedTextField(
+                modifier = Modifier.fillMaxWidth(),
+                value = text,
+                isError = nameError,
+                onValueChange = {
+                    if (it.isNotEmpty()) {
+                        nameError = false
+                    }
+                    if (it.length <= 50) {
+                        text = it
+                    }
+                })
+            FadeAnimatedVisibility(visible = nameError) {
+                Text(
+                    text = stringResource(R.string.name_required),
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.titleSmall
+                )
+            }
+        }
 
         Row(modifier = Modifier.fillMaxWidth()) {
             ProjectNumberPicker(
@@ -124,7 +141,10 @@ private fun CreateForm(
                 .fillMaxWidth()
                 .padding(top = 16.dp),
             onClick = {
-                onSave(text, columnValue, rowValue)
+                when (text.trim().isEmpty()) {
+                    true -> nameError = true
+                    else -> onSave(text.trim(), columnValue, rowValue)
+                }
             }) {
             Text(text = stringResource(R.string.save))
         }
@@ -148,7 +168,7 @@ private fun RowScope.ProjectNumberPicker(
         )
         NumberPicker(
             value = value,
-            range = 1 .. 100,
+            range = 1..100,
             onValueChange = {
                 onValueChange(it)
             },

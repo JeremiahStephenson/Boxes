@@ -30,4 +30,6 @@
 
     <string name="tools">Tools</string>
     <string name="export">Export</string>
+
+    <string name="name_required">A name is required</string>
 </resources>

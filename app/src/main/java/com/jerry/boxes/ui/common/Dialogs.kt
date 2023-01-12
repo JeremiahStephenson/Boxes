@@ -4,6 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,9 +25,11 @@ fun SetNameDialog(
     onName: (String) -> Unit
 ) {
     Dialog(onDismissRequest = dismiss) {
+        val scrollState = rememberScrollState()
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .verticalScroll(scrollState)
                 .clip(MaterialTheme.shapes.large)
                 .background(MaterialTheme.colorScheme.surfaceVariant)
                 .padding(16.dp),
@@ -41,16 +45,32 @@ fun SetNameDialog(
                 textAlign = TextAlign.Center
             )
             var name by remember { mutableStateOf(existingName) }
-            OutlinedTextField(
+            var nameError by remember { mutableStateOf(false) }
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 16.dp),
-                value = name,
-                onValueChange = {
-                    if (it.length < 30) {
-                        name = it
-                    }
-                })
+                    .padding(vertical = 16.dp)
+            ) {
+                OutlinedTextField(
+                    modifier = Modifier.fillMaxWidth(),
+                    value = name,
+                    isError = nameError,
+                    onValueChange = {
+                        if (it.isNotEmpty()) {
+                            nameError = false
+                        }
+                        if (it.length < 30) {
+                            name = it
+                        }
+                    })
+                FadeAnimatedVisibility (nameError) {
+                    Text(
+                        text = stringResource(R.string.name_required),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.titleSmall
+                    )
+                }
+            }
             OutlinedButton(
                 modifier = Modifier
                     .fillMaxWidth(),
@@ -63,8 +83,13 @@ fun SetNameDialog(
                     .fillMaxWidth()
                     .padding(top = 8.dp),
                 onClick = {
-                    onName(name)
-                    dismiss()
+                    when (name.trim().isEmpty()) {
+                        true -> nameError = true
+                        else -> {
+                            onName(name.trim())
+                            dismiss()
+                        }
+                    }
                 }
             ) {
                 Text(text = stringResource(R.string.save))

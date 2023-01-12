@@ -285,7 +285,7 @@ private fun ButtonBar(
             .fillMaxWidth()
     ) {
 
-        var colorPicker by remember { mutableStateOf(false) }
+        var colorPicker by rememberSaveable { mutableStateOf(false) }
         if (colorPicker) {
             ColorPickerDialog(
                 color = color,
@@ -296,7 +296,7 @@ private fun ButtonBar(
             }
         }
 
-        var shapePicker by remember { mutableStateOf(false) }
+        var shapePicker by rememberSaveable { mutableStateOf(false) }
         if (shapePicker) {
             ShapePickerDialog(
                 color = color,
