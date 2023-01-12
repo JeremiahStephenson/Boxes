@@ -47,7 +47,9 @@ fun SetNameDialog(
                     .padding(vertical = 16.dp),
                 value = name,
                 onValueChange = {
-                    name = it
+                    if (it.length < 30) {
+                        name = it
+                    }
                 })
             OutlinedButton(
                 modifier = Modifier

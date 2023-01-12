@@ -91,7 +91,7 @@ fun BoxesMain(
             )
         }
     ) {
-        val projectNotNull by remember { derivedStateOf { project?.project != null }}
+        val projectNotNull by remember { derivedStateOf { project?.project != null } }
         val colorAndShapeState = when (projectNotNull) {
             true -> rememberSaveable {
                 ColorAndShapeState(
@@ -133,9 +133,9 @@ fun BoxesMain(
                 )
             }) {
 
-            project?.let { project ->
+            if (projectNotNull) {
                 MainCanvas(
-                    project = project,
+                    project = project!!,
                     canvasState = canvasState,
                     buttonsState = buttonsState,
                     transformerState = transformerState,
@@ -362,13 +362,18 @@ private fun handleAction(
     when (action) {
         is Action.Eraser -> buttonsState.toggleEraserSelected()
         is Action.ColorPicker -> buttonsState.toggleColorPicker()
-        is Action.Save -> viewModel.save(
-            if (action.autoSave) null else canvasState.boxes.keys.toList(),
-            canvasState.selections,
-            canvasState.layers.map { it.id to it.on },
-            colorAndShapeState.colorState,
-            colorAndShapeState.shapeState
-        )
+        is Action.Save -> {
+            saveProject(
+                canvasState,
+                colorAndShapeState,
+                project,
+                viewModel,
+                cc,
+                rootView,
+                action.autoSave,
+                scope
+            )
+        }
         is Action.SelectLayer -> viewModel.selectLayer(action.layerId)
         is Action.Clear -> if (canvasState.hasLayersTurnedOn) {
             scope.launch {
@@ -403,24 +408,55 @@ private fun handleAction(
                 index = (project?.layers?.maxOf { it.index } ?: -1) + 1,
                 selections = canvasState.selections
             )
-        is Action.TurnOnOrOffLayer ->
-            viewModel.setLayerOnOrOff(action.layerId, action.on)
-        is Action.AddColorToUsedList ->
-            scope.launch { viewModel.addUsedColor(action.color) }
-        is Action.GoToLayerEdit -> {
-            project?.project?.id?.let {
-                navController.navigate(LayersEditMainDestination(it))
-            }
+        is Action.TurnOnOrOffLayer -> viewModel.setLayerOnOrOff(action.layerId, action.on)
+        is Action.AddColorToUsedList -> scope.launch { viewModel.addUsedColor(action.color) }
+        is Action.GoToLayerEdit -> project?.project?.id?.let {
+            navController.navigate(LayersEditMainDestination(it))
         }
         is Action.Export -> exportCanvas(
             rootView = rootView,
+            imageSize = action.size,
+            projectId = project?.project?.id ?: 0,
             rows = project?.project?.rows ?: 0,
             columns = project?.project?.columns ?: 0,
             layers = canvasState.layers,
             selections = canvasState.selections,
-            cc = cc
+            cc = cc,
+            export = true
         )
     }
+}
+
+private fun saveProject(
+    canvasState: CanvasState,
+    colorAndShapeState: ColorAndShapeState,
+    project: ProjectAndLayers?,
+    viewModel: BoxesViewModel,
+    cc: CoroutineContextProvider,
+    rootView: View,
+    autoSave: Boolean,
+    scope: CoroutineScope
+) {
+    scope.launch(cc.main) {
+        exportCanvas(
+            rootView = rootView,
+            imageSize = 50F,
+            projectId = project?.project?.id ?: 0,
+            rows = project?.project?.rows ?: 0,
+            columns = project?.project?.columns ?: 0,
+            layers = canvasState.layers.map { it.copy(on = true) },
+            selections = canvasState.selections,
+            cc = cc,
+            export = false
+        )
+    }
+    viewModel.save(
+        if (autoSave) null else canvasState.boxes.keys.toList(),
+        canvasState.selections,
+        canvasState.layers.map { it.id to it.on },
+        colorAndShapeState.colorState,
+        colorAndShapeState.shapeState
+    )
 }
 
 @Composable

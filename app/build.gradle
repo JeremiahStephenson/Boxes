@@ -108,7 +108,7 @@ dependencies {
     annotationProcessor "androidx.room:room-compiler:$room"
     ksp "androidx.room:room-compiler:$room"
 
-    //implementation "io.coil-kt:coil-compose:$coil"
+    implementation "io.coil-kt:coil-compose:$coil"
     implementation "com.jakewharton.timber:timber:$timber"
 
     implementation "com.chargemap.compose:numberpicker:1.0.3"

@@ -3,27 +3,38 @@ package com.jerry.boxes.ui.home
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.*
+import androidx.compose.material3.Divider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemsIndexed
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.jerry.boxes.R
 import com.jerry.boxes.cache.data.Project
 import com.jerry.boxes.ui.common.AreYouSureDialog
 import com.jerry.boxes.ui.common.DefaultContainer
+import com.jerry.boxes.ui.common.pngBackground
 import com.jerry.boxes.ui.common.unboundClickable
 import com.jerry.boxes.ui.destinations.BoxesMainDestination
 import com.jerry.boxes.ui.destinations.CreateMainDestination
+import com.jerry.boxes.util.thumbnailLocation
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootNavGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import org.koin.androidx.compose.koinViewModel
+import java.io.File
 
 @RootNavGraph(start = true)
 @Destination
@@ -81,15 +92,33 @@ private fun ProjectItem(
     onDeleteProject: (Long) -> Unit
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+                onGoToProject(item.id)
+            }
+            .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        val context = LocalContext.current
+        val imagePath = remember { context.thumbnailLocation.path + File.separator.toString() + "${item.id}.png" }
+        val pngSize = with(LocalDensity.current) { 10.dp.toPx() }
+        AsyncImage(
+            modifier = Modifier
+                .padding(vertical = 24.dp)
+                .size(100.dp)
+                .pngBackground(true, pngSize),
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(imagePath)
+                .crossfade(true)
+                .build(),
+            contentDescription = null,
+            contentScale = ContentScale.FillHeight
+        )
+
         Text(
             modifier = Modifier
                 .weight(1F)
-                .clickable {
-                    onGoToProject(item.id)
-                }
                 .padding(horizontal = 16.dp, vertical = 24.dp),
             style = MaterialTheme.typography.titleLarge,
             text = item.name

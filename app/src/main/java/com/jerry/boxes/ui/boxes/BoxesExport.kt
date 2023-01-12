@@ -18,12 +18,17 @@ import com.jerry.boxes.util.storeImage
 import dev.shreyaspatil.capturable.Capturable
 import dev.shreyaspatil.capturable.controller.rememberCaptureController
 import kotlinx.coroutines.launch
+import kotlin.math.max
+import kotlin.math.roundToInt
 
 // todo clean this up and add error handling
 fun exportCanvas(
     rootView: View,
+    projectId: Long,
+    export: Boolean,
     rows: Int,
     columns: Int,
+    imageSize: Float,
     layers: List<LayerUi>,
     selections: Map<Point, Map<Long, SerializableColor?>?>,
     cc: CoroutineContextProvider
@@ -31,11 +36,13 @@ fun exportCanvas(
     (rootView as? ViewGroup)?.run {
         val composeView = ComposeView(context).apply {
 
-            val newBoxes = generateBoxes(columns, rows, 100F, 0F, 0F)
+            val boxSize = max(imageSize / columns.toFloat(), imageSize / rows.toFloat())
+
+            val newBoxes = generateBoxes(columns, rows, boxSize.roundToInt().toFloat(), 0F, 0F)
 
             layoutParams = ViewGroup.LayoutParams(
-                columns * 100,
-                rows * 100
+                columns * boxSize.roundToInt(),
+                rows * boxSize.roundToInt()
             )
             visibility = View.INVISIBLE
 
@@ -51,7 +58,7 @@ fun exportCanvas(
                     onCaptured = { bitmap, error ->
                         // This is captured bitmap of a content inside Capturable Composable.
                         scope.launch(cc.io) {
-                            bitmap?.asAndroidBitmap()?.storeImage(context)
+                            bitmap?.asAndroidBitmap()?.storeImage(context, export, projectId.toString())
                             if (error != null) {
                                 // Error occurred. Handle it!
                             }

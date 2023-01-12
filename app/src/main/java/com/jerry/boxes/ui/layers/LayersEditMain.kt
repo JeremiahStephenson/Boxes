@@ -31,7 +31,6 @@ import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import org.koin.androidx.compose.koinViewModel
 import kotlin.math.max
 
-@OptIn(ExperimentalFoundationApi::class)
 @Destination
 @Composable
 fun LayersEditMain(

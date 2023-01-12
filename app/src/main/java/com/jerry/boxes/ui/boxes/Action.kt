@@ -5,7 +5,6 @@ import com.jerry.boxes.ui.boxes.history.UserHistory
 sealed class Action {
     object Clear : Action()
     object Eraser : Action()
-    object Export : Action()
     object ResetZoom: Action()
     object ShowPngBackground : Action()
     object ShowGrid : Action()
@@ -13,6 +12,7 @@ sealed class Action {
     object Undo : Action()
     object ColorPicker : Action()
     object GoToLayerEdit : Action()
+    data class Export(val size: Float) : Action()
     data class AddLayer(val name: String): Action()
     data class SelectLayer(val layerId: Long) : Action()
     data class AddColorToUsedList(val color: SerializableColor) : Action()

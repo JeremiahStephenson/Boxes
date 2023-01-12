@@ -90,8 +90,8 @@ private fun CreateForm(
             style = MaterialTheme.typography.titleLarge
         )
         var text by rememberSaveable(project) { mutableStateOf(project?.name.orEmpty()) }
-        var columnValue by remember(project) { mutableStateOf(project?.columns ?: 1) }
-        var rowValue by remember(project) { mutableStateOf(project?.rows ?: 1) }
+        var columnValue by remember(project) { mutableStateOf(project?.columns ?: 16) }
+        var rowValue by remember(project) { mutableStateOf(project?.rows ?: 16) }
 
         OutlinedTextField(
             modifier = Modifier
@@ -99,7 +99,9 @@ private fun CreateForm(
                 .padding(vertical = 16.dp),
             value = text,
             onValueChange = {
-                text = it
+                if (it.length < 50) {
+                    text = it
+                }
             })
 
         Row(modifier = Modifier.fillMaxWidth()) {
@@ -146,7 +148,7 @@ private fun RowScope.ProjectNumberPicker(
         )
         NumberPicker(
             value = value,
-            range = 1 .. 500,
+            range = 1 .. 100,
             onValueChange = {
                 onValueChange(it)
             },

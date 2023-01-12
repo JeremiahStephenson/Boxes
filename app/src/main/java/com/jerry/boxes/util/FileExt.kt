@@ -12,9 +12,11 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 fun Bitmap.storeImage(
-    context: Context
+    context: Context,
+    export: Boolean,
+    name: String? = null
 ) {
-    val pictureFile = getOutputMediaFile(context)
+    val pictureFile = getOutputMediaFile(context, export, name)
     if (pictureFile == null) {
         Timber.d(
             "Error creating media file, check storage permissions: "
@@ -35,12 +37,17 @@ fun Bitmap.storeImage(
 }
 
 /** Create a File for saving an image or video  */
-private fun getOutputMediaFile(context: Context): File? {
+private fun getOutputMediaFile(
+    context: Context,
+    export: Boolean,
+    name: String? = null
+): File? {
     // To be safe, you should check that the SDCard is mounted
     // using Environment.getExternalStorageState() before doing this.
-    val mediaStorageDir = Environment.getExternalStoragePublicDirectory(
-        Environment.DIRECTORY_PICTURES + "/Pixels"
-    )
+    val mediaStorageDir = when (export) {
+        true -> Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES + "/Pixels")
+        else -> File(context.filesDir, "pixels")
+    }
 
     // This location works best if you want the created images to be shared
     // between applications and persist after your app has been uninstalled.
@@ -54,7 +61,9 @@ private fun getOutputMediaFile(context: Context): File? {
     // Create a media file name
     val timeStamp: String = SimpleDateFormat("ddMMyyyy_HHmm", Locale.getDefault()).format(Date())
     val mediaFile: File
-    val mImageName = "MI_$timeStamp.png"
+    val mImageName = if (export) "MI_$timeStamp.png" else (if (name != null) "$name.png" else "MI_$timeStamp.png")
     mediaFile = File(mediaStorageDir.getPath() + File.separator.toString() + mImageName)
     return mediaFile
 }
+
+val Context.thumbnailLocation get() = File(filesDir, "pixels")

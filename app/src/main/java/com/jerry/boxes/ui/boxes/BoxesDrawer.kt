@@ -114,9 +114,10 @@ fun DrawerMenu(
         }
 
         item {
+            // todo add dialog with options
             ButtonSection(R.string.export) {
                 IconMenuButton(
-                    onClick = { onAction(Action.Export) },
+                    onClick = { onAction(Action.Export(1000F)) },
                     drawableRes = R.drawable.ic_image_24
                 )
             }
