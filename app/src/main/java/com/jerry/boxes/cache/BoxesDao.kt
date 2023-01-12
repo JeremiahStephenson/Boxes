@@ -14,7 +14,14 @@ interface BoxesDao {
 
     @Transaction
     @Query("SELECT * FROM project WHERE id = :id")
-    fun getFullProjectFlowById(id: Long): Flow<ProjectAndLayer>
+    fun getFullProjectFlowById(id: Long): Flow<FullProject>
+
+    @Transaction
+    @Query("SELECT * FROM project WHERE id = :id")
+    fun getProjectAndLayersFlowById(id: Long): Flow<ProjectAndLayers>
+
+    @Query("SELECT * FROM pixel JOIN layer ON layer.id == pixel.layerId JOIN project ON project.id == layer.projectId AND project.id = :projectId")
+    fun getProjectPixelsFlow(projectId: Long): Flow<List<Pixel>>
 
     @Query("SELECT * FROM project WHERE id = :id")
     fun getProjectFlowById(id: Long): Flow<Project>

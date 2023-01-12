@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
@@ -15,7 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jerry.boxes.R
-import com.jerry.boxes.cache.data.ProjectAndLayer
+import com.jerry.boxes.cache.data.ProjectAndLayers
 import com.jerry.boxes.ui.boxes.history.UserHistory
 import com.jerry.boxes.ui.boxes.state.ButtonsState
 import com.jerry.boxes.ui.boxes.state.CanvasState
@@ -45,8 +46,7 @@ fun BoxesMain(
     val scope = rememberCoroutineScope()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
 
-    val layerState = viewModel.layerStateFlow.collectAsStateWithLifecycle(emptyList())
-    val canvasState = remember { CanvasState(layerState) }
+    val canvasState = rememberCanvasState(viewModel)
     val buttonsState = rememberSaveable {
         ButtonsState(
             eraserSelected = false,
@@ -91,7 +91,7 @@ fun BoxesMain(
             )
         }
     ) {
-        val projectNotNull by remember { derivedStateOf { project != null }}
+        val projectNotNull by remember { derivedStateOf { project?.project != null }}
         val colorAndShapeState = when (projectNotNull) {
             true -> rememberSaveable {
                 ColorAndShapeState(
@@ -113,8 +113,8 @@ fun BoxesMain(
                     transformerState,
                     drawerState,
                     colorAndShapeUpdatedState,
-                    viewModel,
                     project,
+                    viewModel,
                     scope,
                     cc,
                     rootView,
@@ -132,6 +132,7 @@ fun BoxesMain(
                     canvasState = canvasState
                 )
             }) {
+
             project?.let { project ->
                 MainCanvas(
                     project = project,
@@ -143,13 +144,22 @@ fun BoxesMain(
                     getUsedColorList = { viewModel.usedColors }
                 )
             }
+
+            if (canvasState.isLoading) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
         }
     }
 }
 
 @Composable
 private fun MainCanvas(
-    project: ProjectAndLayer,
+    project: ProjectAndLayers,
     canvasState: CanvasState,
     buttonsState: ButtonsState,
     transformerState: TransformerState,
@@ -164,10 +174,6 @@ private fun MainCanvas(
         val buttonBarOffset = remember { with(density) { 56.dp.toPx() } }
 
         val size = this.constraints
-        LaunchedEffect(project) {
-            canvasState.fillInSelections(project.layers)
-        }
-
         val contentOffset = LocalAppBarHeight.current
         val appBarExpanded by remember { derivedStateOf { contentOffset.value == 0F } }
         LaunchedEffect(project.project.rows, project.project.columns, appBarExpanded) {
@@ -190,8 +196,8 @@ private fun MainCanvas(
             BoxCanvas(
                 canvasState = canvasState,
                 buttonsState = buttonsState,
-                rows = project.project.rows,
                 columns = project.project.columns,
+                rows = project.project.rows,
                 scale = scale,
                 offset = offset,
                 size = size,
@@ -345,8 +351,8 @@ private fun handleAction(
     transformerState: TransformerState,
     drawerState: DrawerState,
     colorAndShapeState: ColorAndShapeState,
+    project: ProjectAndLayers?,
     viewModel: BoxesViewModel,
-    project: ProjectAndLayer?,
     scope: CoroutineScope,
     cc: CoroutineContextProvider,
     rootView: View,
@@ -358,7 +364,7 @@ private fun handleAction(
         is Action.ColorPicker -> buttonsState.toggleColorPicker()
         is Action.Save -> viewModel.save(
             if (action.autoSave) null else canvasState.boxes.keys.toList(),
-            canvasState.selections.toMap(),
+            canvasState.selections,
             canvasState.layers.map { it.id to it.on },
             colorAndShapeState.colorState,
             colorAndShapeState.shapeState
@@ -394,8 +400,8 @@ private fun handleAction(
         is Action.AddLayer ->
             viewModel.addLayer(
                 name = action.name,
-                index = (project?.layers?.maxOf { it.layer.index } ?: -1) + 1,
-                selections = canvasState.selections.toMap()
+                index = (project?.layers?.maxOf { it.index } ?: -1) + 1,
+                selections = canvasState.selections
             )
         is Action.TurnOnOrOffLayer ->
             viewModel.setLayerOnOrOff(action.layerId, action.on)
@@ -415,6 +421,13 @@ private fun handleAction(
             cc = cc
         )
     }
+}
+
+@Composable
+private fun rememberCanvasState(viewModel: BoxesViewModel): CanvasState {
+    val layerState = viewModel.layerStateFlow.collectAsStateWithLifecycle(emptyList())
+    val pixelsState = viewModel.pixelsFlow.collectAsStateWithLifecycle()
+    return remember { CanvasState(layerState, pixelsState) }
 }
 
 

@@ -8,22 +8,25 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.jerry.boxes.cache.data.LayerAndPixel
+import com.jerry.boxes.cache.data.Pixel
 import com.jerry.boxes.extensions.safeLet
 import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.shapes.*
 import timber.log.Timber
 import kotlin.math.roundToInt
 
-fun generateSelectionsSnapshot(layers: List<LayerAndPixel>): Map<out Point, SnapshotStateMap<Long, SerializableColor?>?> =
-    layers.flatMap {
-        it.pixels
-    }.groupBy {
-        Point(it.x, it.y)
-    }.mapValues {
-        it.value.associateTo(SnapshotStateMap()) { pixel ->
-            pixel.layerId to pixel.asSerializableColor
-        }
+fun generateSelections(pixels: List<Pixel>): SnapshotStateMap<Point, SnapshotStateMap<Long, SerializableColor>> {
+    return SnapshotStateMap<Point, SnapshotStateMap<Long, SerializableColor>>().apply {
+        putAll(
+            pixels.groupBy { Point(it.x, it.y) }
+                .mapValues {
+                    it.value.associateTo(SnapshotStateMap()) {
+                        it.layerId to it.asSerializableColor
+                    }
+                }
+        )
     }
+}
 
 fun generateSelectionsMap(layers: List<LayerAndPixel>): Map<Point, Map<Long, SerializableColor?>?> =
     layers.flatMap {
@@ -67,8 +70,9 @@ fun DrawScope.drawShapes(
     selections: Map<Point, Map<Long, SerializableColor?>?>,
     boxes: Map<Point, RectF>
 ) {
-    Timber.d("DrawTest - drawing: ${selections.size}")
+    if (boxes.isEmpty()) return
     val layerIds = layers.filter { it.on }.sortedBy { it.index }.map { it.id }
+    Timber.d("DrawTest - drawing: ${selections.size}, ${layers.size}, ${boxes.size}")
     selections.forEach { (point, pixels) ->
         val position = boxes[point]
         safeLet(position, pixels) { pos, selectedPixel ->

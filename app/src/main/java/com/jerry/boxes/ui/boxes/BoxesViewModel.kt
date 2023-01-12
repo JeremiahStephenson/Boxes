@@ -1,6 +1,7 @@
 package com.jerry.boxes.ui.boxes
 
 import android.graphics.Point
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -16,8 +17,9 @@ import com.jerry.boxes.extensions.addIfNotFound
 import com.jerry.boxes.extensions.safeLet
 import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.boxes.history.UserHistory
-import com.jerry.boxes.ui.shapes.Shape
 import com.jerry.boxes.ui.destinations.BoxesMainDestination
+import com.jerry.boxes.ui.shapes.Shape
+import com.jerry.boxes.util.DataResource
 import com.jerry.boxes.util.SavedHandle
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -37,14 +39,14 @@ class BoxesViewModel(
         null
     )
 
-    private var selectedLayerStateHandle by SavedHandle<Long?>(
-        handle,
-        SELECTED_LAYER,
+    private val layerState = handle.getStateFlow<MutableMap<Long, Boolean>?>(
+        LAYER_LIST_STATE,
         null
     )
 
-    private val layerState = handle.getStateFlow<MutableMap<Long, Boolean>?>(
-        LAYER_LIST_STATE,
+    private var selectedLayerStateHandle by SavedHandle<Long?>(
+        handle,
+        SELECTED_LAYER,
         null
     )
 
@@ -61,17 +63,27 @@ class BoxesViewModel(
     private val colorsMutex = Mutex()
     val usedColors get() = usedColorsHandle as List<SerializableColor>
 
-    val projectFlow = boxesDao.getFullProjectFlowById(projectId)
+    val projectFlow = boxesDao.getProjectAndLayersFlowById(projectId)
         .filterNotNull()
-        .map { it.copy(layers = it.layers.sortedBy { layer -> layer.layer.index }) }
+        .map { it.copy(layers = it.layers.sortedBy { layer -> layer.index }) }
         .stateIn(
             viewModelScope,
-            SharingStarted.WhileSubscribed(),
+            SharingStarted.WhileSubscribed(1000),
             null
         )
 
-    private val layerFlow =
-        projectFlow.map { it?.layers?.map { layerAndPixel -> layerAndPixel.layer } }
+    val pixelsFlow = boxesDao.getProjectPixelsFlow(projectId)
+        .map {
+            //delay(2000)
+            DataResource.done(generateSelections(it))
+        }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.Eagerly,
+            DataResource.loading(SnapshotStateMap())
+        )
+
+    private val layerFlow = projectFlow.map { it?.layers }
     val layerStateFlow =
         combine(layerState, layerFlow, selectedLayerStateFlow) { state, layers, selectedLayer ->
             if (layerStateHandle == null) {
@@ -79,10 +91,26 @@ class BoxesViewModel(
                     layers?.filter { it.on }?.associate { it.id to it.on }?.toMutableMap()
             }
 
+            // Remove any layers in the state that are not here anymore
+            safeLet(state?.map { it.key }, layers?.map { it.id }) { states, lays ->
+                val diff = states.filterNot { lays.contains(it) }
+                diff.forEach {
+                    state?.remove(it)
+                    if (selectedLayer == it) {
+                        // The selected layer was deleted so we need
+                        // to automatically assign another layer
+                        selectedLayerStateHandle = layers?.firstOrNull()?.id
+                        selectedLayerStateHandle?.let { id ->
+                            setLayerOnOrOff(id, true)
+                        }
+                    }
+                }
+            }
+
             val selected = if (selectedLayer != null && layers?.any { it.id == selectedLayer } == true) {
                 selectedLayer
             } else {
-                layers?.lastOrNull { it.on }?.id
+                layers?.firstOrNull { it.on }?.id
             }
 
             layers?.forEach {

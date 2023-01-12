@@ -3,7 +3,7 @@ package com.jerry.boxes.cache.data
 import androidx.room.Embedded
 import androidx.room.Relation
 
-data class ProjectAndLayer(
+data class FullProject(
     @Embedded val project: Project,
     @Relation(
         entity = Layer::class,
