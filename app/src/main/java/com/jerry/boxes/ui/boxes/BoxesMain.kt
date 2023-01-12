@@ -47,21 +47,22 @@ fun BoxesMain(
 
     val layerState = viewModel.layerStateFlow.collectAsStateWithLifecycle(emptyList())
     val canvasState = remember { CanvasState(layerState) }
-    val buttonsState by rememberSaveable {
-        mutableStateOf(
-            ButtonsState(
-                eraserSelected = false,
-                showPngBackground = false,
-                showGrid = true,
-                colorPickerOn = false
-            )
+    val buttonsState = rememberSaveable {
+        ButtonsState(
+            eraserSelected = false,
+            showPngBackground = false,
+            showGrid = true,
+            colorPickerOn = false
         )
     }
     val colorAndShapeState by rememberUpdatedState(rememberSaveable(
         project?.project?.currentColor,
         project?.project?.currentShape
     ) {
-        ColorAndShapeState(project?.project?.currentColor, project?.project?.currentShape).also { state ->
+        ColorAndShapeState(
+            project?.project?.currentColor,
+            project?.project?.currentShape
+        ).also { state ->
             project?.project?.currentColor?.let {
                 scope.launch { viewModel.addUsedColor(state.colorState) }
             }
