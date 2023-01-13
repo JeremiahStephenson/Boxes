@@ -167,6 +167,8 @@ fun DrawScope.drawCustomShape(
         Shape.BottomRightElbow -> drawBottomRightElbow(pos, color)
         Shape.TopLeftElbow -> drawTopLeftElbow(pos, color)
         Shape.TopRightElbow -> drawTopRightElbow(pos, color)
+        Shape.Lego -> drawLegoSquare(pos, color)
+        Shape.LegoRound -> drawLegoRound(pos, color)
         else -> {}
     }
 }

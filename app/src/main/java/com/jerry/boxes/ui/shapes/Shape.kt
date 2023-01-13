@@ -41,4 +41,6 @@ enum class Shape(val group: ShapeGroup) {
     TriangleBottomRightSmallest(ShapeGroup.CORNER_TRIANGLE),
     TriangleTopLeftSmallest(ShapeGroup.CORNER_TRIANGLE),
     TriangleTopRightSmallest(ShapeGroup.CORNER_TRIANGLE),
+    Lego(ShapeGroup.BASIC),
+    LegoRound(ShapeGroup.BASIC)
 }
