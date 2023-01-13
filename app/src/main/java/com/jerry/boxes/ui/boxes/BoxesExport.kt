@@ -30,7 +30,7 @@ fun exportCanvas(
     columns: Int,
     imageSize: Float,
     layers: List<LayerUi>,
-    selections: Map<Point, Map<Long, SerializableColor?>?>,
+    selections: Map<Long, Map<Point, SerializableColor>>,
     cc: CoroutineContextProvider
 ) {
     (rootView as? ViewGroup)?.run {

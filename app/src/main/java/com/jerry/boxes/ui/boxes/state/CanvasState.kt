@@ -24,12 +24,12 @@ import kotlin.math.roundToInt
 @Stable
 class CanvasState(
     layersState: State<List<LayerUi>>,
-    private val snapShot: State<DataResource<SnapshotStateMap<Point, SnapshotStateMap<Long, SerializableColor>>>>
+    private val snapShot: State<DataResource<SnapshotStateMap<Long, SnapshotStateMap<Point, SerializableColor>>>>
 ) {
     private val _boxes = mutableStateMapOf<Point, RectF>()
 
     private val _selections get() = snapShot.value.data!!
-    val selections get() = snapShot.value.data as Map<Point, Map<Long, SerializableColor>>
+    val selections get() = snapShot.value.data as Map<Long, Map<Point, SerializableColor>>
 
     val isLoading get() = snapShot.value.isLoading
 
@@ -45,19 +45,14 @@ class CanvasState(
     private var currentDragHistory: MutableMap<Point, SerializableColor?> = mutableMapOf()
 
     fun clear() {
-        _selections.forEach {
-            _selections.getOrDefault(it.key, mutableStateMapOf()).apply {
-                layers.filter { layer -> layer.selected }.map { layer -> layer.id }
-                    .forEach { layerId ->
-                        remove(layerId)
-                    }
-            }
+        val selectedLayer = layers.firstOrNull { it.selected }
+        selectedLayer?.let {
+            _selections[it.id]?.clear()
         }
     }
 
-    fun getCurrentSelectedLayerSelections(layerId: Long) = _selections
-        .filter { it.value.containsKey(layerId) }
-        .mapValues { it.value.values.firstOrNull() }
+    fun getCurrentSelectedLayerSelections(layerId: Long) =
+        _selections[layerId]?.toMap() ?: emptyMap()
 
     fun getTapHistoryItem(point: Point, layerId: Long) =
         UserHistory(layerId, mapOf(point to getCurrentSelection(point, layerId)))
@@ -83,10 +78,10 @@ class CanvasState(
     fun onUndo(layerId: Long?, historyItems: List<HistoryItem>) {
         if (layerId == null) return
         historyItems.forEach { item ->
-            _selections.getOrPut(Point(item.x, item.y)) { mutableStateMapOf() }.apply {
+            _selections.getOrPut(layerId) { mutableStateMapOf() }.apply {
                 when (item.color) {
-                    null -> remove(layerId)
-                    else -> put(layerId, with(HsvColor.from(Color(item.color))) {
+                    null -> this.remove(Point(item.x, item.y))
+                    else -> this[Point(item.x, item.y)] = with(HsvColor.from(Color(item.color))) {
                         SerializableColor(
                             this.hue,
                             this.saturation,
@@ -94,7 +89,7 @@ class CanvasState(
                             this.alpha,
                             item.shape ?: Shape.Box
                         )
-                    })
+                    }
                 }
             }
         }
@@ -107,14 +102,14 @@ class CanvasState(
         currentShape: Shape
     ): SerializableColor? {
         val colorAndShape = currentColor.copy(shape = currentShape)
-        val selection = when (_selections[point]?.get(layerId) == colorAndShape) {
+        val selection = when (_selections[layerId]?.get(point) == colorAndShape) {
             true -> null
             else -> colorAndShape
         }
-        _selections.getOrPut(point) { mutableStateMapOf() }.apply {
+        _selections.getOrPut(layerId) { mutableStateMapOf() }.apply {
             when (selection) {
-                null -> remove(layerId)
-                else -> put(layerId, selection)
+                null -> remove(point)
+                else -> put(point, selection)
             }
         }
         return selection
@@ -126,14 +121,14 @@ class CanvasState(
         currentColor: SerializableColor?,
         currentShape: Shape?
     ) {
-        _selections.putAll(points.map {
-            it to _selections.getOrDefault(it, mutableStateMapOf()).apply {
+        _selections.getOrPut(layerId) { mutableStateMapOf() }?.let { map ->
+            points.forEach {
                 when (currentColor) {
-                    null -> remove(layerId)
-                    else -> put(layerId, currentColor.copy(shape = currentShape ?: Shape.Box))
+                    null -> map.remove(it)
+                    else -> map.put(it, currentColor.copy(shape = currentShape ?: Shape.Box))
                 }
             }
-        })
+        }
     }
 
     fun fillInBoxes(
@@ -171,12 +166,12 @@ class CanvasState(
         point: Point,
         layerId: Long
     ): SerializableColor? {
-        return _selections[point]?.get(layerId)
+        return _selections[layerId]?.get(point)
     }
 
     fun getCurrentSelection(point: Point): SerializableColor? {
         val turnedOnLayers = layers.filter { it.on }.sortedBy { it.index }.reversed()
-        return turnedOnLayers.firstOrNull { _selections[point]?.get(it.id) != null }
+        return turnedOnLayers.firstOrNull { _selections[it.id]?.get(point) != null }
             ?.let { getCurrentSelection(point, it.id) }
     }
 
@@ -184,10 +179,6 @@ class CanvasState(
         points: List<Point>,
         layerId: Long
     ): Map<Point, SerializableColor?> {
-        return _selections
-            .filter { points.contains(it.key) }
-            .map { item ->
-                item.key to (item.value?.get(layerId))
-            }.toMap()
+        return _selections[layerId]?.filter { points.contains(it.key) } ?: emptyMap()
     }
 }

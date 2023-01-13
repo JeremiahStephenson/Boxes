@@ -20,12 +20,14 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
+import com.jerry.boxes.extensions.asList
 import com.jerry.boxes.extensions.safeLet
 import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.boxes.state.ButtonsState
 import com.jerry.boxes.ui.boxes.state.CanvasState
 import com.jerry.boxes.ui.common.LocalAppBarHeight
 import com.jerry.boxes.ui.common.pngBackground
+import timber.log.Timber
 import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.pow
@@ -131,19 +133,21 @@ fun SelectionsBoxes(
     offset: Offset,
     layers: List<LayerUi>,
     boxes: Map<Point, RectF>,
-    selections: Map<Point, Map<Long, SerializableColor?>?>
+    selections: Map<Long, Map<Point, SerializableColor>>
 ) {
-    Canvas(
-        modifier = Modifier
-            .fillMaxSize()
-            .graphicsLayer(
-                scaleX = scale,
-                scaleY = scale,
-                translationX = offset.x,
-                translationY = offset.y
-            )
-    ) {
-        drawShapes(layers, selections, boxes)
+    layers.filter { it.on }.sortedBy { it.index }.forEach {
+        Canvas(
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer(
+                    scaleX = scale,
+                    scaleY = scale,
+                    translationX = offset.x,
+                    translationY = offset.y
+                )
+        ) {
+            drawShapes(it.asList, selections, boxes)
+        }
     }
 }
 
@@ -153,17 +157,20 @@ fun SelectionsBoxes(
     offset: Offset,
     canvasState: CanvasState
 ) {
-    Canvas(
-        modifier = Modifier
-            .fillMaxSize()
-            .graphicsLayer(
-                scaleX = scale,
-                scaleY = scale,
-                translationX = offset.x,
-                translationY = offset.y
-            )
-    ) {
-        drawShapes(canvasState.layers, canvasState.selections, canvasState.boxes)
+    Timber.d("DrawTest - canvas compose")
+    canvasState.layers.filter { it.on }.sortedBy { it.index }.forEach {
+        Canvas(
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer(
+                    scaleX = scale,
+                    scaleY = scale,
+                    translationX = offset.x,
+                    translationY = offset.y
+                )
+        ) {
+            drawShapes(it.id, canvasState.selections[it.id], canvasState.boxes)
+        }
     }
 }
 

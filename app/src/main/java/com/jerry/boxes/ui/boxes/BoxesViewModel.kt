@@ -175,7 +175,7 @@ class BoxesViewModel(
     fun addLayer(
         name: String,
         index: Int,
-        selections: Map<Point, Map<Long, SerializableColor?>?>
+        selections: Map<Long, Map<Point, SerializableColor?>?>
     ) {
         viewModelScope.launch {
             updateDatabase {
@@ -187,7 +187,7 @@ class BoxesViewModel(
 
     fun save(
         boxes: List<Point>? = null,
-        selections: Map<Point, Map<Long, SerializableColor?>?>,
+        selections: Map<Long, Map<Point, SerializableColor>>,
         layers: List<Pair<Long, Boolean>>,
         currentColor: SerializableColor,
         currentShape: Shape
@@ -210,28 +210,27 @@ class BoxesViewModel(
 
     private suspend fun saveProject(
         boxes: List<Point>? = null,
-        selections: Map<Point, Map<Long, SerializableColor?>?>,
+        selections: Map<Long, Map<Point, SerializableColor?>?>,
         currentColor: SerializableColor? = null,
         currentShape: Shape? = null
     ) {
         val now = Instant.now().toEpochMilli()
-        val list =
-            selections.filterKeys { boxes?.contains(it) ?: true }.filterValues { it != null }
-                .flatMap { point ->
-                    point.value?.filterValues { it != null }?.map {
-                        Pixel(
-                            it.key,
-                            point.key.x,
-                            point.key.y,
-                            it.value!!.hue,
-                            it.value!!.saturation,
-                            it.value!!.value,
-                            it.value!!.alpha,
-                            it.value!!.shape,
-                            now
-                        )
-                    } ?: emptyList()
-                }
+
+        val list = selections.flatMap { layer ->
+            layer.value?.filterKeys { boxes?.contains(it) ?: true }?.map {
+                Pixel(
+                    layer.key,
+                    it.key.x,
+                    it.key.y,
+                    it.value!!.hue,
+                    it.value!!.saturation,
+                    it.value!!.value,
+                    it.value!!.alpha,
+                    it.value!!.shape,
+                    now
+                )
+            } ?: emptyList()
+        }
         boxesDao.insertAllPixels(list)
         boxesDao.deletePixelsFromProject(projectId, now)
         safeLet(currentColor, currentShape) { color, shape ->

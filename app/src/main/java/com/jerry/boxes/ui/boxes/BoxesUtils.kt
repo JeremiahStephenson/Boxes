@@ -9,33 +9,32 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.jerry.boxes.cache.data.LayerAndPixel
 import com.jerry.boxes.cache.data.Pixel
-import com.jerry.boxes.extensions.safeLet
 import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.shapes.*
 import timber.log.Timber
 import kotlin.math.roundToInt
 
-fun generateSelections(pixels: List<Pixel>): SnapshotStateMap<Point, SnapshotStateMap<Long, SerializableColor>> {
-    return SnapshotStateMap<Point, SnapshotStateMap<Long, SerializableColor>>().apply {
+fun generateSelections(pixels: List<Pixel>): SnapshotStateMap<Long, SnapshotStateMap<Point, SerializableColor>> {
+    return SnapshotStateMap<Long, SnapshotStateMap<Point, SerializableColor>>().apply {
         putAll(
-            pixels.groupBy { Point(it.x, it.y) }
+            pixels.groupBy { it.layerId }
                 .mapValues {
                     it.value.associateTo(SnapshotStateMap()) {
-                        it.layerId to it.asSerializableColor
+                        Point(it.x, it.y) to it.asSerializableColor
                     }
                 }
         )
     }
 }
 
-fun generateSelectionsMap(layers: List<LayerAndPixel>): Map<Point, Map<Long, SerializableColor?>?> =
+fun generateSelectionsMap(layers: List<LayerAndPixel>): Map<Long, Map<Point, SerializableColor>> =
     layers.flatMap {
         it.pixels
     }.groupBy {
-        Point(it.x, it.y)
+        it.layerId
     }.mapValues {
         it.value.associateTo(SnapshotStateMap()) { pixel ->
-            pixel.layerId to pixel.asSerializableColor
+            Point(pixel.x, pixel.y) to pixel.asSerializableColor
         }
     }
 
@@ -67,20 +66,34 @@ fun generateBoxes(
 
 fun DrawScope.drawShapes(
     layers: List<LayerUi>,
-    selections: Map<Point, Map<Long, SerializableColor?>?>,
+    selections: Map<Long, Map<Point, SerializableColor>>,
     boxes: Map<Point, RectF>
 ) {
     if (boxes.isEmpty()) return
     val layerIds = layers.filter { it.on }.sortedBy { it.index }.map { it.id }
     Timber.d("DrawTest - drawing: ${selections.size}, ${layers.size}, ${boxes.size}")
-    selections.forEach { (point, pixels) ->
-        val position = boxes[point]
-        safeLet(position, pixels) { pos, selectedPixel ->
-            layerIds.forEach {
-                selectedPixel[it]?.let { color ->
-                    drawCustomShape(pos, color)
-                }
+
+    layerIds.forEach { layerId ->
+        selections[layerId]?.forEach {
+            val position = boxes[it.key]
+            position?.let { pos ->
+                drawCustomShape(pos, it.value)
             }
+        }
+    }
+}
+
+fun DrawScope.drawShapes(
+    layerId: Long,
+    selections: Map<Point, SerializableColor>?,
+    boxes: Map<Point, RectF>
+) {
+    Timber.d("DrawTest - drawing: ${selections?.size}, ${layerId}, ${boxes.size}")
+    if (boxes.isEmpty() || selections.isNullOrEmpty()) return
+    selections.forEach {
+        val position = boxes[it.key]
+        position?.let { pos ->
+            drawCustomShape(pos, it.value)
         }
     }
 }
