@@ -101,7 +101,7 @@ private fun ProjectItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         val context = LocalContext.current
-        val imagePath = remember { context.thumbnailLocation.path + File.separator.toString() + "${item.id}.png" }
+        val imagePath = remember(item.id) { context.thumbnailLocation.path + File.separator.toString() + "${item.id}.png" }
         val pngSize = with(LocalDensity.current) { 10.dp.toPx() }
         AsyncImage(
             modifier = Modifier

@@ -180,7 +180,7 @@ class BoxesViewModel(
         viewModelScope.launch {
             updateDatabase {
                 saveProject(selections = selections)
-                boxesDao.insertLayer(Layer(projectId, index, name, true))
+                selectLayer(boxesDao.insertLayer(Layer(projectId, index, name, true)))
             }
         }
     }

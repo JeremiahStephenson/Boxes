@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface BoxesDao {
 
-    @Query("SELECT * FROM project ORDER BY name DESC")
+    @Query("SELECT * FROM project ORDER BY name COLLATE NOCASE ASC")
     fun findAllProjects(): PagingSource<Int, Project>
 
     @Transaction
@@ -30,7 +30,7 @@ interface BoxesDao {
     suspend fun insertProject(project: Project): Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertLayer(layer: Layer)
+    suspend fun insertLayer(layer: Layer): Long
 
     @Query("UPDATE layer SET `index` = :index WHERE id = :layerId")
     suspend fun setLayerIndex(layerId: Long, index: Int)
