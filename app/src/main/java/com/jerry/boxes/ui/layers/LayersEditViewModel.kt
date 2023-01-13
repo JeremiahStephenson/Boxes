@@ -57,11 +57,13 @@ class LayersEditViewModel(
     ) {
         viewModelScope.launch(cc.io) {
             boxesDatabase.withTransaction {
-                val indexOfDelete = layers.indexOfFirst { it.id == layerId }
-                for (i in indexOfDelete + 1 until layers.size) {
-                    val layer = layers.firstOrNull { it.index == i }
-                    layer?.let {
-                        boxesDao.setLayerIndex(it.id, i - 1)
+                val deletingLayer = layers.firstOrNull { it.id == layerId }
+                deletingLayer?.let {
+                    for (i in it.index + 1 until layers.size) {
+                        val layer = layers.firstOrNull { it.index == i }
+                        layer?.let {
+                            boxesDao.setLayerIndex(it.id, i - 1)
+                        }
                     }
                 }
                 boxesDao.deleteLayer(layerId)
