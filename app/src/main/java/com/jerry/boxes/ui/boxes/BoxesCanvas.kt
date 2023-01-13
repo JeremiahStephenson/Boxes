@@ -135,19 +135,17 @@ fun SelectionsBoxes(
     boxes: Map<Point, RectF>,
     selections: Map<Long, Map<Point, SerializableColor>>
 ) {
-    layers.filter { it.on }.sortedBy { it.index }.forEach {
-        Canvas(
-            modifier = Modifier
-                .fillMaxSize()
-                .graphicsLayer(
-                    scaleX = scale,
-                    scaleY = scale,
-                    translationX = offset.x,
-                    translationY = offset.y
-                )
-        ) {
-            drawShapes(it.asList, selections, boxes)
-        }
+    Canvas(
+        modifier = Modifier
+            .fillMaxSize()
+            .graphicsLayer(
+                scaleX = scale,
+                scaleY = scale,
+                translationX = offset.x,
+                translationY = offset.y
+            )
+    ) {
+        drawShapes(layers, selections, boxes)
     }
 }
 
@@ -158,19 +156,32 @@ fun SelectionsBoxes(
     canvasState: CanvasState
 ) {
     Timber.d("DrawTest - canvas compose")
-    canvasState.layers.filter { it.on }.sortedBy { it.index }.forEach {
-        Canvas(
-            modifier = Modifier
-                .fillMaxSize()
-                .graphicsLayer(
-                    scaleX = scale,
-                    scaleY = scale,
-                    translationX = offset.x,
-                    translationY = offset.y
-                )
-        ) {
-            drawShapes(it.id, canvasState.selections[it.id], canvasState.boxes)
-        }
+//    canvasState.layers.filter { it.on }.sortedBy { it.index }.forEach {
+//        Canvas(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .graphicsLayer(
+//                    scaleX = scale,
+//                    scaleY = scale,
+//                    translationX = offset.x,
+//                    translationY = offset.y
+//                )
+//        ) {
+//            drawShapes(it.id, canvasState.selections[it.id], canvasState.boxes)
+//        }
+//    }
+
+    Canvas(
+        modifier = Modifier
+            .fillMaxSize()
+            .graphicsLayer(
+                scaleX = scale,
+                scaleY = scale,
+                translationX = offset.x,
+                translationY = offset.y
+            )
+    ) {
+        drawShapes(canvasState.layers, canvasState.selections, canvasState.boxes)
     }
 }
 
