@@ -43,13 +43,19 @@ fun IconMenuButton(
 fun IconSelectableMenuButton(
     onClick: () -> Unit,
     isSelected: () -> Boolean,
+    isEnabled: () -> Boolean = { true },
     @DrawableRes drawableResOn: Int,
     @DrawableRes drawableResOff: Int
 ) {
     Icon(
         modifier = Modifier
-            .unboundClickable {
-                onClick()
+            .run {
+                when (isEnabled()) {
+                    true -> unboundClickable {
+                        onClick()
+                    }
+                    else -> this
+                }
             }
             .padding(16.dp),
         painter = painterResource(
@@ -59,6 +65,9 @@ fun IconSelectableMenuButton(
             }
         ),
         contentDescription = null,
-        tint = MaterialTheme.colorScheme.onSurface
+        tint = when (isEnabled()) {
+            true -> MaterialTheme.colorScheme.onSurface
+            else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4F)
+        }
     )
 }

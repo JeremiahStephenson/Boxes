@@ -50,7 +50,7 @@ fun BoxesMain(
     val buttonsState = rememberSaveable {
         ButtonsState(
             eraserSelected = false,
-            showPngBackground = false,
+            showPngBackground = true,
             showGrid = true,
             colorPickerOn = false
         )
@@ -440,7 +440,7 @@ private fun saveProject(
     scope.launch(cc.main) {
         exportCanvas(
             rootView = rootView,
-            imageSize = 50F,
+            imageSize = 100F,
             projectId = project?.project?.id ?: 0,
             rows = project?.project?.rows ?: 0,
             columns = project?.project?.columns ?: 0,

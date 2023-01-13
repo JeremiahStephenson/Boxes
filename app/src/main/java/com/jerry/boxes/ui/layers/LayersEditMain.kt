@@ -30,6 +30,7 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import org.koin.androidx.compose.koinViewModel
 import kotlin.math.max
+import kotlin.math.roundToInt
 
 @Destination
 @Composable
@@ -51,10 +52,10 @@ fun LayersEditMain(
                     layer = layer,
                     columns = projectState!!.project.columns,
                     rows = projectState!!.project.rows,
-                    showUpArrow = {
+                    showDownArrow = {
                         layer.layer.index > 0
                     },
-                    showDownArrow = {
+                    showUpArrow = {
                         val max = projectState?.layers?.maxBy { it.layer.index }?.layer?.index ?: 0
                         layer.layer.index < max
                     },
@@ -133,13 +134,13 @@ private fun LazyItemScope.LayerItem(
             ) {
                 IconMenuButton(
                     modifier = Modifier.alpha(if (showUpArrow()) 1F else 0F),
-                    onClick = { onMoveItem(layer.layer.id, layer.layer.index - 1) },
+                    onClick = { onMoveItem(layer.layer.id, layer.layer.index + 1) },
                     drawableRes = R.drawable.ic_arrow_upward_24
                 )
                 Spacer(modifier = Modifier.weight(1F))
                 IconMenuButton(
                     modifier = Modifier.alpha(if (showDownArrow()) 1F else 0F),
-                    onClick = { onMoveItem(layer.layer.id, layer.layer.index + 1) },
+                    onClick = { onMoveItem(layer.layer.id, layer.layer.index - 1) },
                     drawableRes = R.drawable.ic_arrow_downward_24
                 )
             }
@@ -210,7 +211,7 @@ private fun CanvasItem(
         generateBoxes(
             columns,
             rows,
-            size,
+            size.roundToInt().toFloat(),
             0F,
             0F
         )

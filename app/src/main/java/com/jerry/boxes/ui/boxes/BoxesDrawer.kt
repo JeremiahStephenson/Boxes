@@ -1,16 +1,20 @@
 package com.jerry.boxes.ui.boxes
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.*
+import androidx.compose.material3.Divider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.flowlayout.FlowRow
@@ -81,6 +85,10 @@ fun DrawerMenu(
                     drawableResOn = R.drawable.ic_eraser_on_24,
                     drawableResOff = R.drawable.ic_eraser_off_24
                 )
+                IconMenuButton(
+                    onClick = { onAction(Action.ColorPicker) },
+                    drawableRes = R.drawable.ic_colorize_24
+                )
                 IconSelectableMenuButton(
                     onClick = { onAction(Action.ShowGrid) },
                     isSelected = { buttonsState.showGridState },
@@ -90,12 +98,8 @@ fun DrawerMenu(
                 IconSelectableMenuButton(
                     onClick = { onAction(Action.ShowPngBackground) },
                     isSelected = { buttonsState.showPngBackgroundState },
-                    drawableResOn = R.drawable.ic_visibility_on_24,
-                    drawableResOff = R.drawable.ic_visibility_off_24
-                )
-                IconMenuButton(
-                    onClick = { onAction(Action.ColorPicker) },
-                    drawableRes = R.drawable.ic_colorize_24
+                    drawableResOn = R.drawable.ic_opacity_on_24,
+                    drawableResOff = R.drawable.ic_opacity_off_24
                 )
             }
         }
@@ -171,7 +175,15 @@ private fun LayerItem(
 ) {
     Row(
         modifier = Modifier
-            .padding(horizontal = 16.dp)
+            .clickable {
+                onAction(Action.TurnOnOrOffLayer(true, layer.id))
+                onAction(Action.SelectLayer(layer.id))
+            }
+            .background(when (layer.selected && layer.showControls) {
+                true -> MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.4F)
+                else -> Color.Transparent
+            })
+            .padding(start = 16.dp)
             .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -185,32 +197,12 @@ private fun LayerItem(
             text = layer.name
         )
         if (layer.showControls) {
-            Checkbox(
-                checked = layer.selected,
-                enabled = layer.on,
-                onCheckedChange = {
-                    onAction(Action.SelectLayer(layer.id))
-                }
-            )
-            Switch(
-                checked = layer.on,
-                enabled = layer.visibilityEnabled,
-                onCheckedChange = {
-                    onAction(Action.TurnOnOrOffLayer(it, layer.id))
-                },
-                thumbContent = {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_visibility_on_24),
-                        contentDescription = null,
-                        tint = switchColors(layer = layer)
-                    )
-                },
-                colors = SwitchDefaults.colors(
-                    checkedThumbColor = Color.Transparent,
-                    disabledCheckedThumbColor = Color.Transparent,
-                    disabledUncheckedThumbColor = Color.Transparent,
-                    uncheckedThumbColor = Color.Transparent
-                )
+            IconSelectableMenuButton(
+                onClick = { onAction(Action.TurnOnOrOffLayer(!layer.on, layer.id)) },
+                isSelected = { layer.on },
+                drawableResOn = R.drawable.ic_visibility_on_24,
+                drawableResOff = R.drawable.ic_visibility_off_24,
+                isEnabled = { layer.visibilityEnabled }
             )
         }
     }

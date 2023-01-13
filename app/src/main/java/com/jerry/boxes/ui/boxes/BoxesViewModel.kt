@@ -65,7 +65,7 @@ class BoxesViewModel(
 
     val projectFlow = boxesDao.getProjectAndLayersFlowById(projectId)
         .filterNotNull()
-        .map { it.copy(layers = it.layers.sortedBy { layer -> layer.index }) }
+        .map { it.copy(layers = it.layers.sortedByDescending { layer -> layer.index }) }
         .stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(1000),
@@ -110,7 +110,7 @@ class BoxesViewModel(
             val selected = if (selectedLayer != null && layers?.any { it.id == selectedLayer } == true) {
                 selectedLayer
             } else {
-                layers?.firstOrNull { it.on }?.id
+                layers?.lastOrNull { it.on }?.id
             }
 
             layers?.forEach {

@@ -19,6 +19,7 @@ import com.jerry.boxes.ui.shapes.Shape
 import com.jerry.boxes.util.DataResource
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
 
 @Stable
 class CanvasState(
@@ -159,9 +160,9 @@ class CanvasState(
             generateBoxes(
                 columns,
                 rows,
-                min,
-                xOffSet,
-                offset + yOffSet
+                min.roundToInt().toFloat(),
+                xOffSet.roundToInt().toFloat(),
+                (offset + yOffSet).roundToInt().toFloat()
             )
         )
     }
