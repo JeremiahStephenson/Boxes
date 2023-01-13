@@ -175,9 +175,14 @@ private fun LayerItem(
 ) {
     Row(
         modifier = Modifier
-            .clickable {
-                onAction(Action.TurnOnOrOffLayer(true, layer.id))
-                onAction(Action.SelectLayer(layer.id))
+            .run {
+                when (layer.showControls) {
+                    true -> clickable {
+                        onAction(Action.TurnOnOrOffLayer(true, layer.id))
+                        onAction(Action.SelectLayer(layer.id))
+                    }
+                    else -> this
+                }
             }
             .background(when (layer.selected && layer.showControls) {
                 true -> MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.4F)

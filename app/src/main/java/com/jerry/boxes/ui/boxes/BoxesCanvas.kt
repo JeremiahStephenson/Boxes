@@ -54,9 +54,15 @@ fun BoxCanvas(
     val sizeState by rememberUpdatedState(size)
     val pngBoxSize = with(LocalDensity.current) { 10.dp.toPx() }
 
+    if (buttonsState.showPngBackgroundState) {
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .pngBackground(true, pngBoxSize)
+        )
+    }
+
     Box(modifier = Modifier
         .fillMaxSize()
-        .pngBackground(buttonsState.showPngBackgroundState, pngBoxSize)
         .pointerInput(appBarExpanded) {
             detectTapGestures { point ->
                 if (state.isTransformInProgress) return@detectTapGestures
@@ -79,12 +85,14 @@ fun BoxCanvas(
                 onDragCancel = { onDragEnd() },
                 onDrag = { position, change ->
                     if (state.isTransformInProgress) return@detectDragGestures
-                    onDrag(getDragPoints(canvasState, change, position).findBoxes(
-                        scaleState,
-                        offsetState,
-                        sizeState,
-                        canvasState.boxes
-                    ))
+                    onDrag(
+                        getDragPoints(canvasState, change, position).findBoxes(
+                            scaleState,
+                            offsetState,
+                            sizeState,
+                            canvasState.boxes
+                        )
+                    )
                 }
             )
         }
