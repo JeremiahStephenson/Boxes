@@ -279,7 +279,7 @@ fun ShapePickerDialog(
                     val end = indexInGroup % COLUMN_COUNT != 0 && groupSize == indexInGroup
                     GridItemSpan(
                         when (end) {
-                            true -> COLUMN_COUNT - (indexInGroup - 1)
+                            true -> COLUMN_COUNT - ((indexInGroup - 1) % COLUMN_COUNT)
                             else -> 1
                         }
                     )

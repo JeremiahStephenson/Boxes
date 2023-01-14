@@ -14,13 +14,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
-import com.jerry.boxes.extensions.asList
 import com.jerry.boxes.extensions.safeLet
 import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.boxes.state.ButtonsState
@@ -57,9 +57,10 @@ fun BoxCanvas(
     val pngBoxSize = with(LocalDensity.current) { 10.dp.toPx() }
 
     if (buttonsState.showPngBackgroundState) {
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .pngBackground(true, pngBoxSize)
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .pngBackground(true, pngBoxSize)
         )
     }
 
@@ -101,11 +102,13 @@ fun BoxCanvas(
         .transformable(
             state = state,
             lockRotationOnZoomPan = true
-        )) {
+        )
+    ) {
 
         SelectionsBoxes(
             scale = scale,
             offset = offset,
+            size = size,
             canvasState = canvasState
         )
 
@@ -121,6 +124,7 @@ fun BoxCanvas(
                 strokeColor = color,
                 scale = scale,
                 offset = offset,
+                size = sizeState,
                 canvasState = canvasState
             )
         }
@@ -153,33 +157,24 @@ fun SelectionsBoxes(
 fun SelectionsBoxes(
     scale: Float,
     offset: Offset,
+    size: Constraints,
     canvasState: CanvasState
 ) {
-    Timber.d("DrawTest - canvas compose")
-//    canvasState.layers.filter { it.on }.sortedBy { it.index }.forEach {
-//        Canvas(
-//            modifier = Modifier
-//                .fillMaxSize()
-//                .graphicsLayer(
-//                    scaleX = scale,
-//                    scaleY = scale,
-//                    translationX = offset.x,
-//                    translationY = offset.y
-//                )
-//        ) {
-//            drawShapes(it.id, canvasState.selections[it.id], canvasState.boxes)
-//        }
-//    }
-
     Canvas(
         modifier = Modifier
             .fillMaxSize()
-            .graphicsLayer(
-                scaleX = scale,
-                scaleY = scale,
-                translationX = offset.x,
+            .graphicsLayer {
+                transformOrigin = TransformOrigin(
+                    ((size.maxWidth / 2F) - offset.x) / size.maxWidth,
+                    ((size.maxHeight / 2F) - offset.y) / size.maxHeight
+                )
+                scaleX = scale
+                scaleY = scale
+                translationX = offset.x
                 translationY = offset.y
-            )
+
+                Timber.d("TransformOrigin: ${transformOrigin.pivotFractionX}, ${transformOrigin.pivotFractionY}")
+            }
     ) {
         drawShapes(canvasState.layers, canvasState.selections, canvasState.boxes)
     }
@@ -193,17 +188,22 @@ private fun Grid(
     strokeColor: Color,
     scale: Float,
     offset: Offset,
+    size: Constraints,
     canvasState: CanvasState
 ) {
     Canvas(
         Modifier
             .fillMaxSize()
-            .graphicsLayer(
-                scaleX = scale,
-                scaleY = scale,
-                translationX = offset.x,
+            .graphicsLayer {
+                transformOrigin = TransformOrigin(
+                    ((size.maxWidth / 2F) - offset.x) / size.maxWidth,
+                    ((size.maxHeight / 2F) - offset.y) / size.maxHeight
+                )
+                scaleX = scale
+                scaleY = scale
+                translationX = offset.x
                 translationY = offset.y
-            )
+            }
     ) {
         for (i in 0 until rows) {
             safeLet(
@@ -285,8 +285,8 @@ private fun getDragPoints(
 }
 
 private fun Offset.convert(scale: Float, offset: Offset, size: Constraints): Offset {
-    val centerX = size.maxWidth / 2F
-    val centerY = size.maxHeight / 2F
+    val centerX = ((size.maxWidth / 2F) - offset.x)
+    val centerY = ((size.maxHeight / 2F) - offset.y)
     val point =
         Offset(((x - centerX) * (1F / scale)) + centerX, ((y - centerY) * (1F / scale)) + centerY)
     return point - (offset / scale)
@@ -316,7 +316,7 @@ private fun List<Offset>.findBoxes(
     boxes: Map<Point, RectF>
 ): List<Point> {
     return boxes[Point(0, 0)]?.let {
-        with (it.width()) {
+        with(it.width()) {
             mapNotNull { p ->
                 val point = p.convert(scale, offset, size)
                 Point(

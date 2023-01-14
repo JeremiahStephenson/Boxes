@@ -2,7 +2,7 @@ buildscript {
     ext {
         coreKtx = "1.9.0"
         composeActivity = "1.6.1"
-        material3 = "1.1.0-alpha03"
+        material3 = "1.1.0-alpha04"
         composeDestinations = "1.7.27-beta"
         koin = "3.3.0"
         lifecycle = "2.6.0-alpha03"

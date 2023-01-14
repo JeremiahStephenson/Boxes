@@ -20,7 +20,7 @@ class TransformerState {
 
     fun setChanges(zoomChange: Float, offsetChange: Offset) {
         scale = max(1F, scale * zoomChange)
-        offset += offsetChange
+        offset += (offsetChange / scale)
     }
 
     fun reset(scope: CoroutineScope) {
