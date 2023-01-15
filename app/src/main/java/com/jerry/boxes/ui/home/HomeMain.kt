@@ -113,7 +113,7 @@ private fun ProjectItem(
                 .crossfade(true)
                 .build(),
             contentDescription = null,
-            contentScale = ContentScale.FillHeight
+            contentScale = ContentScale.Fit
         )
 
         Text(

@@ -45,6 +45,7 @@ fun DrawScope.drawLegoSquare(
                 start = Offset(pos.left + (pos.width() * 0.2F), pos.top + (pos.height() / 2F)),
                 end = Offset(pos.left + (pos.width() * 0.6F), pos.top + (pos.height() / 2F))
             ),
+            alpha = color.color.alpha
         )
     }
     drawArc(
@@ -65,8 +66,8 @@ fun DrawScope.drawLegoRound(
         startAngle = 0F,
         sweepAngle = 360F,
         useCenter = true,
-        topLeft = Offset(pos.left, pos.top),
-        size = Size(pos.width(), pos.height()),
+        topLeft = Offset(pos.left + (pos.width() * 0.01F), pos.top + (pos.height() * 0.01F)),
+        size = Size(pos.width() - (pos.width() * 0.02F), pos.height() - (pos.height() * 0.02F)),
         color = color.color
     )
     rotate(
@@ -81,6 +82,7 @@ fun DrawScope.drawLegoRound(
                 start = Offset(pos.left + (pos.width() * 0.2F), pos.top + (pos.height() / 2F)),
                 end = Offset(pos.left + (pos.width() * 0.6F), pos.top + (pos.height() / 2F))
             ),
+            alpha = color.color.alpha
         )
     }
     drawArc(
