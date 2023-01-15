@@ -50,6 +50,18 @@ class ButtonsState(
     }
 
     fun setTapType(tapType: TapType) {
-        tapTypeState = tapType
+        tapTypeState = when (tapTypeState == tapType) {
+            true -> TapType.TAP
+            else -> tapType
+        }
+    }
+
+    fun alternateTapType() {
+        val newType = when (tapTypeState) {
+            TapType.TAP -> TapType.PICKER
+            TapType.PICKER -> TapType.FILL
+            else -> TapType.TAP
+        }
+        setTapType(newType)
     }
 }

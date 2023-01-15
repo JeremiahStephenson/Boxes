@@ -264,6 +264,16 @@ private fun MainCanvas(
             onAction = onAction,
             getUsedColorList = getUsedColorList
         )
+
+        FadeAnimatedVisibility(visible = buttonsState.eraserSelectedState) {
+            IconSelectableMenuButton(
+                modifier = Modifier.padding(top = 56.dp),
+                onClick = { onAction(Action.Eraser) },
+                isSelected = { buttonsState.eraserSelectedState },
+                drawableResOn = R.drawable.ic_eraser_on_24,
+                drawableResOff = R.drawable.ic_eraser_off_24
+            )
+        }
     }
 }
 
@@ -306,22 +316,9 @@ private fun ButtonBar(
         }
 
         IconMenuButton(
-            onClick = {
-                when (buttonsState.tapTypeState) {
-                    TapType.PICKER,
-                    TapType.FILL ->
-                        buttonsState.setTapType(TapType.TAP)
-                    else -> {
-                        colorPicker = true
-                    }
-                }
-            },
+            onClick = { colorPicker = true },
             color = color,
-            drawableRes = when (buttonsState.tapTypeState) {
-                TapType.PICKER -> R.drawable.ic_colorize_24
-                TapType.FILL -> R.drawable.ic_format_color_fill_24
-                else -> R.drawable.ic_color_lens_24
-            }
+            drawableRes = R.drawable.ic_color_lens_24
         )
 
         ShapeOption(
@@ -330,6 +327,16 @@ private fun ButtonBar(
         ) {
             shapePicker = true
         }
+
+        IconMenuButton(
+            onClick = { buttonsState.alternateTapType() },
+            color = color,
+            drawableRes = when (buttonsState.tapTypeState) {
+                TapType.PICKER -> R.drawable.ic_colorize_24
+                TapType.FILL -> R.drawable.ic_format_color_fill_24
+                else -> R.drawable.ic_brush_24
+            }
+        )
 
         Spacer(modifier = Modifier.weight(1F))
 
@@ -369,7 +376,8 @@ private fun handleAction(
                 colorAndShapeState.colorState,
                 colorAndShapeState.shapeState,
                 project?.project?.columns ?: 0,
-                project?.project?.rows ?: 0)
+                project?.project?.rows ?: 0
+            )
         }
         is Action.Eraser -> buttonsState.toggleEraserSelected()
         is Action.SetTapType -> buttonsState.setTapType(action.tapType)

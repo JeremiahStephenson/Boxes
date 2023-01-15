@@ -41,6 +41,7 @@ fun IconMenuButton(
 
 @Composable
 fun IconSelectableMenuButton(
+    modifier: Modifier = Modifier,
     onClick: () -> Unit,
     isSelected: () -> Boolean,
     isEnabled: () -> Boolean = { true },
@@ -57,7 +58,8 @@ fun IconSelectableMenuButton(
                     else -> this
                 }
             }
-            .padding(16.dp),
+            .padding(16.dp)
+            .then(modifier),
         painter = painterResource(
             when (isSelected()) {
                 true -> drawableResOff

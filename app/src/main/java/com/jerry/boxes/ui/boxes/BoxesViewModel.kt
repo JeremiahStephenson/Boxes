@@ -19,18 +19,22 @@ import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.boxes.history.UserHistory
 import com.jerry.boxes.ui.destinations.BoxesMainDestination
 import com.jerry.boxes.ui.shapes.Shape
+import com.jerry.boxes.util.CoroutineContextProvider
 import com.jerry.boxes.util.DataResource
 import com.jerry.boxes.util.SavedHandle
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.time.Instant
+import java.util.*
 
 class BoxesViewModel(
     private val handle: SavedStateHandle,
     private val boxesDao: BoxesDao,
-    private val boxesDatabase: BoxesDatabase
+    private val boxesDatabase: BoxesDatabase,
+    private val cc: CoroutineContextProvider
 ) : ViewModel() {
 
     private var layerStateHandle by SavedHandle<MutableMap<Long, Boolean>?>(
@@ -246,6 +250,8 @@ class BoxesViewModel(
         }
     }
 
+    private var fillJob: Job? = null
+    private val fillMutex = Mutex()
     fun onFill(
         point: Point,
         layerId: Long,
@@ -254,79 +260,54 @@ class BoxesViewModel(
         columns: Int,
         rows: Int,
     ) {
-        viewModelScope.launch {
+        if (fillJob?.isActive == true) return
+        fillJob = viewModelScope.launch(cc.io) {
             _loading.value = true
-            val list = mutableListOf<Point>()
-            try {
-                onFillRecursive(point, layerId, currentColor, currentShape, columns, rows, list)
-                val currentSelection = pixelsFlow.value.data?.get(layerId)?.filter { list.contains(it.key) } ?: emptyMap()
-                val history = HashMap<Point, SerializableColor?>()
-                list.forEach {
-                    history[it] = currentSelection[it]
-                    pixelsFlow.value.data?.getOrPut(layerId) { SnapshotStateMap() }
-                        ?.put(it, currentColor.copy(shape = currentShape))
+            val fillMap = HashSet<Point>()
+            val iterator = LinkedList<Point>().apply { add(point) }
+            fillMutex.withLock {
+                try {
+                    while (iterator.isNotEmpty()) {
+                        iterator.peek()?.let { p ->
+                            if (p.isNotOutside(
+                                    columns,
+                                    rows
+                                ) && !fillMap.contains(p) && pixelsFlow.value.data?.get(layerId)
+                                    ?.get(p) == null
+                            ) {
+                                fillMap.add(p)
+                                iterator.add(Point(p.x - 1, p.y))
+                                iterator.add(Point(p.x + 1, p.y))
+                                iterator.add(Point(p.x, p.y - 1))
+                                iterator.add(Point(p.x, p.y + 1))
+                            }
+                        }
+                        iterator.pop()
+                    }
+
+                    val currentSelection = pixelsFlow.value.data?.get(layerId)?.filter {
+                        fillMap.contains(it.key)
+                    } ?: emptyMap()
+                    val history = HashMap<Point, SerializableColor?>()
+                    fillMap.forEach {
+                        history[it] = currentSelection[it]
+                        pixelsFlow.value.data?.getOrPut(layerId) { SnapshotStateMap() }
+                            ?.put(it, currentColor.copy(shape = currentShape))
+                    }
+                    if (history.isNotEmpty()) {
+                        addToHistory(UserHistory(layerId, history))
+                    }
+                    _loading.value = false
+                } catch (t: Throwable) {
+                    // todo handle this
+                    _loading.value = false
                 }
-                addToHistory(UserHistory(layerId, history))
-                _loading.value = false
-            } catch (t: Throwable) {
-                // todo handle this
-                _loading.value = false
             }
         }
     }
 
-
-    private fun onFillRecursive(
-        point: Point,
-        layerId: Long,
-        currentColor: SerializableColor,
-        currentShape: Shape,
-        columns: Int,
-        rows: Int,
-        list: MutableList<Point> = mutableListOf()
-    ) {
-        if (point.x >= 0 && point.x <= (columns - 1) && point.y >= 0 && point.y <= (rows - 1)) {
-            if (!list.contains(point) && pixelsFlow.value.data?.get(layerId)?.get(point) == null) {
-                list.add(point)
-                onFillRecursive(
-                    Point(point.x - 1, point.y),
-                    layerId,
-                    currentColor,
-                    currentShape,
-                    columns,
-                    rows,
-                    list = list
-                )
-                onFillRecursive(
-                    Point(point.x + 1, point.y),
-                    layerId,
-                    currentColor,
-                    currentShape,
-                    columns,
-                    rows,
-                    list = list
-                )
-                onFillRecursive(
-                    Point(point.x, point.y - 1),
-                    layerId,
-                    currentColor,
-                    currentShape,
-                    columns,
-                    rows,
-                    list = list
-                )
-                onFillRecursive(
-                    Point(point.x, point.y + 1),
-                    layerId,
-                    currentColor,
-                    currentShape,
-                    columns,
-                    rows,
-                    list = list
-                )
-            }
-        }
-    }
+    private fun Point.isNotOutside(columns: Int, rows: Int) =
+        x >= 0 && x <= (columns - 1) && y >= 0 && y <= (rows - 1)
 
     private suspend fun updateHistory(layerId: Long, points: Map<Point, SerializableColor?>) {
         val index = boxesDao.findMaxIndexForHistory(layerId)
