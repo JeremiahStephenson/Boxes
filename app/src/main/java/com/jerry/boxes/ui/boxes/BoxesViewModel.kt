@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withTimeout
 import java.time.Instant
 import java.util.*
 
@@ -89,6 +90,9 @@ class BoxesViewModel(
 
     private val _loading = MutableStateFlow(false)
     val loadingState = _loading.asStateFlow()
+
+    private var fillJob: Job? = null
+    private val fillMutex = Mutex()
 
     private val layerFlow = projectFlow.map { it?.layers }
     val layerStateFlow =
@@ -210,6 +214,31 @@ class BoxesViewModel(
         }
     }
 
+    fun fill(
+        point: Point,
+        layerId: Long,
+        currentColor: SerializableColor,
+        currentShape: Shape,
+        columns: Int,
+        rows: Int,
+    ) {
+        if (fillJob?.isActive == true) return
+        fillJob = viewModelScope.launch(cc.io) {
+            _loading.value = true
+            withTimeout(FILL_TIMEOUT) {
+                fillMutex.withLock {
+                    try {
+                        fillInArea(point, layerId, currentColor, currentShape, columns, rows)
+                        _loading.value = false
+                    } catch (t: Throwable) {
+                        // todo handle this
+                        _loading.value = false
+                    }
+                }
+            }
+        }
+    }
+
     private suspend fun updateDatabase(block: suspend () -> Unit) {
         boxesDatabase.withTransaction {
             block()
@@ -250,59 +279,42 @@ class BoxesViewModel(
         }
     }
 
-    private var fillJob: Job? = null
-    private val fillMutex = Mutex()
-    fun onFill(
+    private suspend fun fillInArea(
         point: Point,
         layerId: Long,
         currentColor: SerializableColor,
         currentShape: Shape,
         columns: Int,
-        rows: Int,
+        rows: Int
     ) {
-        if (fillJob?.isActive == true) return
-        fillJob = viewModelScope.launch(cc.io) {
-            _loading.value = true
-            val fillMap = HashSet<Point>()
-            val iterator = LinkedList<Point>().apply { add(point) }
-            fillMutex.withLock {
-                try {
-                    while (iterator.isNotEmpty()) {
-                        iterator.peek()?.let { p ->
-                            if (p.isNotOutside(
-                                    columns,
-                                    rows
-                                ) && !fillMap.contains(p) && pixelsFlow.value.data?.get(layerId)
-                                    ?.get(p) == null
-                            ) {
-                                fillMap.add(p)
-                                iterator.add(Point(p.x - 1, p.y))
-                                iterator.add(Point(p.x + 1, p.y))
-                                iterator.add(Point(p.x, p.y - 1))
-                                iterator.add(Point(p.x, p.y + 1))
-                            }
-                        }
-                        iterator.pop()
-                    }
-
-                    val currentSelection = pixelsFlow.value.data?.get(layerId)?.filter {
-                        fillMap.contains(it.key)
-                    } ?: emptyMap()
-                    val history = HashMap<Point, SerializableColor?>()
-                    fillMap.forEach {
-                        history[it] = currentSelection[it]
-                        pixelsFlow.value.data?.getOrPut(layerId) { SnapshotStateMap() }
-                            ?.put(it, currentColor.copy(shape = currentShape))
-                    }
-                    if (history.isNotEmpty()) {
-                        addToHistory(UserHistory(layerId, history))
-                    }
-                    _loading.value = false
-                } catch (t: Throwable) {
-                    // todo handle this
-                    _loading.value = false
+        val fillMap = HashSet<Point>()
+        val iterator = LinkedList<Point>().apply { add(point) }
+        while (iterator.isNotEmpty()) {
+            iterator.peek()?.let { p ->
+                if (p.isNotOutside(columns, rows) &&
+                    !fillMap.contains(p) && pixelsFlow.value.data?.get(layerId)?.get(p) == null
+                ) {
+                    fillMap.add(p)
+                    iterator.add(Point(p.x - 1, p.y))
+                    iterator.add(Point(p.x + 1, p.y))
+                    iterator.add(Point(p.x, p.y - 1))
+                    iterator.add(Point(p.x, p.y + 1))
                 }
             }
+            iterator.pop()
+        }
+
+        val currentSelection = pixelsFlow.value.data?.get(layerId)?.filter {
+            fillMap.contains(it.key)
+        } ?: emptyMap()
+        val history = HashMap<Point, SerializableColor?>()
+        fillMap.forEach {
+            history[it] = currentSelection[it]
+            pixelsFlow.value.data?.getOrPut(layerId) { SnapshotStateMap() }
+                ?.put(it, currentColor.copy(shape = currentShape))
+        }
+        if (history.isNotEmpty()) {
+            addToHistory(UserHistory(layerId, history))
         }
     }
 
@@ -336,5 +348,7 @@ class BoxesViewModel(
         private const val SELECTED_LAYER = "SELECTED_LAYER"
 
         private const val MAX_HISTORY_PER_LAYER = 20
+
+        private const val FILL_TIMEOUT = 10000L
     }
 }

@@ -370,7 +370,7 @@ private fun handleAction(
 ) {
     when (action) {
         is Action.Fill -> {
-            viewModel.onFill(
+            viewModel.fill(
                 action.point,
                 action.layerId,
                 colorAndShapeState.colorState,
