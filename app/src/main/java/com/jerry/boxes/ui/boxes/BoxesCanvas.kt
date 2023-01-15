@@ -172,8 +172,6 @@ fun SelectionsBoxes(
                 scaleY = scale
                 translationX = offset.x
                 translationY = offset.y
-
-                Timber.d("TransformOrigin: ${transformOrigin.pivotFractionX}, ${transformOrigin.pivotFractionY}")
             }
     ) {
         drawShapes(canvasState.layers, canvasState.selections, canvasState.boxes)

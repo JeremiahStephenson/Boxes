@@ -22,6 +22,7 @@ import com.jerry.boxes.R
 import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.boxes.state.ButtonsState
 import com.jerry.boxes.ui.boxes.state.CanvasState
+import com.jerry.boxes.ui.boxes.state.TapType
 import com.jerry.boxes.ui.common.IconMenuButton
 import com.jerry.boxes.ui.common.IconSelectableMenuButton
 import com.jerry.boxes.ui.common.SetNameDialog
@@ -86,8 +87,12 @@ fun DrawerMenu(
                     drawableResOff = R.drawable.ic_eraser_off_24
                 )
                 IconMenuButton(
-                    onClick = { onAction(Action.ColorPicker) },
+                    onClick = { onAction(Action.SetTapType(TapType.PICKER)) },
                     drawableRes = R.drawable.ic_colorize_24
+                )
+                IconMenuButton(
+                    onClick = { onAction(Action.SetTapType(TapType.FILL)) },
+                    drawableRes = R.drawable.ic_format_color_fill_24
                 )
                 IconSelectableMenuButton(
                     onClick = { onAction(Action.ShowGrid) },

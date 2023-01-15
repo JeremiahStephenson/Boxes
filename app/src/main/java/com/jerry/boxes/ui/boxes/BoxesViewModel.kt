@@ -83,6 +83,9 @@ class BoxesViewModel(
             DataResource.loading(SnapshotStateMap())
         )
 
+    private val _loading = MutableStateFlow(false)
+    val loadingState = _loading.asStateFlow()
+
     private val layerFlow = projectFlow.map { it?.layers }
     val layerStateFlow =
         combine(layerState, layerFlow, selectedLayerStateFlow) { state, layers, selectedLayer ->
@@ -107,11 +110,12 @@ class BoxesViewModel(
                 }
             }
 
-            val selected = if (selectedLayer != null && layers?.any { it.id == selectedLayer } == true) {
-                selectedLayer
-            } else {
-                layers?.lastOrNull { it.on }?.id
-            }
+            val selected =
+                if (selectedLayer != null && layers?.any { it.id == selectedLayer } == true) {
+                    selectedLayer
+                } else {
+                    layers?.lastOrNull { it.on }?.id
+                }
 
             layers?.forEach {
                 state?.putIfAbsent(it.id, it.on)
@@ -239,6 +243,88 @@ class BoxesViewModel(
                 shape,
                 projectId
             )
+        }
+    }
+
+    fun onFill(
+        point: Point,
+        layerId: Long,
+        currentColor: SerializableColor,
+        currentShape: Shape,
+        columns: Int,
+        rows: Int,
+    ) {
+        viewModelScope.launch {
+            _loading.value = true
+            val list = mutableListOf<Point>()
+            try {
+                onFillRecursive(point, layerId, currentColor, currentShape, columns, rows, list)
+                val currentSelection = pixelsFlow.value.data?.get(layerId)?.filter { list.contains(it.key) } ?: emptyMap()
+                val history = HashMap<Point, SerializableColor?>()
+                list.forEach {
+                    history[it] = currentSelection[it]
+                    pixelsFlow.value.data?.getOrPut(layerId) { SnapshotStateMap() }
+                        ?.put(it, currentColor.copy(shape = currentShape))
+                }
+                addToHistory(UserHistory(layerId, history))
+                _loading.value = false
+            } catch (t: Throwable) {
+                // todo handle this
+                _loading.value = false
+            }
+        }
+    }
+
+
+    private fun onFillRecursive(
+        point: Point,
+        layerId: Long,
+        currentColor: SerializableColor,
+        currentShape: Shape,
+        columns: Int,
+        rows: Int,
+        list: MutableList<Point> = mutableListOf()
+    ) {
+        if (point.x >= 0 && point.x <= (columns - 1) && point.y >= 0 && point.y <= (rows - 1)) {
+            if (!list.contains(point) && pixelsFlow.value.data?.get(layerId)?.get(point) == null) {
+                list.add(point)
+                onFillRecursive(
+                    Point(point.x - 1, point.y),
+                    layerId,
+                    currentColor,
+                    currentShape,
+                    columns,
+                    rows,
+                    list = list
+                )
+                onFillRecursive(
+                    Point(point.x + 1, point.y),
+                    layerId,
+                    currentColor,
+                    currentShape,
+                    columns,
+                    rows,
+                    list = list
+                )
+                onFillRecursive(
+                    Point(point.x, point.y - 1),
+                    layerId,
+                    currentColor,
+                    currentShape,
+                    columns,
+                    rows,
+                    list = list
+                )
+                onFillRecursive(
+                    Point(point.x, point.y + 1),
+                    layerId,
+                    currentColor,
+                    currentShape,
+                    columns,
+                    rows,
+                    list = list
+                )
+            }
         }
     }
 

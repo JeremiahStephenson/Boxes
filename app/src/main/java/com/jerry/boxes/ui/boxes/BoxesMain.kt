@@ -18,10 +18,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jerry.boxes.R
 import com.jerry.boxes.cache.data.ProjectAndLayers
 import com.jerry.boxes.ui.boxes.history.UserHistory
-import com.jerry.boxes.ui.boxes.state.ButtonsState
-import com.jerry.boxes.ui.boxes.state.CanvasState
-import com.jerry.boxes.ui.boxes.state.ColorAndShapeState
-import com.jerry.boxes.ui.boxes.state.TransformerState
+import com.jerry.boxes.ui.boxes.state.*
 import com.jerry.boxes.ui.common.*
 import com.jerry.boxes.ui.destinations.CreateMainDestination
 import com.jerry.boxes.ui.destinations.LayersEditMainDestination
@@ -193,6 +190,7 @@ private fun MainCanvas(
 
         Transformer(transformerState) { scale, offset, state ->
             val currentLayer by remember { derivedStateOf { canvasState.selectedLayer.id } }
+            val scope = rememberCoroutineScope()
             BoxCanvas(
                 canvasState = canvasState,
                 buttonsState = buttonsState,
@@ -205,11 +203,11 @@ private fun MainCanvas(
                 state = state,
                 onTap = { point ->
                     if (canvasState.hasLayersTurnedOn) {
-                        when (buttonsState.colorPickerOnState) {
-                            true -> canvasState.getCurrentSelection(point)?.let {
+                        when (buttonsState.tapTypeState) {
+                            TapType.PICKER -> canvasState.getCurrentSelection(point)?.let {
                                 colorAndShapeState.setColor(it)
                             }
-                            else -> {
+                            TapType.TAP -> {
                                 onAction(
                                     Action.AddToHistory(
                                         canvasState.getTapHistoryItem(point, currentLayer)
@@ -222,6 +220,7 @@ private fun MainCanvas(
                                     colorAndShapeState.shapeState
                                 )
                             }
+                            TapType.FILL -> onAction(Action.Fill(point, currentLayer))
                         }
                     }
                 },
@@ -308,16 +307,19 @@ private fun ButtonBar(
 
         IconMenuButton(
             onClick = {
-                when (buttonsState.colorPickerOnState) {
-                    true -> buttonsState.turnOnOrOffColorPicker(on = false)
+                when (buttonsState.tapTypeState) {
+                    TapType.PICKER,
+                    TapType.FILL ->
+                        buttonsState.setTapType(TapType.TAP)
                     else -> {
                         colorPicker = true
                     }
                 }
             },
             color = color,
-            drawableRes = when (buttonsState.colorPickerOnState) {
-                true -> R.drawable.ic_colorize_24
+            drawableRes = when (buttonsState.tapTypeState) {
+                TapType.PICKER -> R.drawable.ic_colorize_24
+                TapType.FILL -> R.drawable.ic_format_color_fill_24
                 else -> R.drawable.ic_color_lens_24
             }
         )
@@ -360,8 +362,17 @@ private fun handleAction(
     action: Action
 ) {
     when (action) {
+        is Action.Fill -> {
+            viewModel.onFill(
+                action.point,
+                action.layerId,
+                colorAndShapeState.colorState,
+                colorAndShapeState.shapeState,
+                project?.project?.columns ?: 0,
+                project?.project?.rows ?: 0)
+        }
         is Action.Eraser -> buttonsState.toggleEraserSelected()
-        is Action.ColorPicker -> buttonsState.toggleColorPicker()
+        is Action.SetTapType -> buttonsState.setTapType(action.tapType)
         is Action.Save -> {
             saveProject(
                 canvasState,
@@ -463,7 +474,8 @@ private fun saveProject(
 private fun rememberCanvasState(viewModel: BoxesViewModel): CanvasState {
     val layerState = viewModel.layerStateFlow.collectAsStateWithLifecycle(emptyList())
     val pixelsState = viewModel.pixelsFlow.collectAsStateWithLifecycle()
-    return remember { CanvasState(layerState, pixelsState) }
+    val loadingState = viewModel.loadingState.collectAsStateWithLifecycle()
+    return remember { CanvasState(layerState, loadingState, pixelsState) }
 }
 
 

@@ -2,10 +2,7 @@ package com.jerry.boxes.ui.boxes.state
 
 import android.graphics.Point
 import android.graphics.RectF
-import androidx.compose.runtime.Stable
-import androidx.compose.runtime.State
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Constraints
@@ -24,6 +21,7 @@ import kotlin.math.roundToInt
 @Stable
 class CanvasState(
     layersState: State<List<LayerUi>>,
+    private val loadingState: State<Boolean>,
     private val snapShot: State<DataResource<SnapshotStateMap<Long, SnapshotStateMap<Point, SerializableColor>>>>
 ) {
     private val _boxes = mutableStateMapOf<Point, RectF>()
@@ -31,7 +29,7 @@ class CanvasState(
     private val _selections get() = snapShot.value.data!!
     val selections get() = snapShot.value.data as Map<Long, Map<Point, SerializableColor>>
 
-    val isLoading get() = snapShot.value.isLoading
+    val isLoading get() = snapShot.value.isLoading || loadingState.value
 
     val layers by layersState
 
@@ -121,7 +119,7 @@ class CanvasState(
         currentColor: SerializableColor?,
         currentShape: Shape?
     ) {
-        _selections.getOrPut(layerId) { mutableStateMapOf() }?.let { map ->
+        _selections.getOrPut(layerId) { mutableStateMapOf() }.let { map ->
             points.forEach {
                 when (currentColor) {
                     null -> map.remove(it)

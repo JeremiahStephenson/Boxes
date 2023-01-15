@@ -30,7 +30,7 @@ class ButtonsState(
         private set
 
     @IgnoredOnParcel
-    var colorPickerOnState by mutableStateOf(colorPickerOn)
+    var tapTypeState by mutableStateOf(TapType.TAP)
         private set
 
     fun toggleEraserSelected() {
@@ -49,11 +49,7 @@ class ButtonsState(
         eraserSelectedState = false
     }
 
-    fun turnOnOrOffColorPicker(on: Boolean) {
-        colorPickerOnState = on
-    }
-
-    fun toggleColorPicker() {
-        colorPickerOnState = !colorPickerOnState
+    fun setTapType(tapType: TapType) {
+        tapTypeState = tapType
     }
 }
