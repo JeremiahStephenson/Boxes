@@ -14,6 +14,7 @@ import com.jerry.boxes.cache.data.HistoryItem
 import com.jerry.boxes.cache.data.Layer
 import com.jerry.boxes.cache.data.Pixel
 import com.jerry.boxes.extensions.addIfNotFound
+import com.jerry.boxes.extensions.isNotOutside
 import com.jerry.boxes.extensions.safeLet
 import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.boxes.history.UserHistory
@@ -317,9 +318,6 @@ class BoxesViewModel(
             addToHistory(UserHistory(layerId, history))
         }
     }
-
-    private fun Point.isNotOutside(columns: Int, rows: Int) =
-        x >= 0 && x <= (columns - 1) && y >= 0 && y <= (rows - 1)
 
     private suspend fun updateHistory(layerId: Long, points: Map<Point, SerializableColor?>) {
         val index = boxesDao.findMaxIndexForHistory(layerId)

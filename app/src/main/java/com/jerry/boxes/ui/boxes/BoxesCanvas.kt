@@ -21,6 +21,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
+import com.jerry.boxes.extensions.isNotOutside
 import com.jerry.boxes.extensions.safeLet
 import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.boxes.state.ButtonsState
@@ -74,6 +75,8 @@ fun BoxCanvas(
                         scaleState,
                         offsetState,
                         sizeState,
+                        columns,
+                        rows,
                         canvasState.boxes
                     )
                     ?.let {
@@ -93,6 +96,8 @@ fun BoxCanvas(
                             scaleState,
                             offsetState,
                             sizeState,
+                            columns,
+                            rows,
                             canvasState.boxes
                         )
                     )
@@ -294,6 +299,8 @@ private fun Offset.findBox(
     scale: Float,
     offset: Offset,
     size: Constraints,
+    columns: Int,
+    rows: Int,
     boxes: Map<Point, RectF>
 ): Point? {
     return boxes[Point(0, 0)]?.let {
@@ -302,7 +309,12 @@ private fun Offset.findBox(
             Point(
                 floor((point.x - it.left) / this).toInt(),
                 floor((point.y - it.top) / this).toInt()
-            )
+            ).run {
+                when (this.isNotOutside(columns, rows)) {
+                    true -> this
+                    else -> null
+                }
+            }
         }
     }
 }
@@ -311,6 +323,8 @@ private fun HashSet<Offset>.findBoxes(
     scale: Float,
     offset: Offset,
     size: Constraints,
+    columns: Int,
+    rows: Int,
     boxes: Map<Point, RectF>
 ): HashSet<Point> {
     return boxes[Point(0, 0)]?.let {
@@ -320,7 +334,12 @@ private fun HashSet<Offset>.findBoxes(
                 Point(
                     floor((point.x - it.left) / this).toInt(),
                     floor((point.y - it.top) / this).toInt()
-                )
+                ).run {
+                    when (this.isNotOutside(columns, rows)) {
+                        true -> this
+                        else -> null
+                    }
+                }
             }
         }.distinct().toHashSet()
     } ?: HashSet()

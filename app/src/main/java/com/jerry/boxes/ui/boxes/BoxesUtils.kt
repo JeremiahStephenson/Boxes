@@ -80,7 +80,7 @@ fun DrawScope.drawShapes(
             }
         }
     }
-    Timber.d("DrawTest - drawing end: ${System.currentTimeMillis()}")
+    //Timber.d("DrawTest - drawing end: ${System.currentTimeMillis()}")
 }
 
 fun DrawScope.drawShapes(
