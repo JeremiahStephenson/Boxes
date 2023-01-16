@@ -122,7 +122,7 @@ class BoxesViewModel(
                 if (selectedLayer != null && layers?.any { it.id == selectedLayer } == true) {
                     selectedLayer
                 } else {
-                    layers?.lastOrNull { it.on }?.id
+                    layers?.firstOrNull { it.on }?.id
                 }
 
             layers?.forEach {

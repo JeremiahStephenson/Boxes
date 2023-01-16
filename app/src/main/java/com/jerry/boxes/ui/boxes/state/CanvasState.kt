@@ -124,7 +124,7 @@ class CanvasState(
     ) {
         _selections.getOrPut(layerId) { mutableStateMapOf() }.let { map ->
             when (val color = currentColor?.copy(shape = currentShape ?: Shape.Box)) {
-                null -> points.forEach { map.remove(it) }
+                null -> map.keys.removeAll(points.toSet())
                 else -> map.putAll(points.associateWith { color })
             }
         }
