@@ -2,13 +2,15 @@ package com.jerry.boxes.ui.boxes.state
 
 import android.graphics.Point
 import android.graphics.RectF
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Constraints
 import com.godaddy.android.colorpicker.HsvColor
 import com.jerry.boxes.cache.data.HistoryItem
-import com.jerry.boxes.extensions.safeLet
 import com.jerry.boxes.ui.boxes.SerializableColor
 import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.boxes.generateBoxes
@@ -121,9 +123,9 @@ class CanvasState(
         currentShape: Shape?
     ) {
         _selections.getOrPut(layerId) { mutableStateMapOf() }.let { map ->
-            safeLet(points, currentColor) { p, c ->
-                val color = c.copy(shape = currentShape ?: Shape.Box)
-                map.putAll(p.associateWith { color })
+            when (val color = currentColor?.copy(shape = currentShape ?: Shape.Box)) {
+                null -> points.forEach { map.remove(it) }
+                else -> map.putAll(points.associateWith { color })
             }
         }
     }
