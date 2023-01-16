@@ -49,7 +49,7 @@ fun IconSelectableMenuButton(
     @DrawableRes drawableResOff: Int
 ) {
     Icon(
-        modifier = Modifier
+        modifier = modifier
             .run {
                 when (isEnabled()) {
                     true -> unboundClickable {
@@ -58,8 +58,7 @@ fun IconSelectableMenuButton(
                     else -> this
                 }
             }
-            .padding(16.dp)
-            .then(modifier),
+            .padding(16.dp),
         painter = painterResource(
             when (isSelected()) {
                 true -> drawableResOff
