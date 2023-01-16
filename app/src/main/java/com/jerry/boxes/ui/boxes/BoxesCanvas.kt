@@ -56,6 +56,8 @@ fun BoxCanvas(
     val offsetState by rememberUpdatedState(offset)
     val sizeState by rememberUpdatedState(size)
     val pngBoxSize = with(LocalDensity.current) { 10.dp.toPx() }
+    val columnsState by rememberUpdatedState(columns)
+    val rowsState by rememberUpdatedState(rows)
 
     if (buttonsState.showPngBackgroundState) {
         Box(
@@ -75,8 +77,8 @@ fun BoxCanvas(
                         scaleState,
                         offsetState,
                         sizeState,
-                        columns,
-                        rows,
+                        columnsState,
+                        rowsState,
                         canvasState.boxes
                     )
                     ?.let {
@@ -96,8 +98,8 @@ fun BoxCanvas(
                             scaleState,
                             offsetState,
                             sizeState,
-                            columns,
-                            rows,
+                            columnsState,
+                            rowsState,
                             canvasState.boxes
                         )
                     )
