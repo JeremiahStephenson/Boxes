@@ -78,11 +78,12 @@ class CanvasState(
 
     fun onUndo(layerId: Long?, historyItems: List<HistoryItem>) {
         if (layerId == null) return
+        val layer = _selections.getOrPut(layerId) { mutableStateMapOf() }
         historyItems.forEach { item ->
-            _selections.getOrPut(layerId) { mutableStateMapOf() }.apply {
-                when (item.color) {
-                    null -> this.remove(Point(item.x, item.y))
-                    else -> this[Point(item.x, item.y)] = with(HsvColor.from(Color(item.color))) {
+            layer.apply {
+                this.remove(Point(item.x, item.y))
+                item.color?.let {
+                    this[Point(item.x, item.y)] = with(HsvColor.from(Color(item.color))) {
                         SerializableColor(
                             this.hue,
                             this.saturation,

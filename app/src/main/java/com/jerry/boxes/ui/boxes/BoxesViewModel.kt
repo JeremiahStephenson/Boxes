@@ -149,7 +149,7 @@ class BoxesViewModel(
             put(layerId, on)
         }
         if (!on && (layerId == selectedLayerStateHandle || selectedLayerStateHandle == null)) {
-            selectedLayerStateHandle = layerStateFlow.value.lastOrNull { it.on }?.id
+            selectedLayerStateHandle = layerStateFlow.value.firstOrNull { it.on }?.id
         }
     }
 
@@ -227,7 +227,7 @@ class BoxesViewModel(
         fillJob = viewModelScope.launch(cc.io) {
             _loading.value = true
             withTimeout(FILL_TIMEOUT) {
-                fillMutex.withLock {
+                //fillMutex.withLock {
                     try {
                         fillInArea(point, layerId, currentColor, currentShape, columns, rows)
                         _loading.value = false
@@ -235,7 +235,7 @@ class BoxesViewModel(
                         // todo handle this
                         _loading.value = false
                     }
-                }
+                //}
             }
         }
     }
@@ -283,17 +283,20 @@ class BoxesViewModel(
     private suspend fun fillInArea(
         point: Point,
         layerId: Long,
-        currentColor: SerializableColor,
-        currentShape: Shape,
+        color: SerializableColor,
+        shape: Shape,
         columns: Int,
         rows: Int
     ) {
         val fillMap = HashSet<Point>()
         val iterator = LinkedList<Point>().apply { add(point) }
+        val newColor = color.copy(shape = shape)
+        val currentColor = pixelsFlow.value.data?.get(layerId)?.get(point)
+        if (currentColor == newColor) return
         while (iterator.isNotEmpty()) {
             iterator.peek()?.let { p ->
                 if (p.isNotOutside(columns, rows) &&
-                    !fillMap.contains(p) && pixelsFlow.value.data?.get(layerId)?.get(p) == null
+                    !fillMap.contains(p) && pixelsFlow.value.data?.get(layerId)?.get(p) == currentColor
                 ) {
                     fillMap.add(p)
                     iterator.add(Point(p.x - 1, p.y))
@@ -304,15 +307,12 @@ class BoxesViewModel(
             }
             iterator.pop()
         }
-
         val layer = pixelsFlow.value.data?.getOrPut(layerId) { SnapshotStateMap() }
         val currentSelection = layer?.let { l -> fillMap.associateWith { l[it] } } ?: emptyMap()
-
-        val color = currentColor.copy(shape = currentShape)
         val history = HashMap<Point, SerializableColor?>()
         history.putAll(currentSelection)
-        layer?.putAll(fillMap.map { it to color })
-
+        layer?.keys?.removeAll(fillMap)
+        layer?.putAll(fillMap.map { it to newColor })
         if (history.isNotEmpty()) {
             addToHistory(UserHistory(layerId, history))
         }
