@@ -65,7 +65,7 @@ class CanvasState(
 
     fun addToDragHistory(
         layerId: Long,
-        points: List<Point>
+        points: HashSet<Point>
     ) {
         val filtered = points.filter { !currentDragHistory.keys.contains(it) }
         val currentSelection = getCurrentSelections(filtered, layerId)
@@ -118,15 +118,15 @@ class CanvasState(
     }
 
     fun onDrag(
-        points: Collection<Point>,
+        points: HashSet<Point>,
         layerId: Long,
         currentColor: SerializableColor?,
         currentShape: Shape?
     ) {
         _selections.getOrPut(layerId) { mutableStateMapOf() }.let { map ->
-            when (val color = currentColor?.copy(shape = currentShape ?: Shape.Box)) {
-                null -> map.keys.removeAll(points.toSet())
-                else -> map.putAll(points.associateWith { color })
+            map.keys.removeAll(points)
+            currentColor?.copy(shape = currentShape ?: Shape.Box)?.let { color ->
+                map.putAll(points.associateWith { color })
             }
         }
     }

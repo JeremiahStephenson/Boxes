@@ -45,7 +45,7 @@ fun BoxCanvas(
     strokeWidth: Float,
     state: TransformableState,
     onTap: (Point) -> Unit,
-    onDrag: (List<Point>) -> Unit,
+    onDrag: (HashSet<Point>) -> Unit,
     onDragStart: () -> Unit,
     onDragEnd: () -> Unit
 ) {
@@ -252,8 +252,8 @@ private fun getDragPoints(
     canvasState: CanvasState,
     change: Offset,
     position: PointerInputChange
-): List<Offset> {
-    return mutableListOf<Offset>().apply {
+): HashSet<Offset> {
+    return HashSet<Offset>().apply {
         val boxSize = canvasState.boxes.values
             .first()
             .width()
@@ -307,12 +307,12 @@ private fun Offset.findBox(
     }
 }
 
-private fun List<Offset>.findBoxes(
+private fun HashSet<Offset>.findBoxes(
     scale: Float,
     offset: Offset,
     size: Constraints,
     boxes: Map<Point, RectF>
-): List<Point> {
+): HashSet<Point> {
     return boxes[Point(0, 0)]?.let {
         with(it.width()) {
             mapNotNull { p ->
@@ -322,6 +322,6 @@ private fun List<Offset>.findBoxes(
                     floor((point.y - it.top) / this).toInt()
                 )
             }
-        }.distinct()
-    } ?: emptyList()
+        }.distinct().toHashSet()
+    } ?: HashSet()
 }
