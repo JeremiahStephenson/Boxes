@@ -154,6 +154,7 @@ class BoxesViewModel(
     }
 
     suspend fun addToHistory(userHistory: UserHistory) {
+        if (userHistory.points.isEmpty()) return
         viewModelScope.launch {
             updateDatabase {
                 updateHistory(userHistory.layerId, userHistory.points)
@@ -304,15 +305,14 @@ class BoxesViewModel(
             iterator.pop()
         }
 
-        val currentSelection = pixelsFlow.value.data?.get(layerId)?.filter {
-            fillMap.contains(it.key)
-        } ?: emptyMap()
+        val layer = pixelsFlow.value.data?.getOrPut(layerId) { SnapshotStateMap() }
+        val currentSelection = layer?.let { l -> fillMap.associateWith { l[it] } } ?: emptyMap()
+
+        val color = currentColor.copy(shape = currentShape)
         val history = HashMap<Point, SerializableColor?>()
-        fillMap.forEach {
-            history[it] = currentSelection[it]
-            pixelsFlow.value.data?.getOrPut(layerId) { SnapshotStateMap() }
-                ?.put(it, currentColor.copy(shape = currentShape))
-        }
+        history.putAll(currentSelection)
+        layer?.putAll(fillMap.map { it to color })
+
         if (history.isNotEmpty()) {
             addToHistory(UserHistory(layerId, history))
         }

@@ -8,6 +8,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Constraints
 import com.godaddy.android.colorpicker.HsvColor
 import com.jerry.boxes.cache.data.HistoryItem
+import com.jerry.boxes.extensions.safeLet
 import com.jerry.boxes.ui.boxes.SerializableColor
 import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.boxes.generateBoxes
@@ -120,11 +121,9 @@ class CanvasState(
         currentShape: Shape?
     ) {
         _selections.getOrPut(layerId) { mutableStateMapOf() }.let { map ->
-            points.forEach {
-                when (currentColor) {
-                    null -> map.remove(it)
-                    else -> map.put(it, currentColor.copy(shape = currentShape ?: Shape.Box))
-                }
+            safeLet(points, currentColor) { p, c ->
+                val color = c.copy(shape = currentShape ?: Shape.Box)
+                map.putAll(p.associateWith { color })
             }
         }
     }
@@ -177,6 +176,6 @@ class CanvasState(
         points: List<Point>,
         layerId: Long
     ): Map<Point, SerializableColor?> {
-        return _selections[layerId]?.filter { points.contains(it.key) } ?: emptyMap()
+        return points.associateWith { _selections[layerId]?.get(it) }
     }
 }

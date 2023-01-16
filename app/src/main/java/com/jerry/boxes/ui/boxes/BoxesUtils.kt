@@ -71,8 +71,7 @@ fun DrawScope.drawShapes(
 ) {
     if (boxes.isEmpty()) return
     val layerIds = layers.filter { it.on }.sortedBy { it.index }.map { it.id }
-    Timber.d("DrawTest - drawing: ${selections.size}, ${layers.size}, ${boxes.size}")
-
+    Timber.d("DrawTest - drawing start: ${System.currentTimeMillis()}, ${selections.size}, ${layers.size}, ${boxes.size}")
     layerIds.forEach { layerId ->
         selections[layerId]?.forEach {
             val position = boxes[it.key]
@@ -81,6 +80,7 @@ fun DrawScope.drawShapes(
             }
         }
     }
+    Timber.d("DrawTest - drawing end: ${System.currentTimeMillis()}")
 }
 
 fun DrawScope.drawShapes(

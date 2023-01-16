@@ -190,7 +190,6 @@ private fun MainCanvas(
 
         Transformer(transformerState) { scale, offset, state ->
             val currentLayer by remember { derivedStateOf { canvasState.selectedLayer.id } }
-            val scope = rememberCoroutineScope()
             BoxCanvas(
                 canvasState = canvasState,
                 buttonsState = buttonsState,
