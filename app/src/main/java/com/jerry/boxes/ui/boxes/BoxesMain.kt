@@ -21,12 +21,13 @@ import com.jerry.boxes.cache.data.ProjectAndLayers
 import com.jerry.boxes.extensions.safeLet
 import com.jerry.boxes.ui.boxes.history.UserHistory
 import com.jerry.boxes.ui.boxes.state.*
+import com.jerry.boxes.ui.boxes.state.enums.Direction
+import com.jerry.boxes.ui.boxes.state.enums.TapType
 import com.jerry.boxes.ui.common.*
 import com.jerry.boxes.ui.destinations.CreateMainDestination
 import com.jerry.boxes.ui.destinations.LayersEditMainDestination
 import com.jerry.boxes.ui.shapes.Shape
 import com.jerry.boxes.util.CoroutineContextProvider
-import com.jerry.boxes.ui.boxes.state.Direction
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.CoroutineScope
@@ -46,6 +47,12 @@ fun BoxesMain(
     val scope = rememberCoroutineScope()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
 
+    BackHandler(drawerState.isOpen) {
+        scope.launch {
+            drawerState.close()
+        }
+    }
+
     val canvasState = rememberCanvasState(viewModel)
     val buttonsState = rememberSaveable {
         ButtonsState(
@@ -59,12 +66,6 @@ fun BoxesMain(
         rememberSaveable(project?.project?.columns, project?.project?.rows) {
             SelectionState()
         })
-
-    BackHandler(drawerState.isOpen) {
-        scope.launch {
-            drawerState.close()
-        }
-    }
 
     DefaultContainer(
         title = project?.project?.name.orEmpty(),
@@ -370,78 +371,87 @@ private fun AdditionalButtonBar(
     rows: Int,
     onAction: (Action) -> Unit
 ) {
-    AnimatedContent(targetState = buttonsState) {
-        when {
-            buttonsState.selectToolSelectedState -> IconSelectableMenuButton(
-                modifier = Modifier.padding(top = 56.dp),
-                onClick = { onAction(Action.SelectTool) },
-                isSelected = { buttonsState.selectToolSelectedState },
-                drawableResOn = R.drawable.ic_select_all_24,
-                drawableResOff = R.drawable.ic_deselect_24
-            )
-            buttonsState.eraserSelectedState -> IconSelectableMenuButton(
-                modifier = Modifier.padding(top = 56.dp),
-                onClick = { onAction(Action.Eraser) },
-                isSelected = { buttonsState.eraserSelectedState },
-                drawableResOn = R.drawable.ic_eraser_on_24,
-                drawableResOff = R.drawable.ic_eraser_off_24
-            )
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 56.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        AnimatedContent(targetState = buttonsState) {
+            when {
+                buttonsState.selectToolSelectedState -> IconSelectableMenuButton(
+                    modifier = Modifier,
+                    onClick = { onAction(Action.SelectTool) },
+                    isSelected = { buttonsState.selectToolSelectedState },
+                    drawableResOn = R.drawable.ic_select_all_24,
+                    drawableResOff = R.drawable.ic_deselect_24
+                )
+                buttonsState.eraserSelectedState -> IconSelectableMenuButton(
+                    modifier = Modifier,
+                    onClick = { onAction(Action.Eraser) },
+                    isSelected = { buttonsState.eraserSelectedState },
+                    drawableResOn = R.drawable.ic_eraser_on_24,
+                    drawableResOff = R.drawable.ic_eraser_off_24
+                )
+            }
         }
-    }
-    FadeAnimatedVisibility(visible = buttonsState.selectToolSelectedState) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 56.dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            val enabled by remember { derivedStateOf { selectionState.bottomRightState != null && selectionState.topLeftState != null }}
+        if (buttonsState.selectToolSelectedState) {
+            val enabled by remember { derivedStateOf { selectionState.bottomRightState != null && selectionState.topLeftState != null } }
             val isAtLeftEdge by remember {
                 derivedStateOf {
                     selectionState.bottomRightState?.x == 0 ||
                             selectionState.topLeftState?.x == 0
                 }
             }
-            IconMenuButton(
-                enabled = !isAtLeftEdge && enabled,
-                onClick = { onAction(Action.Move(Direction.LEFT)) },
-                drawableRes = R.drawable.ic_arrow_back_24
-            )
-            Column {
-                val isAtTopEdge by remember {
+            Spacer(modifier = Modifier.weight(1F))
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconMenuButton(
+                    enabled = !isAtLeftEdge && enabled,
+                    onClick = { onAction(Action.Move(Direction.LEFT)) },
+                    drawableRes = R.drawable.ic_arrow_back_24
+                )
+                Column {
+                    val isAtTopEdge by remember {
+                        derivedStateOf {
+                            selectionState.bottomRightState?.y == 0 ||
+                                    selectionState.topLeftState?.y == 0
+                        }
+                    }
+                    IconMenuButton(
+                        enabled = !isAtTopEdge && enabled,
+                        onClick = { onAction(Action.Move(Direction.UP)) },
+                        drawableRes = R.drawable.ic_arrow_upward_24
+                    )
+                    val isAtBottomEdge by remember {
+                        derivedStateOf {
+                            selectionState.bottomRightState?.y == (rows - 1) ||
+                                    selectionState.topLeftState?.y == (rows - 1)
+                        }
+                    }
+                    IconMenuButton(
+                        enabled = !isAtBottomEdge && enabled,
+                        onClick = { onAction(Action.Move(Direction.DOWN)) },
+                        drawableRes = R.drawable.ic_arrow_downward_24
+                    )
+                }
+                val isAtRightEdge by remember {
                     derivedStateOf {
-                        selectionState.bottomRightState?.y == 0 ||
-                                selectionState.topLeftState?.y == 0
+                        selectionState.bottomRightState?.x == (columns - 1) ||
+                                selectionState.topLeftState?.x == (columns - 1)
                     }
                 }
                 IconMenuButton(
-                    enabled = !isAtTopEdge && enabled,
-                    onClick = { onAction(Action.Move(Direction.UP)) },
-                    drawableRes = R.drawable.ic_arrow_upward_24
-                )
-                val isAtBottomEdge by remember {
-                    derivedStateOf {
-                        selectionState.bottomRightState?.y == (rows - 1) ||
-                                selectionState.topLeftState?.y == (rows - 1)
-                    }
-                }
-                IconMenuButton(
-                    enabled = !isAtBottomEdge && enabled,
-                    onClick = { onAction(Action.Move(Direction.DOWN)) },
-                    drawableRes = R.drawable.ic_arrow_downward_24
+                    enabled = !isAtRightEdge && enabled,
+                    onClick = { onAction(Action.Move(Direction.RIGHT)) },
+                    drawableRes = R.drawable.ic_arrow_forward_24
                 )
             }
-            val isAtRightEdge by remember {
-                derivedStateOf {
-                    selectionState.bottomRightState?.x == (columns - 1) ||
-                            selectionState.topLeftState?.x == (columns - 1)
-                }
-            }
+            Spacer(modifier = Modifier.weight(1F))
             IconMenuButton(
-                enabled = !isAtRightEdge && enabled,
-                onClick = { onAction(Action.Move(Direction.RIGHT)) },
-                drawableRes = R.drawable.ic_arrow_forward_24
+                onClick = { onAction(Action.ClearSelect) },
+                drawableRes = R.drawable.ic_close_24
             )
         }
     }
@@ -539,6 +549,7 @@ private fun handleAction(
             export = true
         )
         is Action.SelectTool -> buttonsState.toggleSelectTool()
+        is Action.ClearSelect -> selectionState.clear()
         is Action.Move -> {
             scope.launch {
                 safeLet(selectionState.topLeftState, selectionState.bottomRightState) { tl, br ->

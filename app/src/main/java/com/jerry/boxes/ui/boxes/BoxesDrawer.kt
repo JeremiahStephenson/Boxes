@@ -22,7 +22,7 @@ import com.jerry.boxes.R
 import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.boxes.state.ButtonsState
 import com.jerry.boxes.ui.boxes.state.CanvasState
-import com.jerry.boxes.ui.boxes.state.TapType
+import com.jerry.boxes.ui.boxes.state.enums.TapType
 import com.jerry.boxes.ui.common.IconMenuButton
 import com.jerry.boxes.ui.common.IconSelectableMenuButton
 import com.jerry.boxes.ui.common.SetNameDialog

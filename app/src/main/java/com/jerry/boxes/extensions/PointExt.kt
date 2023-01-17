@@ -1,7 +1,7 @@
 package com.jerry.boxes.extensions
 
 import android.graphics.Point
-import com.jerry.boxes.ui.boxes.state.Direction
+import com.jerry.boxes.ui.boxes.state.enums.Direction
 
 fun Point.isNotOutside(columns: Int, rows: Int) =
     x >= 0 && x <= (columns - 1) && y >= 0 && y <= (rows - 1)

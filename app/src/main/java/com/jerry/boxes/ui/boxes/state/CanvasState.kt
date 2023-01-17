@@ -16,6 +16,7 @@ import com.jerry.boxes.ui.boxes.SerializableColor
 import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.boxes.generateBoxes
 import com.jerry.boxes.ui.boxes.history.UserHistory
+import com.jerry.boxes.ui.boxes.state.enums.Direction
 import com.jerry.boxes.ui.shapes.Shape
 import com.jerry.boxes.util.DataResource
 import kotlin.math.max

@@ -23,7 +23,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
-import com.jerry.boxes.extensions.isNotOutside
+import com.jerry.boxes.extensions.findBox
+import com.jerry.boxes.extensions.findBoxes
 import com.jerry.boxes.extensions.safeLet
 import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.boxes.state.ButtonsState
@@ -31,8 +32,8 @@ import com.jerry.boxes.ui.boxes.state.CanvasState
 import com.jerry.boxes.ui.boxes.state.SelectionState
 import com.jerry.boxes.ui.common.LocalAppBarHeight
 import com.jerry.boxes.ui.common.pngBackground
+import timber.log.Timber
 import kotlin.math.abs
-import kotlin.math.floor
 import kotlin.math.pow
 import kotlin.math.sqrt
 
@@ -94,41 +95,34 @@ fun BoxCanvas(
                 onDragStart = {
                     if (state.isTransformInProgress) return@detectDragGestures
                     when (buttonsState.selectToolSelectedState) {
-                        true -> {
-                            val test = it.findBox(
-                                scaleState,
-                                offsetState,
-                                sizeState,
-                                columnsState,
-                                rowsState,
-                                canvasState.boxes
-                            )
-                            selectionState.setTopLeft(test)
-                        }
+                        true -> selectionState.startSelection(
+                            it,
+                            scaleState,
+                            offsetState,
+                            sizeState,
+                            columnsState,
+                            rowsState,
+                            canvasState.boxes
+                        )
                         else -> onDragStart()
                     }
                 },
                 onDragEnd = {
-                    when (buttonsState.selectToolSelectedState) {
-                        true -> {
-                            // todo
-                        }
-                        else -> onDragEnd()
+                    if (!buttonsState.selectToolSelectedState) {
+                        onDragEnd()
                     }
                 },
                 onDragCancel = {
-                    when (buttonsState.selectToolSelectedState) {
-                        true -> {
-                            // todo
-                        }
-                        else -> onDragEnd()
+                    if (!buttonsState.selectToolSelectedState) {
+                        onDragEnd()
                     }
                 },
                 onDrag = { position, change ->
                     if (state.isTransformInProgress) return@detectDragGestures
                     when (buttonsState.selectToolSelectedState) {
                         true -> {
-                            val test = position.position.findBox(
+                            selectionState.updateSelection(
+                                position.position,
                                 scaleState,
                                 offsetState,
                                 sizeState,
@@ -136,7 +130,6 @@ fun BoxCanvas(
                                 rowsState,
                                 canvasState.boxes
                             )
-                            selectionState.setBottomRight(test)
                         }
                         else -> onDrag(
                             getDragPoints(canvasState, change, position).findBoxes(
@@ -157,7 +150,6 @@ fun BoxCanvas(
             lockRotationOnZoomPan = true
         )
     ) {
-
         SelectionsBoxes(
             scale = scale,
             offset = offset,
@@ -255,7 +247,7 @@ fun SelectionTool(
     selectionState: SelectionState
 ) {
     val highlightColor = MaterialTheme.colorScheme.primary
-    val stroke = with(LocalDensity.current) { 4.dp.toPx() }
+    val stroke = with(LocalDensity.current) { 5.dp.toPx() }
     Canvas(
         modifier = Modifier
             .fillMaxSize()
@@ -270,17 +262,18 @@ fun SelectionTool(
                 translationY = offset.y
             }
     ) {
+        Timber.d("SelectionTest - drawing")
         if (selectionState.topLeftState == null || selectionState.bottomRightState == null) return@Canvas
         safeLet(
             boxes[selectionState.topLeftState],
             boxes[selectionState.bottomRightState]
         ) { tl, br ->
             val adjustmentTopLeft = Offset(
-                when(br.left < tl.left) {
+                when (br.left < tl.left) {
                     true -> tl.right
                     else -> tl.left
                 },
-                when(br.top < tl.top) {
+                when (br.top < tl.top) {
                     true -> tl.bottom
                     else -> tl.top
                 }
@@ -410,62 +403,4 @@ private fun getDragPoints(
 
         add(position.position)
     }
-}
-
-private fun Offset.convert(scale: Float, offset: Offset, size: Constraints): Offset {
-    val centerX = ((size.maxWidth / 2F) - offset.x)
-    val centerY = ((size.maxHeight / 2F) - offset.y)
-    val point =
-        Offset(((x - centerX) * (1F / scale)) + centerX, ((y - centerY) * (1F / scale)) + centerY)
-    return point - (offset / scale)
-}
-
-private fun Offset.findBox(
-    scale: Float,
-    offset: Offset,
-    size: Constraints,
-    columns: Int,
-    rows: Int,
-    boxes: Map<Point, RectF>
-): Point? {
-    return boxes[Point(0, 0)]?.let {
-        val point = convert(scale, offset, size)
-        with(it.width()) {
-            Point(
-                floor((point.x - it.left) / this).toInt(),
-                floor((point.y - it.top) / this).toInt()
-            ).run {
-                when (this.isNotOutside(columns, rows)) {
-                    true -> this
-                    else -> null
-                }
-            }
-        }
-    }
-}
-
-private fun HashSet<Offset>.findBoxes(
-    scale: Float,
-    offset: Offset,
-    size: Constraints,
-    columns: Int,
-    rows: Int,
-    boxes: Map<Point, RectF>
-): HashSet<Point> {
-    return boxes[Point(0, 0)]?.let {
-        with(it.width()) {
-            mapNotNull { p ->
-                val point = p.convert(scale, offset, size)
-                Point(
-                    floor((point.x - it.left) / this).toInt(),
-                    floor((point.y - it.top) / this).toInt()
-                ).run {
-                    when (this.isNotOutside(columns, rows)) {
-                        true -> this
-                        else -> null
-                    }
-                }
-            }
-        }.distinct().toHashSet()
-    } ?: HashSet()
 }
