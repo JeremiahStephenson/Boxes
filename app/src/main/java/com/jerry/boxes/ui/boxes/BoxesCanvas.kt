@@ -13,8 +13,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
@@ -26,9 +28,9 @@ import com.jerry.boxes.extensions.safeLet
 import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.boxes.state.ButtonsState
 import com.jerry.boxes.ui.boxes.state.CanvasState
+import com.jerry.boxes.ui.boxes.state.SelectionState
 import com.jerry.boxes.ui.common.LocalAppBarHeight
 import com.jerry.boxes.ui.common.pngBackground
-import timber.log.Timber
 import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.pow
@@ -38,6 +40,7 @@ import kotlin.math.sqrt
 fun BoxCanvas(
     canvasState: CanvasState,
     buttonsState: ButtonsState,
+    selectionState: SelectionState,
     columns: Int,
     rows: Int,
     scale: Float,
@@ -88,21 +91,64 @@ fun BoxCanvas(
         }
         .pointerInput(appBarExpanded) {
             detectDragGestures(
-                onDragStart = { onDragStart() },
-                onDragEnd = { onDragEnd() },
-                onDragCancel = { onDragEnd() },
+                onDragStart = {
+                    if (state.isTransformInProgress) return@detectDragGestures
+                    when (buttonsState.selectToolSelectedState) {
+                        true -> {
+                            val test = it.findBox(
+                                scaleState,
+                                offsetState,
+                                sizeState,
+                                columnsState,
+                                rowsState,
+                                canvasState.boxes
+                            )
+                            selectionState.setTopLeft(test)
+                        }
+                        else -> onDragStart()
+                    }
+                },
+                onDragEnd = {
+                    when (buttonsState.selectToolSelectedState) {
+                        true -> {
+                            // todo
+                        }
+                        else -> onDragEnd()
+                    }
+                },
+                onDragCancel = {
+                    when (buttonsState.selectToolSelectedState) {
+                        true -> {
+                            // todo
+                        }
+                        else -> onDragEnd()
+                    }
+                },
                 onDrag = { position, change ->
                     if (state.isTransformInProgress) return@detectDragGestures
-                    onDrag(
-                        getDragPoints(canvasState, change, position).findBoxes(
-                            scaleState,
-                            offsetState,
-                            sizeState,
-                            columnsState,
-                            rowsState,
-                            canvasState.boxes
+                    when (buttonsState.selectToolSelectedState) {
+                        true -> {
+                            val test = position.position.findBox(
+                                scaleState,
+                                offsetState,
+                                sizeState,
+                                columnsState,
+                                rowsState,
+                                canvasState.boxes
+                            )
+                            selectionState.setBottomRight(test)
+                        }
+                        else -> onDrag(
+                            getDragPoints(canvasState, change, position).findBoxes(
+                                scaleState,
+                                offsetState,
+                                sizeState,
+                                columnsState,
+                                rowsState,
+                                canvasState.boxes
+                            )
                         )
-                    )
+                    }
                 }
             )
         }
@@ -133,6 +179,21 @@ fun BoxCanvas(
                 offset = offset,
                 size = sizeState,
                 canvasState = canvasState
+            )
+        }
+
+        LaunchedEffect(buttonsState.selectToolSelectedState) {
+            if (!buttonsState.selectToolSelectedState) {
+                selectionState.clear()
+            }
+        }
+        if (buttonsState.selectToolSelectedState) {
+            SelectionTool(
+                scale = scale,
+                offset = offset,
+                size = size,
+                boxes = canvasState.boxes,
+                selectionState = selectionState
             )
         }
     }
@@ -182,6 +243,68 @@ fun SelectionsBoxes(
             }
     ) {
         drawShapes(canvasState.layers, canvasState.selections, canvasState.boxes)
+    }
+}
+
+@Composable
+fun SelectionTool(
+    scale: Float,
+    offset: Offset,
+    size: Constraints,
+    boxes: Map<Point, RectF>,
+    selectionState: SelectionState
+) {
+    val highlightColor = MaterialTheme.colorScheme.primary
+    val stroke = with(LocalDensity.current) { 4.dp.toPx() }
+    Canvas(
+        modifier = Modifier
+            .fillMaxSize()
+            .graphicsLayer {
+                transformOrigin = TransformOrigin(
+                    ((size.maxWidth / 2F) - offset.x) / size.maxWidth,
+                    ((size.maxHeight / 2F) - offset.y) / size.maxHeight
+                )
+                scaleX = scale
+                scaleY = scale
+                translationX = offset.x
+                translationY = offset.y
+            }
+    ) {
+        if (selectionState.topLeftState == null || selectionState.bottomRightState == null) return@Canvas
+        safeLet(
+            boxes[selectionState.topLeftState],
+            boxes[selectionState.bottomRightState]
+        ) { tl, br ->
+            val adjustmentTopLeft = Offset(
+                when(br.left < tl.left) {
+                    true -> tl.right
+                    else -> tl.left
+                },
+                when(br.top < tl.top) {
+                    true -> tl.bottom
+                    else -> tl.top
+                }
+            )
+            val adjustmentBottomRight = Offset(
+                when (br.left < tl.left) {
+                    true -> br.left
+                    else -> br.right
+                },
+                when (br.top < tl.top) {
+                    true -> br.top
+                    else -> br.bottom
+                }
+            )
+            drawRect(
+                style = Stroke(width = stroke / scale),
+                color = highlightColor,
+                topLeft = adjustmentTopLeft,
+                size = Size(
+                    adjustmentBottomRight.x - adjustmentTopLeft.x,
+                    adjustmentBottomRight.y - adjustmentTopLeft.y
+                )
+            )
+        }
     }
 }
 

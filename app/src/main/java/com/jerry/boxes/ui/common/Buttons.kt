@@ -4,7 +4,6 @@ import androidx.annotation.DrawableRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -13,13 +12,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.jerry.boxes.ui.boxes.SerializableColor
 
 @Composable
 fun IconMenuButton(
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     onClick: () -> Unit,
     color: SerializableColor? = null,
     padding: PaddingValues = PaddingValues(16.dp),
@@ -28,13 +27,21 @@ fun IconMenuButton(
     Icon(
         modifier = Modifier
             .clip(CircleShape)
-            .clickable {
-                onClick()
+            .run {
+                when (enabled) {
+                    true -> clickable {
+                        onClick()
+                    }
+                    else -> this
+                }
             }
             .padding(padding)
             .then(modifier),
         painter = painterResource(drawableRes),
-        tint = color?.color ?: LocalContentColor.current,
+        tint = (color?.color ?: LocalContentColor.current).copy(alpha = when (enabled) {
+            true -> 1F
+            else -> 0.5F
+        }),
         contentDescription = null
     )
 }

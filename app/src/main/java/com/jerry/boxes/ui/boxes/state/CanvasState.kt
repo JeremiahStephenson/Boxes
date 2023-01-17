@@ -11,6 +11,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Constraints
 import com.godaddy.android.colorpicker.HsvColor
 import com.jerry.boxes.cache.data.HistoryItem
+import com.jerry.boxes.extensions.adjust
 import com.jerry.boxes.ui.boxes.SerializableColor
 import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.boxes.generateBoxes
@@ -67,7 +68,7 @@ class CanvasState(
         layerId: Long,
         points: HashSet<Point>
     ) {
-        val filtered = points.filter { !currentDragHistory.keys.contains(it) }
+        val filtered = points.filter { !currentDragHistory.keys.contains(it) }.toSet()
         val currentSelection = getCurrentSelections(filtered, layerId)
         filtered.forEach {
             if (!currentDragHistory.keys.contains(it)) {
@@ -131,6 +132,29 @@ class CanvasState(
         }
     }
 
+    fun move(topLeft: Point?, bottomRight: Point?, direction: Direction): UserHistory? {
+        if (topLeft == null || bottomRight == null) return null
+        val points = mutableListOf<Point>()
+        for (c in topLeft.x..bottomRight.x) {
+            for (r in topLeft.y..bottomRight.y) {
+                points.add(Point(c, r))
+            }
+        }
+        val layer = _selections[selectedLayer.id]
+        val aggregatedPoints = layer?.filterKeys { points.contains(it) }
+
+        val adjusted = aggregatedPoints?.map { entry ->
+            entry.key.adjust(direction) to entry.value
+        }?.toMap() ?: emptyMap()
+        val merged = aggregatedPoints?.keys?.union(adjusted.keys)?.toSet() ?: emptySet()
+        val history = UserHistory(selectedLayer.id, getCurrentSelections(merged, selectedLayer.id))
+        adjusted.takeIf { it.isNotEmpty() }?.let {
+            layer?.keys?.removeAll(merged)
+            layer?.putAll(adjusted)
+        }
+        return history
+    }
+
     fun fillInBoxes(
         size: Constraints,
         offset: Float,
@@ -176,7 +200,7 @@ class CanvasState(
     }
 
     private fun getCurrentSelections(
-        points: List<Point>,
+        points: Set<Point>,
         layerId: Long
     ): Map<Point, SerializableColor?> {
         return points.associateWith { _selections[layerId]?.get(it) }

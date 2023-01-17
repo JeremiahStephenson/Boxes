@@ -14,11 +14,15 @@ class ButtonsState(
     private val eraserSelected: Boolean,
     private val showPngBackground: Boolean,
     private val showGrid: Boolean,
-    private val colorPickerOn: Boolean
+    private val selectToolSelected: Boolean
 ) : Parcelable {
 
     @IgnoredOnParcel
     var eraserSelectedState by mutableStateOf(eraserSelected)
+        private set
+
+    @IgnoredOnParcel
+    var selectToolSelectedState by mutableStateOf(selectToolSelected)
         private set
 
     @IgnoredOnParcel
@@ -35,6 +39,7 @@ class ButtonsState(
 
     fun toggleEraserSelected() {
         eraserSelectedState = !eraserSelectedState
+        selectToolSelectedState = false
     }
 
     fun toggleShowPngBackground() {
@@ -45,8 +50,17 @@ class ButtonsState(
         showGridState = !showGridState
     }
 
+    fun toggleSelectTool() {
+        selectToolSelectedState = !selectToolSelectedState
+        eraserSelectedState = false
+    }
+
     fun turnOffEraser() {
         eraserSelectedState = false
+    }
+
+    fun turnOffSelectionTool() {
+        selectToolSelectedState = false
     }
 
     fun setTapType(tapType: TapType) {

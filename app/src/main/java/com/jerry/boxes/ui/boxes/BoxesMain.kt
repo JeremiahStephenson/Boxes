@@ -2,6 +2,7 @@ package com.jerry.boxes.ui.boxes
 
 import android.view.View
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -17,6 +18,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jerry.boxes.R
 import com.jerry.boxes.cache.data.ProjectAndLayers
+import com.jerry.boxes.extensions.safeLet
 import com.jerry.boxes.ui.boxes.history.UserHistory
 import com.jerry.boxes.ui.boxes.state.*
 import com.jerry.boxes.ui.common.*
@@ -24,6 +26,7 @@ import com.jerry.boxes.ui.destinations.CreateMainDestination
 import com.jerry.boxes.ui.destinations.LayersEditMainDestination
 import com.jerry.boxes.ui.shapes.Shape
 import com.jerry.boxes.util.CoroutineContextProvider
+import com.jerry.boxes.ui.boxes.state.Direction
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.CoroutineScope
@@ -49,9 +52,13 @@ fun BoxesMain(
             eraserSelected = false,
             showPngBackground = true,
             showGrid = true,
-            colorPickerOn = false
+            selectToolSelected = false
         )
     }
+    val selectionState by rememberUpdatedState(
+        rememberSaveable(project?.project?.columns, project?.project?.rows) {
+            SelectionState()
+        })
 
     BackHandler(drawerState.isOpen) {
         scope.launch {
@@ -110,6 +117,7 @@ fun BoxesMain(
                     transformerState,
                     drawerState,
                     colorAndShapeUpdatedState,
+                    selectionState,
                     project,
                     viewModel,
                     scope,
@@ -135,6 +143,7 @@ fun BoxesMain(
                     project = project!!,
                     canvasState = canvasState,
                     buttonsState = buttonsState,
+                    selectionState = selectionState,
                     transformerState = transformerState,
                     colorAndShapeState = colorAndShapeUpdatedState,
                     onAction = handleAction,
@@ -159,6 +168,7 @@ private fun MainCanvas(
     project: ProjectAndLayers,
     canvasState: CanvasState,
     buttonsState: ButtonsState,
+    selectionState: SelectionState,
     transformerState: TransformerState,
     colorAndShapeState: ColorAndShapeState,
     getUsedColorList: () -> List<SerializableColor>,
@@ -193,6 +203,7 @@ private fun MainCanvas(
             BoxCanvas(
                 canvasState = canvasState,
                 buttonsState = buttonsState,
+                selectionState = selectionState,
                 columns = project.project.columns,
                 rows = project.project.rows,
                 scale = scale,
@@ -264,15 +275,13 @@ private fun MainCanvas(
             getUsedColorList = getUsedColorList
         )
 
-        FadeAnimatedVisibility(visible = buttonsState.eraserSelectedState) {
-            IconSelectableMenuButton(
-                modifier = Modifier.padding(top = 56.dp),
-                onClick = { onAction(Action.Eraser) },
-                isSelected = { buttonsState.eraserSelectedState },
-                drawableResOn = R.drawable.ic_eraser_on_24,
-                drawableResOff = R.drawable.ic_eraser_off_24
-            )
-        }
+        AdditionalButtonBar(
+            buttonsState = buttonsState,
+            selectionState = selectionState,
+            columns = project.project.columns,
+            rows = project.project.rows,
+            onAction = onAction
+        )
     }
 }
 
@@ -353,12 +362,98 @@ private fun ButtonBar(
     }
 }
 
+@Composable
+private fun AdditionalButtonBar(
+    buttonsState: ButtonsState,
+    selectionState: SelectionState,
+    columns: Int,
+    rows: Int,
+    onAction: (Action) -> Unit
+) {
+    AnimatedContent(targetState = buttonsState) {
+        when {
+            buttonsState.selectToolSelectedState -> IconSelectableMenuButton(
+                modifier = Modifier.padding(top = 56.dp),
+                onClick = { onAction(Action.SelectTool) },
+                isSelected = { buttonsState.selectToolSelectedState },
+                drawableResOn = R.drawable.ic_select_all_24,
+                drawableResOff = R.drawable.ic_deselect_24
+            )
+            buttonsState.eraserSelectedState -> IconSelectableMenuButton(
+                modifier = Modifier.padding(top = 56.dp),
+                onClick = { onAction(Action.Eraser) },
+                isSelected = { buttonsState.eraserSelectedState },
+                drawableResOn = R.drawable.ic_eraser_on_24,
+                drawableResOff = R.drawable.ic_eraser_off_24
+            )
+        }
+    }
+    FadeAnimatedVisibility(visible = buttonsState.selectToolSelectedState) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 56.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            val enabled by remember { derivedStateOf { selectionState.bottomRightState != null && selectionState.topLeftState != null }}
+            val isAtLeftEdge by remember {
+                derivedStateOf {
+                    selectionState.bottomRightState?.x == 0 ||
+                            selectionState.topLeftState?.x == 0
+                }
+            }
+            IconMenuButton(
+                enabled = !isAtLeftEdge && enabled,
+                onClick = { onAction(Action.Move(Direction.LEFT)) },
+                drawableRes = R.drawable.ic_arrow_back_24
+            )
+            Column {
+                val isAtTopEdge by remember {
+                    derivedStateOf {
+                        selectionState.bottomRightState?.y == 0 ||
+                                selectionState.topLeftState?.y == 0
+                    }
+                }
+                IconMenuButton(
+                    enabled = !isAtTopEdge && enabled,
+                    onClick = { onAction(Action.Move(Direction.UP)) },
+                    drawableRes = R.drawable.ic_arrow_upward_24
+                )
+                val isAtBottomEdge by remember {
+                    derivedStateOf {
+                        selectionState.bottomRightState?.y == (rows - 1) ||
+                                selectionState.topLeftState?.y == (rows - 1)
+                    }
+                }
+                IconMenuButton(
+                    enabled = !isAtBottomEdge && enabled,
+                    onClick = { onAction(Action.Move(Direction.DOWN)) },
+                    drawableRes = R.drawable.ic_arrow_downward_24
+                )
+            }
+            val isAtRightEdge by remember {
+                derivedStateOf {
+                    selectionState.bottomRightState?.x == (columns - 1) ||
+                            selectionState.topLeftState?.x == (columns - 1)
+                }
+            }
+            IconMenuButton(
+                enabled = !isAtRightEdge && enabled,
+                onClick = { onAction(Action.Move(Direction.RIGHT)) },
+                drawableRes = R.drawable.ic_arrow_forward_24
+            )
+        }
+    }
+}
+
 private fun handleAction(
     canvasState: CanvasState,
     buttonsState: ButtonsState,
     transformerState: TransformerState,
     drawerState: DrawerState,
     colorAndShapeState: ColorAndShapeState,
+    selectionState: SelectionState,
     project: ProjectAndLayers?,
     viewModel: BoxesViewModel,
     scope: CoroutineScope,
@@ -405,6 +500,7 @@ private fun handleAction(
             }
         }
         is Action.Undo -> scope.launch {
+            buttonsState.turnOffSelectionTool()
             canvasState.onUndo(
                 canvasState.selectedLayer.id,
                 viewModel.getLastHistoryItem(canvasState.selectedLayer.id)
@@ -442,6 +538,21 @@ private fun handleAction(
             cc = cc,
             export = true
         )
+        is Action.SelectTool -> buttonsState.toggleSelectTool()
+        is Action.Move -> {
+            scope.launch {
+                safeLet(selectionState.topLeftState, selectionState.bottomRightState) { tl, br ->
+                    canvasState.move(
+                        tl,
+                        br,
+                        action.direction
+                    )?.let {
+                        viewModel.addToHistory(it)
+                        selectionState.move(action.direction)
+                    }
+                }
+            }
+        }
     }
 }
 

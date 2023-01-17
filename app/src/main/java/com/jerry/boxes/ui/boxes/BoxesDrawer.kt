@@ -106,6 +106,12 @@ fun DrawerMenu(
                     drawableResOn = R.drawable.ic_opacity_on_24,
                     drawableResOff = R.drawable.ic_opacity_off_24
                 )
+                IconSelectableMenuButton(
+                    onClick = { onAction(Action.SelectTool) },
+                    isSelected = { buttonsState.selectToolSelectedState },
+                    drawableResOn = R.drawable.ic_select_all_24,
+                    drawableResOff = R.drawable.ic_deselect_24
+                )
             }
         }
 
@@ -189,10 +195,12 @@ private fun LayerItem(
                     else -> this
                 }
             }
-            .background(when (layer.selected && layer.showControls) {
-                true -> MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.4F)
-                else -> Color.Transparent
-            })
+            .background(
+                when (layer.selected && layer.showControls) {
+                    true -> MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.4F)
+                    else -> Color.Transparent
+                }
+            )
             .padding(start = 16.dp)
             .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
