@@ -40,7 +40,7 @@ fun IconMenuButton(
         painter = painterResource(drawableRes),
         tint = (color?.color ?: LocalContentColor.current).copy(alpha = when (enabled) {
             true -> 1F
-            else -> 0.5F
+            else -> 0.3F
         }),
         contentDescription = null
     )

@@ -135,8 +135,8 @@ class CanvasState(
     fun move(topLeft: Point?, bottomRight: Point?, direction: Direction): UserHistory? {
         if (topLeft == null || bottomRight == null) return null
         val points = mutableListOf<Point>()
-        for (c in topLeft.x..bottomRight.x) {
-            for (r in topLeft.y..bottomRight.y) {
+        for (c in min(topLeft.x, bottomRight.x)..max(topLeft.x, bottomRight.x)) {
+            for (r in min(topLeft.y, bottomRight.y)..max(topLeft.y, bottomRight.y)) {
                 points.add(Point(c, r))
             }
         }
