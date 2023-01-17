@@ -32,7 +32,6 @@ import com.jerry.boxes.ui.boxes.state.CanvasState
 import com.jerry.boxes.ui.boxes.state.SelectionState
 import com.jerry.boxes.ui.common.LocalAppBarHeight
 import com.jerry.boxes.ui.common.pngBackground
-import timber.log.Timber
 import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -262,7 +261,6 @@ fun SelectionTool(
                 translationY = offset.y
             }
     ) {
-        Timber.d("SelectionTest - drawing")
         if (selectionState.topLeftState == null || selectionState.bottomRightState == null) return@Canvas
         safeLet(
             boxes[selectionState.topLeftState],

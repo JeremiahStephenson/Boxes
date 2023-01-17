@@ -27,6 +27,7 @@ import kotlin.math.roundToInt
 class CanvasState(
     layersState: State<List<LayerUi>>,
     private val loadingState: State<Boolean>,
+    private val historyCountState: State<Int>,
     private val snapShot: State<DataResource<SnapshotStateMap<Long, SnapshotStateMap<Point, SerializableColor>>>>
 ) {
     private val _boxes = mutableStateMapOf<Point, RectF>()
@@ -37,6 +38,7 @@ class CanvasState(
     val isLoading get() = snapShot.value.isLoading || loadingState.value
 
     val layers by layersState
+    val historyCount by historyCountState
 
     val boxes = _boxes as Map<Point, RectF>
 

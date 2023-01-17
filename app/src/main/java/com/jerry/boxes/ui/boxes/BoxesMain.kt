@@ -263,6 +263,7 @@ private fun MainCanvas(
             color = colorAndShapeState.colorState,
             shape = colorAndShapeState.shapeState,
             buttonsState = buttonsState,
+            canvasState = canvasState,
             onColorChosen = {
                 buttonsState.turnOffEraser()
                 colorAndShapeState.setColor(it)
@@ -291,6 +292,7 @@ private fun ButtonBar(
     color: SerializableColor,
     shape: Shape,
     buttonsState: ButtonsState,
+    canvasState: CanvasState,
     getUsedColorList: () -> List<SerializableColor>,
     onAction: (Action) -> Unit,
     onColorChosen: (SerializableColor) -> Unit,
@@ -350,6 +352,7 @@ private fun ButtonBar(
         Spacer(modifier = Modifier.weight(1F))
 
         IconMenuButton(
+            enabled = canvasState.historyCount > 0,
             onClick = { onAction(Action.Undo) },
             drawableRes = R.drawable.ic_undo_24
         )
@@ -604,7 +607,8 @@ private fun rememberCanvasState(viewModel: BoxesViewModel): CanvasState {
     val layerState = viewModel.layerStateFlow.collectAsStateWithLifecycle(emptyList())
     val pixelsState = viewModel.pixelsFlow.collectAsStateWithLifecycle()
     val loadingState = viewModel.loadingState.collectAsStateWithLifecycle()
-    return remember { CanvasState(layerState, loadingState, pixelsState) }
+    val historyCountState = viewModel.historyCountFlow.collectAsStateWithLifecycle(0)
+    return remember { CanvasState(layerState, loadingState, historyCountState, pixelsState) }
 }
 
 

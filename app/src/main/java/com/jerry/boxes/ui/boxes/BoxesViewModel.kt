@@ -93,7 +93,6 @@ class BoxesViewModel(
     val loadingState = _loading.asStateFlow()
 
     private var fillJob: Job? = null
-    private val fillMutex = Mutex()
 
     private val layerFlow = projectFlow.map { it?.layers }
     val layerStateFlow =
@@ -143,6 +142,10 @@ class BoxesViewModel(
                 )
             } ?: emptyList()
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(1000), emptyList())
+
+    val historyCountFlow = layerStateFlow.flatMapLatest { layers ->
+        layers.firstOrNull { it.selected }?.let { boxesDao.layerHistoryCount(it.id) } ?: emptyFlow()
+    }
 
     fun setLayerOnOrOff(layerId: Long, on: Boolean) {
         if (!on && (layerStateHandle?.count { it.value } ?: 0) <= 1) return
