@@ -80,12 +80,6 @@ fun DrawerMenu(
 
         item {
             ButtonSection(R.string.tools) {
-                IconSelectableMenuButton(
-                    onClick = { onAction(Action.Eraser) },
-                    isSelected = { buttonsState.eraserSelectedState },
-                    drawableResOn = R.drawable.ic_eraser_on_24,
-                    drawableResOff = R.drawable.ic_eraser_off_24
-                )
                 IconMenuButton(
                     onClick = { onAction(Action.SetTapType(TapType.PICKER)) },
                     drawableRes = R.drawable.ic_colorize_24
@@ -95,22 +89,24 @@ fun DrawerMenu(
                     drawableRes = R.drawable.ic_format_color_fill_24
                 )
                 IconSelectableMenuButton(
+                    onClick = { onAction(Action.Eraser) },
+                    isSelected = { buttonsState.eraserSelectedState },
+                    drawableResOn = R.drawable.ic_eraser_on_24
+                )
+                IconSelectableMenuButton(
                     onClick = { onAction(Action.ShowGrid) },
                     isSelected = { buttonsState.showGridState },
-                    drawableResOn = R.drawable.ic_grid_on_24,
-                    drawableResOff = R.drawable.ic_grid_off_24
+                    drawableResOn = R.drawable.ic_grid_on_24
                 )
                 IconSelectableMenuButton(
                     onClick = { onAction(Action.ShowPngBackground) },
                     isSelected = { buttonsState.showPngBackgroundState },
-                    drawableResOn = R.drawable.ic_opacity_on_24,
-                    drawableResOff = R.drawable.ic_opacity_off_24
+                    drawableResOn = R.drawable.ic_opacity_on_24
                 )
                 IconSelectableMenuButton(
                     onClick = { onAction(Action.SelectTool) },
                     isSelected = { buttonsState.selectToolSelectedState },
-                    drawableResOn = R.drawable.ic_select_all_24,
-                    drawableResOff = R.drawable.ic_deselect_24
+                    drawableResOn = R.drawable.ic_select_all_24
                 )
             }
         }
@@ -218,8 +214,8 @@ private fun LayerItem(
             IconSelectableMenuButton(
                 onClick = { onAction(Action.TurnOnOrOffLayer(!layer.on, layer.id)) },
                 isSelected = { layer.on },
-                drawableResOn = R.drawable.ic_visibility_on_24,
-                drawableResOff = R.drawable.ic_visibility_off_24,
+                drawableResOn = R.drawable.ic_visibility_off_24,
+                drawableResOff = R.drawable.ic_visibility_on_24,
                 isEnabled = { layer.visibilityEnabled }
             )
         }
@@ -251,7 +247,7 @@ private fun ButtonHeader(@StringRes title: Int) {
     Text(
         modifier = Modifier
             .padding(horizontal = 16.dp)
-            .padding(bottom = 8.dp),
+            .padding(vertical = 8.dp),
         text = stringResource(title)
     )
     Divider(modifier = Modifier.padding(horizontal = 16.dp))

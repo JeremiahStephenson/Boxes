@@ -1,6 +1,7 @@
 package com.jerry.boxes.ui.common
 
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
@@ -38,10 +39,14 @@ fun IconMenuButton(
             .padding(padding)
             .then(modifier),
         painter = painterResource(drawableRes),
-        tint = (color?.color ?: LocalContentColor.current).run { copy(alpha = when (enabled) {
-            true -> this.alpha
-            else -> 0.3F
-        })},
+        tint = (color?.color ?: LocalContentColor.current).run {
+            copy(
+                alpha = when (enabled) {
+                    true -> this.alpha
+                    else -> 0.3F
+                }
+            )
+        },
         contentDescription = null
     )
 }
@@ -53,10 +58,20 @@ fun IconSelectableMenuButton(
     isSelected: () -> Boolean,
     isEnabled: () -> Boolean = { true },
     @DrawableRes drawableResOn: Int,
-    @DrawableRes drawableResOff: Int
+    @DrawableRes drawableResOff: Int? = null,
 ) {
     Icon(
         modifier = modifier
+            .clip(CircleShape)
+            .run {
+                when (drawableResOff) {
+                    null -> when (isSelected()) {
+                        true -> background(MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.4F))
+                        else -> this
+                    }
+                    else -> this
+                }
+            }
             .run {
                 when (isEnabled()) {
                     true -> unboundClickable {
@@ -66,12 +81,15 @@ fun IconSelectableMenuButton(
                 }
             }
             .padding(16.dp),
-        painter = painterResource(
-            when (isSelected()) {
-                true -> drawableResOff
-                else -> drawableResOn
-            }
-        ),
+        painter = when (drawableResOff) {
+            null -> painterResource(drawableResOn)
+            else -> painterResource(
+                when (isSelected()) {
+                    true -> drawableResOff
+                    else -> drawableResOn
+                }
+            )
+        },
         contentDescription = null,
         tint = when (isEnabled()) {
             true -> MaterialTheme.colorScheme.onSurface

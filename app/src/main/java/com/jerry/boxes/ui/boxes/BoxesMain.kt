@@ -382,19 +382,15 @@ private fun AdditionalButtonBar(
     ) {
         AnimatedContent(targetState = buttonsState) {
             when {
-                buttonsState.selectToolSelectedState -> IconSelectableMenuButton(
+                buttonsState.selectToolSelectedState -> IconMenuButton(
                     modifier = Modifier,
                     onClick = { onAction(Action.SelectTool) },
-                    isSelected = { buttonsState.selectToolSelectedState },
-                    drawableResOn = R.drawable.ic_select_all_24,
-                    drawableResOff = R.drawable.ic_deselect_24
+                    drawableRes = R.drawable.ic_select_all_24
                 )
-                buttonsState.eraserSelectedState -> IconSelectableMenuButton(
+                buttonsState.eraserSelectedState -> IconMenuButton(
                     modifier = Modifier,
                     onClick = { onAction(Action.Eraser) },
-                    isSelected = { buttonsState.eraserSelectedState },
-                    drawableResOn = R.drawable.ic_eraser_on_24,
-                    drawableResOff = R.drawable.ic_eraser_off_24
+                    drawableRes = R.drawable.ic_eraser_on_24
                 )
             }
         }
