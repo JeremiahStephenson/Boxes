@@ -68,12 +68,13 @@ class CanvasState(
         }
 
     fun addToDragHistory(
+        points: HashSet<Point>,
         layerId: Long,
-        points: HashSet<Point>
+        checkColor: SerializableColor? = null
     ) {
         val filtered = points.filter { !currentDragHistory.keys.contains(it) }.toSet()
-        val currentSelection = getCurrentSelections(filtered, layerId)
-        filtered.forEach {
+        val currentSelection = getCurrentSelections(filtered, layerId, checkColor)
+        currentSelection.keys.forEach {
             if (!currentDragHistory.keys.contains(it)) {
                 currentDragHistory[it] = currentSelection[it]
             }
@@ -124,13 +125,12 @@ class CanvasState(
     fun onDrag(
         points: HashSet<Point>,
         layerId: Long,
-        currentColor: SerializableColor?,
-        currentShape: Shape?
+        currentColor: SerializableColor?
     ) {
         _selections.getOrPut(layerId) { mutableStateMapOf() }.let { map ->
-            when (val color = currentColor?.copy(shape = currentShape ?: Shape.Box)) {
+            when (currentColor) {
                 null -> map.keys.removeAll(points.toSet())
-                else -> map.putAll(points.associateWith { color })
+                else -> map.putAll(points.associateWith { currentColor })
             }
         }
     }
@@ -204,8 +204,9 @@ class CanvasState(
 
     private fun getCurrentSelections(
         points: Set<Point>,
-        layerId: Long
+        layerId: Long,
+        checkColor: SerializableColor? = null
     ): Map<Point, SerializableColor?> {
-        return points.associateWith { _selections[layerId]?.get(it) }
+        return points.associateWith { _selections[layerId]?.get(it) }.filterNot { it.value == checkColor }
     }
 }

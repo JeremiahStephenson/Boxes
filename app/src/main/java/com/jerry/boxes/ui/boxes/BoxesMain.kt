@@ -233,12 +233,16 @@ private fun MainCanvas(
                 },
                 onDrag = {
                     if (canvasState.hasLayersTurnedOn) {
-                        canvasState.addToDragHistory(currentLayer, it)
+                        val color = colorAndShapeState.colorState.copy(shape = colorAndShapeState.shapeState)
+                        canvasState.addToDragHistory(
+                            it,
+                            currentLayer,
+                            if (buttonsState.eraserSelectedState) null else color
+                        )
                         canvasState.onDrag(
                             it,
                             currentLayer,
-                            if (buttonsState.eraserSelectedState) null else colorAndShapeState.colorState,
-                            colorAndShapeState.shapeState
+                            if (buttonsState.eraserSelectedState) null else color
                         )
                     }
                 },
