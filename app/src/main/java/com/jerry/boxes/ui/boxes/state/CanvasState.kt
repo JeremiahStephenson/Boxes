@@ -143,7 +143,14 @@ class CanvasState(
             entry.key.adjust(direction) to entry.value
         }?.toMap() ?: emptyMap()
         val merged = aggregatedPoints?.keys?.union(adjusted.keys)?.toSet() ?: emptySet()
-        val history = UserHistory(selectedLayer.id, getCurrentSelections(merged, selectedLayer.id))
+        val history = UserHistory(
+            selectedLayer.id,
+            getCurrentSelections(
+                merged,
+                selectedLayer.id,
+                filter = false
+            )
+        )
         adjusted.takeIf { it.isNotEmpty() }?.let {
             layer?.keys?.removeAll(merged)
             layer?.putAll(adjusted)
@@ -198,8 +205,14 @@ class CanvasState(
     private fun getCurrentSelections(
         points: Set<Point>,
         layerId: Long,
-        checkColor: SerializableColor? = null
+        checkColor: SerializableColor? = null,
+        filter: Boolean = true
     ): Map<Point, SerializableColor?> {
-        return points.associateWith { _selections[layerId]?.get(it) }.filterNot { it.value == checkColor }
+        return points.associateWith { _selections[layerId]?.get(it) }.run {
+            when (filter) {
+                true -> filterNot { it.value == checkColor }
+                else -> this
+            }
+        }
     }
 }
