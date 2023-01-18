@@ -178,6 +178,9 @@ fun BoxCanvas(
                 selectionState.clear()
             }
         }
+        LaunchedEffect(rowsState, columnsState) {
+            selectionState.checkRowsAndColumns(columnsState, rowsState)
+        }
         if (buttonsState.selectToolSelectedState) {
             SelectionTool(
                 scale = scale,

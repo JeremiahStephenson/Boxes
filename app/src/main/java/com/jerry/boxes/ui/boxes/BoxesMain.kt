@@ -62,11 +62,7 @@ fun BoxesMain(
             selectToolSelected = false
         )
     }
-    val selectionState by rememberUpdatedState(
-        rememberSaveable(project?.project?.columns, project?.project?.rows) {
-            SelectionState()
-        })
-
+    val selectionState = rememberSaveable { SelectionState() }
     DefaultContainer(
         title = project?.project?.name.orEmpty(),
         disableAppbarScroll = true,

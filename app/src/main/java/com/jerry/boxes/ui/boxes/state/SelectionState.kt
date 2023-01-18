@@ -23,7 +23,7 @@ import kotlin.math.min
 @Stable
 class SelectionState(
     private val topLeft: Point? = null,
-    private val bottomRight: Point? = null
+    private val bottomRight: Point? = null,
 ) : Parcelable {
 
     @IgnoredOnParcel
@@ -147,6 +147,16 @@ class SelectionState(
                 setBottomRight(Point(br.x, point.y))
             }
             else -> {}
+        }
+    }
+
+    fun checkRowsAndColumns(columns: Int, rows: Int) {
+        if (topLeftState == null || bottomRightState == null) return
+        if (
+            max(topLeftState!!.x, bottomRightState!!.x) > (columns - 1) ||
+            max(topLeftState!!.y, bottomRightState!!.y) > (rows - 1)
+        ) {
+            clear()
         }
     }
 
