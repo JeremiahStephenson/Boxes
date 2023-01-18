@@ -398,8 +398,8 @@ private fun AdditionalButtonBar(
             val enabled by remember { derivedStateOf { selectionState.bottomRightState != null && selectionState.topLeftState != null } }
             val isAtLeftEdge by remember {
                 derivedStateOf {
-                    selectionState.bottomRightState?.x == 0 ||
-                            selectionState.topLeftState?.x == 0
+                    (selectionState.bottomRightState?.x ?: 0) <= 0 ||
+                            (selectionState.topLeftState?.x ?: 0) <= 0
                 }
             }
             Spacer(modifier = Modifier.weight(1F))
@@ -414,8 +414,8 @@ private fun AdditionalButtonBar(
                 Column {
                     val isAtTopEdge by remember {
                         derivedStateOf {
-                            selectionState.bottomRightState?.y == 0 ||
-                                    selectionState.topLeftState?.y == 0
+                            (selectionState.bottomRightState?.y ?: 0) <= 0 ||
+                                    (selectionState.topLeftState?.y ?: 0) <= 0
                         }
                     }
                     IconMenuButton(
@@ -425,8 +425,8 @@ private fun AdditionalButtonBar(
                     )
                     val isAtBottomEdge by remember {
                         derivedStateOf {
-                            selectionState.bottomRightState?.y == (rows - 1) ||
-                                    selectionState.topLeftState?.y == (rows - 1)
+                            (selectionState.bottomRightState?.y ?: 0) >= (rows - 1) ||
+                                    (selectionState.topLeftState?.y ?: 0) >= (rows - 1)
                         }
                     }
                     IconMenuButton(
@@ -437,8 +437,8 @@ private fun AdditionalButtonBar(
                 }
                 val isAtRightEdge by remember {
                     derivedStateOf {
-                        selectionState.bottomRightState?.x == (columns - 1) ||
-                                selectionState.topLeftState?.x == (columns - 1)
+                        (selectionState.bottomRightState?.x ?: 0) >= (columns - 1) ||
+                                (selectionState.topLeftState?.x ?: 0) >= (columns - 1)
                     }
                 }
                 IconMenuButton(
