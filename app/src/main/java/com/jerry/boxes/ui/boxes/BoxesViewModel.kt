@@ -264,10 +264,7 @@ class BoxesViewModel(
                     layer.key,
                     it.key.x,
                     it.key.y,
-                    it.value!!.hue,
-                    it.value!!.saturation,
-                    it.value!!.value,
-                    it.value!!.alpha,
+                    it.value!!.color.toArgb(),
                     it.value!!.shape,
                     now
                 )

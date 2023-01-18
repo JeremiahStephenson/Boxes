@@ -1,9 +1,11 @@
 package com.jerry.boxes.cache.data
 
+import androidx.compose.ui.graphics.Color
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.godaddy.android.colorpicker.HsvColor
 import com.jerry.boxes.ui.boxes.SerializableColor
 import com.jerry.boxes.ui.shapes.Shape
 import java.io.Serializable
@@ -22,10 +24,7 @@ data class Pixel(
     val layerId: Long,
     val x: Int,
     val y: Int,
-    val hue: Float,
-    val saturation: Float,
-    val value: Float,
-    val alpha: Float,
+    val color: Int,
     val shape: Shape,
     val timeStamp: Long
 ) : Serializable {
@@ -36,5 +35,13 @@ data class Pixel(
         const val TABLE_NAME = "pixel"
     }
 
-    val asSerializableColor get() = SerializableColor(hue, saturation, value, alpha, shape)
+    val asSerializableColor get() = with(HsvColor.from(Color(color))) {
+        SerializableColor(
+            this.hue,
+            this.saturation,
+            this.value,
+            this.alpha,
+            shape
+        )
+    }
 }
