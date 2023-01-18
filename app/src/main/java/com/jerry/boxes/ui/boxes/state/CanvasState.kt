@@ -7,9 +7,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Constraints
-import com.godaddy.android.colorpicker.HsvColor
 import com.jerry.boxes.cache.data.HistoryItem
 import com.jerry.boxes.extensions.adjust
 import com.jerry.boxes.ui.boxes.SerializableColor
@@ -88,15 +86,10 @@ class CanvasState(
             layer.apply {
                 this.remove(Point(item.x, item.y))
                 item.color?.let {
-                    this[Point(item.x, item.y)] = with(HsvColor.from(Color(item.color))) {
-                        SerializableColor(
-                            this.hue,
-                            this.saturation,
-                            this.value,
-                            this.alpha,
-                            item.shape ?: Shape.Box
-                        )
-                    }
+                    this[Point(item.x, item.y)] = SerializableColor(
+                        item.color,
+                        item.shape ?: Shape.Box
+                    )
                 }
             }
         }

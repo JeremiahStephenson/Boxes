@@ -38,10 +38,10 @@ fun IconMenuButton(
             .padding(padding)
             .then(modifier),
         painter = painterResource(drawableRes),
-        tint = (color?.color ?: LocalContentColor.current).copy(alpha = when (enabled) {
-            true -> 1F
+        tint = (color?.color ?: LocalContentColor.current).run { copy(alpha = when (enabled) {
+            true -> this.alpha
             else -> 0.3F
-        }),
+        })},
         contentDescription = null
     )
 }

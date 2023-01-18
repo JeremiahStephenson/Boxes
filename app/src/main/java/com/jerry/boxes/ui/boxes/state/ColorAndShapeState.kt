@@ -7,8 +7,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import com.godaddy.android.colorpicker.HsvColor
-import com.jerry.boxes.extensions.asSerializableColor
 import com.jerry.boxes.ui.boxes.SerializableColor
 import com.jerry.boxes.ui.shapes.Shape
 import kotlinx.parcelize.IgnoredOnParcel
@@ -22,9 +20,7 @@ class ColorAndShapeState(
 ) : Parcelable {
     @IgnoredOnParcel
     var colorState by mutableStateOf(
-        HsvColor.from(
-            Color(color ?: Color.Green.toArgb())
-        ).asSerializableColor
+        SerializableColor(color ?: Color.Green.toArgb())
     )
         private set
 

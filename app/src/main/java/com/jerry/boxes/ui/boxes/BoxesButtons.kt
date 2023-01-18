@@ -9,12 +9,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import com.godaddy.android.colorpicker.HsvColor
-import com.jerry.boxes.extensions.asSerializableColor
-import com.jerry.boxes.ui.shapes.Shape
 import com.jerry.boxes.ui.common.unboundClickable
+import com.jerry.boxes.ui.shapes.Shape
 
 @Composable
 fun ShapeOption(
@@ -24,7 +23,7 @@ fun ShapeOption(
     onClick: () -> Unit
 ) {
     val onSurface = MaterialTheme.colorScheme.onSurface
-    val shapeColor = color ?: HsvColor.from(onSurface).asSerializableColor
+    val shapeColor = (color ?: SerializableColor(onSurface.toArgb())).copy(shape = shape)
     val size = with(LocalDensity.current) { 24.dp.toPx() }
     val stroke = with(LocalDensity.current) { 1.dp.toPx() }
     Canvas(
@@ -38,13 +37,7 @@ fun ShapeOption(
     ) {
         drawCustomShape(
             RectF(0F, 0F, size, size),
-            SerializableColor(
-                shapeColor.hue,
-                shapeColor.saturation,
-                shapeColor.value,
-                shapeColor.alpha,
-                shape
-            )
+            shapeColor
         )
         drawRect(
             color = onSurface.copy(alpha = 0.4F),
