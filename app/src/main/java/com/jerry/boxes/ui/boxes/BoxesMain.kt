@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jerry.boxes.R
+import com.jerry.boxes.cache.data.Project
 import com.jerry.boxes.cache.data.ProjectAndLayers
 import com.jerry.boxes.extensions.safeLet
 import com.jerry.boxes.ui.boxes.history.UserHistory
@@ -109,7 +110,7 @@ fun BoxesMain(
                     transformerState,
                     drawerState,
                     selectionState,
-                    project,
+                    project?.project,
                     viewModel,
                     scope,
                     cc,
@@ -134,7 +135,7 @@ fun BoxesMain(
 
             if (projectNotNull) {
                 MainCanvas(
-                    project = project!!,
+                    project = project!!.project,
                     canvasState = canvasState,
                     buttonsState = buttonsState,
                     selectionState = selectionState,
@@ -158,7 +159,7 @@ fun BoxesMain(
 
 @Composable
 private fun MainCanvas(
-    project: ProjectAndLayers,
+    project: Project,
     canvasState: CanvasState,
     buttonsState: ButtonsState,
     selectionState: SelectionState,
@@ -175,12 +176,12 @@ private fun MainCanvas(
         val size = this.constraints
         val contentOffset = LocalAppBarHeight.current
         val appBarExpanded by remember { derivedStateOf { contentOffset.value == 0F } }
-        LaunchedEffect(project.project.rows, project.project.columns, appBarExpanded) {
+        LaunchedEffect(project.rows, project.columns, appBarExpanded) {
             canvasState.fillInBoxes(
                 size,
                 buttonBarOffset,
-                project.project.columns,
-                project.project.rows
+                project.columns,
+                project.rows
             )
         }
 
@@ -197,7 +198,7 @@ private fun MainCanvas(
                 canvasState = canvasState,
                 buttonsState = buttonsState,
                 selectionState = selectionState,
-                project = project.project,
+                project = project,
                 scale = scale,
                 offset = offset,
                 size = size,
@@ -218,8 +219,8 @@ private fun MainCanvas(
                                 canvasState.onTap(
                                     point,
                                     currentLayer,
-                                    projectState.project.serializableColor,
-                                    projectState.project.currentShape
+                                    projectState.serializableColor,
+                                    projectState.currentShape
                                 )
                             }
                             TapType.FILL -> onAction(Action.Fill(point, currentLayer))
@@ -228,8 +229,8 @@ private fun MainCanvas(
                 },
                 onDrag = {
                     if (canvasState.hasLayersTurnedOn) {
-                        val color = projectState.project.serializableColor
-                            .copy(shape = projectState.project.currentShape)
+                        val color = projectState.serializableColor
+                            .copy(shape = projectState.currentShape)
                         canvasState.addToDragHistory(
                             it,
                             currentLayer,
@@ -256,8 +257,8 @@ private fun MainCanvas(
         }
 
         ButtonBar(
-            getColor = { project.project.serializableColor },
-            getShape = { project.project.currentShape },
+            getColor = { project.serializableColor },
+            getShape = { project.currentShape },
             buttonsState = buttonsState,
             canvasState = canvasState,
             onColorChosen = {
@@ -276,8 +277,8 @@ private fun MainCanvas(
         AdditionalButtonBar(
             buttonsState = buttonsState,
             selectionState = selectionState,
-            columns = project.project.columns,
-            rows = project.project.rows,
+            columns = project.columns,
+            rows = project.rows,
             onAction = onAction
         )
     }
@@ -337,20 +338,26 @@ private fun ButtonBar(
             shapePicker = true
         }
 
+        val tapTypeState by remember {
+            derivedStateOf {
+                when (buttonsState.tapTypeState) {
+                    TapType.PICKER -> R.drawable.ic_colorize_24
+                    TapType.FILL -> R.drawable.ic_format_color_fill_24
+                    else -> R.drawable.ic_brush_24
+                }
+            }
+        }
         IconMenuButton(
             onClick = { buttonsState.alternateTapType() },
             color = getColor(),
-            drawableRes = when (buttonsState.tapTypeState) {
-                TapType.PICKER -> R.drawable.ic_colorize_24
-                TapType.FILL -> R.drawable.ic_format_color_fill_24
-                else -> R.drawable.ic_brush_24
-            }
+            drawableRes = tapTypeState
         )
 
         Spacer(modifier = Modifier.weight(1F))
 
+        val historyEnabled by remember { derivedStateOf { canvasState.historyCount > 0 } }
         IconMenuButton(
-            enabled = canvasState.historyCount > 0,
+            enabled = historyEnabled,
             onClick = { onAction(Action.Undo) },
             drawableRes = R.drawable.ic_undo_24
         )
@@ -462,7 +469,7 @@ private fun handleAction(
     transformerState: TransformerState,
     drawerState: DrawerState,
     selectionState: SelectionState,
-    project: ProjectAndLayers?,
+    project: Project?,
     viewModel: BoxesViewModel,
     scope: CoroutineScope,
     cc: CoroutineContextProvider,
@@ -475,10 +482,10 @@ private fun handleAction(
             viewModel.fill(
                 action.point,
                 action.layerId,
-                SerializableColor(project?.project?.currentColor ?: Color.Green.toArgb()),
-                project?.project?.currentShape ?: Shape.Box,
-                project?.project?.columns ?: 0,
-                project?.project?.rows ?: 0
+                SerializableColor(project?.currentColor ?: Color.Green.toArgb()),
+                project?.currentShape ?: Shape.Box,
+                project?.columns ?: 0,
+                project?.rows ?: 0
             )
         }
         is Action.Eraser -> buttonsState.toggleEraserSelected()
@@ -486,7 +493,6 @@ private fun handleAction(
         is Action.Save -> {
             saveProject(
                 canvasState,
-                buttonsState,
                 project,
                 viewModel,
                 cc,
@@ -517,32 +523,34 @@ private fun handleAction(
         is Action.AddToHistory -> scope.launch {
             viewModel.addToHistory(action.historyItem)
         }
-        is Action.ShowPngBackground -> viewModel.updateProjectShowPngBg(!(project?.project?.showPngBg ?: false))
-        is Action.ShowGrid -> viewModel.updateProjectShowGrid(!(project?.project?.showGrid ?: false))
+        is Action.ShowPngBackground -> viewModel.updateProjectShowPngBg(
+            !(project?.showPngBg ?: false)
+        )
+        is Action.ShowGrid -> viewModel.updateProjectShowGrid(!(project?.showGrid ?: false))
         is Action.SetColor -> viewModel.updateProjectColor(action.color)
         is Action.SetShape -> viewModel.updateProjectShape(action.shape)
         is Action.ResetZoom -> transformerState.reset(scope)
         is Action.Edit -> {
             scope.launch { drawerState.close() }
-            navController.navigate(CreateMainDestination(project?.project?.id))
+            navController.navigate(CreateMainDestination(project?.id))
         }
         is Action.AddLayer ->
             viewModel.addLayer(
                 name = action.name,
-                index = (project?.layers?.maxOf { it.index } ?: -1) + 1,
+                index = (canvasState.layers.maxOf { it.index } ?: -1) + 1,
                 selections = canvasState.selections
             )
         is Action.TurnOnOrOffLayer -> viewModel.setLayerOnOrOff(action.layerId, action.on)
         is Action.AddColorToUsedList -> scope.launch { viewModel.addUsedColor(action.color) }
-        is Action.GoToLayerEdit -> project?.project?.id?.let {
+        is Action.GoToLayerEdit -> project?.id?.let {
             navController.navigate(LayersEditMainDestination(it))
         }
         is Action.Export -> exportCanvas(
             rootView = rootView,
             imageSize = action.size,
-            projectId = project?.project?.id ?: 0,
-            rows = project?.project?.rows ?: 0,
-            columns = project?.project?.columns ?: 0,
+            projectId = project?.id ?: 0,
+            rows = project?.rows ?: 0,
+            columns = project?.columns ?: 0,
             layers = canvasState.layers,
             selections = canvasState.selections,
             cc = cc,
@@ -569,8 +577,7 @@ private fun handleAction(
 
 private fun saveProject(
     canvasState: CanvasState,
-    buttonsState: ButtonsState,
-    project: ProjectAndLayers?,
+    project: Project?,
     viewModel: BoxesViewModel,
     cc: CoroutineContextProvider,
     rootView: View,
@@ -581,9 +588,9 @@ private fun saveProject(
         exportCanvas(
             rootView = rootView,
             imageSize = 100F,
-            projectId = project?.project?.id ?: 0,
-            rows = project?.project?.rows ?: 0,
-            columns = project?.project?.columns ?: 0,
+            projectId = project?.id ?: 0,
+            rows = project?.rows ?: 0,
+            columns = project?.columns ?: 0,
             layers = canvasState.layers.map { it.copy(on = true) },
             selections = canvasState.selections,
             cc = cc,
