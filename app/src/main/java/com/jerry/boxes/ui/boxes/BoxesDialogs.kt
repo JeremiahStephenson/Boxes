@@ -26,7 +26,7 @@ import androidx.compose.ui.window.DialogProperties
 import com.godaddy.android.colorpicker.ClassicColorPicker
 import com.godaddy.android.colorpicker.HsvColor
 import com.jerry.boxes.R
-import com.jerry.boxes.extensions.asSerializableColor
+import com.jerry.boxes.extensions.asColorAndShape
 import com.jerry.boxes.ui.common.pngBackground
 import com.jerry.boxes.ui.common.unboundClickable
 import com.jerry.boxes.ui.shapes.Shape
@@ -34,9 +34,9 @@ import com.jerry.boxes.ui.shapes.Shape
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ColorPickerDialog(
-    color: SerializableColor,
-    usedColors: List<SerializableColor>,
-    onColorChosen: (SerializableColor) -> Unit,
+    color: ColorAndShape,
+    usedColors: List<ColorAndShape>,
+    onColorChosen: (ColorAndShape) -> Unit,
     onDismiss: () -> Unit
 ) {
     val isPortrait = LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT
@@ -134,7 +134,7 @@ fun ColorPickerDialog(
                             .height(height)
                             .padding(horizontal = 16.dp),
                         onColorChanged = { color: HsvColor ->
-                            currentColor = color.asSerializableColor
+                            currentColor = color.asColorAndShape
                         }
                     )
                 }
@@ -235,8 +235,8 @@ private fun CloseColorButton(
 @Composable
 private fun ColorBox(
     size: Float,
-    color: SerializableColor,
-    onColorChosen: (SerializableColor) -> Unit,
+    color: ColorAndShape,
+    onColorChosen: (ColorAndShape) -> Unit,
     onDismiss: () -> Unit
 ) {
     Box {
@@ -257,7 +257,7 @@ private fun ColorBox(
 
 @Composable
 fun ShapePickerDialog(
-    color: SerializableColor,
+    color: ColorAndShape,
     onShapeChosen: (Shape) -> Unit,
     onDismiss: () -> Unit
 ) {

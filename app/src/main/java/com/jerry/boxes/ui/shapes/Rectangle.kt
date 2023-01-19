@@ -5,11 +5,11 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
-import com.jerry.boxes.ui.boxes.SerializableColor
+import com.jerry.boxes.ui.boxes.ColorAndShape
 
 fun DrawScope.drawRectangleLeft(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawRect(
         style = Fill,
@@ -21,7 +21,7 @@ fun DrawScope.drawRectangleLeft(
 
 fun DrawScope.drawRectangleRight(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawRect(
         style = Fill,
@@ -33,7 +33,7 @@ fun DrawScope.drawRectangleRight(
 
 fun DrawScope.drawRectangleTop(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawRect(
         style = Fill,
@@ -45,7 +45,7 @@ fun DrawScope.drawRectangleTop(
 
 fun DrawScope.drawRectangleBottom(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawRect(
         style = Fill,
@@ -57,7 +57,7 @@ fun DrawScope.drawRectangleBottom(
 
 fun DrawScope.drawBoxTopRight(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawRect(
         style = Fill,
@@ -69,7 +69,7 @@ fun DrawScope.drawBoxTopRight(
 
 fun DrawScope.drawBoxTopLeft(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawRect(
         style = Fill,
@@ -81,7 +81,7 @@ fun DrawScope.drawBoxTopLeft(
 
 fun DrawScope.drawBoxBottomRight(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawRect(
         style = Fill,
@@ -93,7 +93,7 @@ fun DrawScope.drawBoxBottomRight(
 
 fun DrawScope.drawBoxBottomLeft(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawRect(
         style = Fill,

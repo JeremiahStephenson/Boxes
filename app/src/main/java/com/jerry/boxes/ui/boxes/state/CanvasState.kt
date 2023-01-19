@@ -7,10 +7,11 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Constraints
 import com.jerry.boxes.cache.data.HistoryItem
 import com.jerry.boxes.extensions.adjust
-import com.jerry.boxes.ui.boxes.SerializableColor
+import com.jerry.boxes.ui.boxes.ColorAndShape
 import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.boxes.generateBoxes
 import com.jerry.boxes.ui.boxes.history.UserHistory
@@ -26,12 +27,12 @@ class CanvasState(
     layersState: State<List<LayerUi>>,
     private val loadingState: State<Boolean>,
     private val historyCountState: State<Int>,
-    private val snapShot: State<DataResource<SnapshotStateMap<Long, SnapshotStateMap<Point, SerializableColor>>>>
+    private val snapShot: State<DataResource<SnapshotStateMap<Long, SnapshotStateMap<Point, ColorAndShape>>>>
 ) {
     private val _boxes = mutableStateMapOf<Point, RectF>()
 
     private val _selections get() = snapShot.value.data!!
-    val selections get() = snapShot.value.data as Map<Long, Map<Point, SerializableColor>>
+    val selections get() = snapShot.value.data as Map<Long, Map<Point, ColorAndShape>>
 
     val isLoading get() = snapShot.value.isLoading || loadingState.value
 
@@ -45,7 +46,7 @@ class CanvasState(
             ?: layers.filter { it.on }.maxByOrNull { it.index } ?: layers.first()
     val hasLayersTurnedOn get() = layers.any { it.on }
 
-    private var currentDragHistory: MutableMap<Point, SerializableColor?> = mutableMapOf()
+    private var currentDragHistory: MutableMap<Point, ColorAndShape?> = mutableMapOf()
 
     fun clear() {
         val selectedLayer = layers.firstOrNull { it.selected }
@@ -68,7 +69,7 @@ class CanvasState(
     fun addToDragHistory(
         points: HashSet<Point>,
         layerId: Long,
-        checkColor: SerializableColor? = null
+        checkColor: ColorAndShape? = null
     ) {
         val filtered = points.filter { !currentDragHistory.keys.contains(it) }.toSet()
         val currentSelection = getCurrentSelections(filtered, layerId, checkColor)
@@ -86,8 +87,8 @@ class CanvasState(
             layer.apply {
                 this.remove(Point(item.x, item.y))
                 item.color?.let {
-                    this[Point(item.x, item.y)] = SerializableColor(
-                        item.color,
+                    this[Point(item.x, item.y)] = ColorAndShape(
+                        Color(item.color),
                         item.shape ?: Shape.Box
                     )
                 }
@@ -98,9 +99,9 @@ class CanvasState(
     fun onTap(
         point: Point,
         layerId: Long,
-        currentColor: SerializableColor,
+        currentColor: ColorAndShape,
         currentShape: Shape
-    ): SerializableColor? {
+    ): ColorAndShape? {
         val colorAndShape = currentColor.copy(shape = currentShape)
         val selection = when (_selections[layerId]?.get(point) == colorAndShape) {
             true -> null
@@ -118,7 +119,7 @@ class CanvasState(
     fun onDrag(
         points: HashSet<Point>,
         layerId: Long,
-        currentColor: SerializableColor?
+        currentColor: ColorAndShape?
     ) {
         _selections.getOrPut(layerId) { mutableStateMapOf() }.let { map ->
             when (currentColor) {
@@ -192,11 +193,11 @@ class CanvasState(
     private fun getCurrentSelection(
         point: Point,
         layerId: Long
-    ): SerializableColor? {
+    ): ColorAndShape? {
         return _selections[layerId]?.get(point)
     }
 
-    fun getCurrentSelection(point: Point): SerializableColor? {
+    fun getCurrentSelection(point: Point): ColorAndShape? {
         val turnedOnLayers = layers.filter { it.on }.sortedBy { it.index }.reversed()
         return turnedOnLayers.firstOrNull { _selections[it.id]?.get(point) != null }
             ?.let { getCurrentSelection(point, it.id) }
@@ -205,9 +206,9 @@ class CanvasState(
     private fun getCurrentSelections(
         points: Set<Point>,
         layerId: Long,
-        checkColor: SerializableColor? = null,
+        checkColor: ColorAndShape? = null,
         filter: Boolean = true
-    ): Map<Point, SerializableColor?> {
+    ): Map<Point, ColorAndShape?> {
         return points.associateWith { _selections[layerId]?.get(it) }.run {
             when (filter) {
                 true -> filterNot { it.value == checkColor }

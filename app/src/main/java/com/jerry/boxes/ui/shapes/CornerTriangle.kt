@@ -3,11 +3,11 @@ package com.jerry.boxes.ui.shapes
 import android.graphics.RectF
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import com.jerry.boxes.ui.boxes.SerializableColor
+import com.jerry.boxes.ui.boxes.ColorAndShape
 
 fun DrawScope.drawTriangleBottomLeft(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawPath(
         path = Path().apply {
@@ -22,7 +22,7 @@ fun DrawScope.drawTriangleBottomLeft(
 
 fun DrawScope.drawTriangleBottomRight(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawPath(
         path = Path().apply {
@@ -37,7 +37,7 @@ fun DrawScope.drawTriangleBottomRight(
 
 fun DrawScope.drawTriangleTopLeft(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawPath(
         path = Path().apply {
@@ -52,7 +52,7 @@ fun DrawScope.drawTriangleTopLeft(
 
 fun DrawScope.drawTriangleTopRight(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawPath(
         path = Path().apply {
@@ -67,7 +67,7 @@ fun DrawScope.drawTriangleTopRight(
 
 fun DrawScope.drawTriangleBottomLeftSmall(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawPath(
         path = Path().apply {
@@ -82,7 +82,7 @@ fun DrawScope.drawTriangleBottomLeftSmall(
 
 fun DrawScope.drawTriangleBottomRightSmall(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawPath(
         path = Path().apply {
@@ -97,7 +97,7 @@ fun DrawScope.drawTriangleBottomRightSmall(
 
 fun DrawScope.drawTriangleTopLeftSmall(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawPath(
         path = Path().apply {
@@ -112,7 +112,7 @@ fun DrawScope.drawTriangleTopLeftSmall(
 
 fun DrawScope.drawTriangleTopRightSmall(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawPath(
         path = Path().apply {
@@ -127,7 +127,7 @@ fun DrawScope.drawTriangleTopRightSmall(
 
 fun DrawScope.drawTriangleBottomLeftSmallest(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawPath(
         path = Path().apply {
@@ -142,7 +142,7 @@ fun DrawScope.drawTriangleBottomLeftSmallest(
 
 fun DrawScope.drawTriangleBottomRightSmallest(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawPath(
         path = Path().apply {
@@ -157,7 +157,7 @@ fun DrawScope.drawTriangleBottomRightSmallest(
 
 fun DrawScope.drawTriangleTopLeftSmallest(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawPath(
         path = Path().apply {
@@ -172,7 +172,7 @@ fun DrawScope.drawTriangleTopLeftSmallest(
 
 fun DrawScope.drawTriangleTopRightSmallest(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawPath(
         path = Path().apply {

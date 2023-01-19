@@ -4,11 +4,11 @@ import android.graphics.RectF
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import com.jerry.boxes.ui.boxes.SerializableColor
+import com.jerry.boxes.ui.boxes.ColorAndShape
 
 fun DrawScope.drawCornerArcRight(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawArc(
         startAngle = -90F,
@@ -22,7 +22,7 @@ fun DrawScope.drawCornerArcRight(
 
 fun DrawScope.drawCornerArcLeft(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawArc(
         startAngle = -90F,
@@ -36,7 +36,7 @@ fun DrawScope.drawCornerArcLeft(
 
 fun DrawScope.drawCornerArcRightInverse(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawArc(
         startAngle = 0F,
@@ -50,7 +50,7 @@ fun DrawScope.drawCornerArcRightInverse(
 
 fun DrawScope.drawCornerArcLeftInverse(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawArc(
         startAngle = 90F,
@@ -64,7 +64,7 @@ fun DrawScope.drawCornerArcLeftInverse(
 
 fun DrawScope.drawArcRight(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawArc(
         startAngle = -90F,
@@ -78,7 +78,7 @@ fun DrawScope.drawArcRight(
 
 fun DrawScope.drawArcTop(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawArc(
         startAngle = -180F,
@@ -92,7 +92,7 @@ fun DrawScope.drawArcTop(
 
 fun DrawScope.drawArcLeft(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawArc(
         startAngle = -90F,
@@ -106,7 +106,7 @@ fun DrawScope.drawArcLeft(
 
 fun DrawScope.drawArcBottom(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawArc(
         startAngle = -180F,

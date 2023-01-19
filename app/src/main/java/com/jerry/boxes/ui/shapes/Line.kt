@@ -6,11 +6,11 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
-import com.jerry.boxes.ui.boxes.SerializableColor
+import com.jerry.boxes.ui.boxes.ColorAndShape
 
 fun DrawScope.drawBottomLeftToTopRightLine(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawPath(
         path = Path().apply {
@@ -28,7 +28,7 @@ fun DrawScope.drawBottomLeftToTopRightLine(
 
 fun DrawScope.drawTopLeftToBottomRightLine(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawPath(
         path = Path().apply {
@@ -46,7 +46,7 @@ fun DrawScope.drawTopLeftToBottomRightLine(
 
 fun DrawScope.drawVerticalLine(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawRect(
         style = Fill,
@@ -58,7 +58,7 @@ fun DrawScope.drawVerticalLine(
 
 fun DrawScope.drawHorizontalLine(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawRect(
         style = Fill,

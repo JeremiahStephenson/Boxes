@@ -14,15 +14,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.jerry.boxes.ui.boxes.SerializableColor
-import timber.log.Timber
+import com.jerry.boxes.ui.boxes.ColorAndShape
 
 @Composable
 fun IconMenuButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     onClick: () -> Unit,
-    color: SerializableColor? = null,
+    color: ColorAndShape? = null,
     padding: PaddingValues = PaddingValues(16.dp),
     @DrawableRes drawableRes: Int
 ) {

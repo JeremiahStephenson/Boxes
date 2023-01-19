@@ -9,11 +9,11 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.rotate
-import com.jerry.boxes.ui.boxes.SerializableColor
+import com.jerry.boxes.ui.boxes.ColorAndShape
 
 fun DrawScope.drawBox(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawRect(
         style = Fill,
@@ -25,7 +25,7 @@ fun DrawScope.drawBox(
 
 fun DrawScope.drawLegoSquare(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawRect(
         style = Fill,
@@ -60,7 +60,7 @@ fun DrawScope.drawLegoSquare(
 
 fun DrawScope.drawLegoRound(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawArc(
         startAngle = 0F,
@@ -97,7 +97,7 @@ fun DrawScope.drawLegoRound(
 
 fun DrawScope.drawCircle(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawArc(
         startAngle = 0F,
@@ -111,7 +111,7 @@ fun DrawScope.drawCircle(
 
 fun DrawScope.drawStar(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawPath(
         path = Path().apply {
@@ -133,7 +133,7 @@ fun DrawScope.drawStar(
 
 fun DrawScope.drawDiamond(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawPath(
         path = Path().apply {

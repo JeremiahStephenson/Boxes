@@ -11,7 +11,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
@@ -20,7 +19,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jerry.boxes.R
 import com.jerry.boxes.cache.data.Project
-import com.jerry.boxes.cache.data.ProjectAndLayers
 import com.jerry.boxes.extensions.safeLet
 import com.jerry.boxes.ui.boxes.history.UserHistory
 import com.jerry.boxes.ui.boxes.state.ButtonsState
@@ -40,7 +38,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.get
 import org.koin.androidx.compose.koinViewModel
-import timber.log.Timber
 
 @Destination
 @Composable
@@ -60,7 +57,7 @@ fun BoxesMain(
         }
     }
 
-    val projectNotNull by remember { derivedStateOf { project?.project != null } }
+    val projectNotNull by remember { derivedStateOf { project != null } }
 
     val canvasState = rememberCanvasState(viewModel)
     val buttonsState = rememberSaveable {
@@ -72,7 +69,7 @@ fun BoxesMain(
 
     val selectionState = rememberSaveable { SelectionState() }
     DefaultContainer(
-        title = project?.project?.name.orEmpty(),
+        title = project?.name.orEmpty(),
         disableAppbarScroll = true,
         appBarActions = {
             Icon(
@@ -110,7 +107,7 @@ fun BoxesMain(
                     transformerState,
                     drawerState,
                     selectionState,
-                    project?.project,
+                    project,
                     viewModel,
                     scope,
                     cc,
@@ -128,14 +125,14 @@ fun BoxesMain(
                         buttonsState = buttonsState,
                         onAction = handleAction,
                         canvasState = canvasState,
-                        getProject = { project!!.project }
+                        getProject = { project!! }
                     )
                 }
             }) {
 
             if (projectNotNull) {
                 MainCanvas(
-                    project = project!!.project,
+                    project = project!!,
                     canvasState = canvasState,
                     buttonsState = buttonsState,
                     selectionState = selectionState,
@@ -164,7 +161,7 @@ private fun MainCanvas(
     buttonsState: ButtonsState,
     selectionState: SelectionState,
     transformerState: TransformerState,
-    getUsedColorList: () -> List<SerializableColor>,
+    getUsedColorList: () -> List<ColorAndShape>,
     onAction: (Action) -> Unit
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
@@ -219,7 +216,7 @@ private fun MainCanvas(
                                 canvasState.onTap(
                                     point,
                                     currentLayer,
-                                    projectState.serializableColor,
+                                    projectState.colorAndShape,
                                     projectState.currentShape
                                 )
                             }
@@ -229,7 +226,7 @@ private fun MainCanvas(
                 },
                 onDrag = {
                     if (canvasState.hasLayersTurnedOn) {
-                        val color = projectState.serializableColor
+                        val color = projectState.colorAndShape
                             .copy(shape = projectState.currentShape)
                         canvasState.addToDragHistory(
                             it,
@@ -257,7 +254,7 @@ private fun MainCanvas(
         }
 
         ButtonBar(
-            getColor = { project.serializableColor },
+            getColor = { project.colorAndShape },
             getShape = { project.currentShape },
             buttonsState = buttonsState,
             canvasState = canvasState,
@@ -288,11 +285,11 @@ private fun MainCanvas(
 private fun ButtonBar(
     buttonsState: ButtonsState,
     canvasState: CanvasState,
-    getColor: () -> SerializableColor,
+    getColor: () -> ColorAndShape,
     getShape: () -> Shape,
-    getUsedColorList: () -> List<SerializableColor>,
+    getUsedColorList: () -> List<ColorAndShape>,
     onAction: (Action) -> Unit,
-    onColorChosen: (SerializableColor) -> Unit,
+    onColorChosen: (ColorAndShape) -> Unit,
     onShapeChosen: (Shape) -> Unit,
 ) {
     Row(
@@ -322,8 +319,6 @@ private fun ButtonBar(
                 shapePicker = false
             }
         }
-
-        Timber.d("RecomposeTest - button bar")
 
         IconMenuButton(
             onClick = { colorPicker = true },
@@ -482,7 +477,7 @@ private fun handleAction(
             viewModel.fill(
                 action.point,
                 action.layerId,
-                SerializableColor(project?.currentColor ?: Color.Green.toArgb()),
+                ColorAndShape(project?.currentColor?.run { Color(this) } ?: Color.Green),
                 project?.currentShape ?: Shape.Box,
                 project?.columns ?: 0,
                 project?.rows ?: 0

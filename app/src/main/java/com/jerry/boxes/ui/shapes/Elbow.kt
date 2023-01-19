@@ -3,11 +3,11 @@ package com.jerry.boxes.ui.shapes
 import android.graphics.RectF
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import com.jerry.boxes.ui.boxes.SerializableColor
+import com.jerry.boxes.ui.boxes.ColorAndShape
 
 fun DrawScope.drawBottomLeftElbow(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawPath(
         path = Path().apply {
@@ -25,7 +25,7 @@ fun DrawScope.drawBottomLeftElbow(
 
 fun DrawScope.drawBottomRightElbow(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawPath(
         path = Path().apply {
@@ -43,7 +43,7 @@ fun DrawScope.drawBottomRightElbow(
 
 fun DrawScope.drawTopLeftElbow(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawPath(
         path = Path().apply {
@@ -61,7 +61,7 @@ fun DrawScope.drawTopLeftElbow(
 
 fun DrawScope.drawTopRightElbow(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     drawPath(
         path = Path().apply {

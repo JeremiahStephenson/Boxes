@@ -14,27 +14,27 @@ import com.jerry.boxes.ui.shapes.*
 import timber.log.Timber
 import kotlin.math.roundToInt
 
-fun generateSelections(pixels: List<Pixel>): SnapshotStateMap<Long, SnapshotStateMap<Point, SerializableColor>> {
-    return SnapshotStateMap<Long, SnapshotStateMap<Point, SerializableColor>>().apply {
+fun generateSelections(pixels: List<Pixel>): SnapshotStateMap<Long, SnapshotStateMap<Point, ColorAndShape>> {
+    return SnapshotStateMap<Long, SnapshotStateMap<Point, ColorAndShape>>().apply {
         putAll(
             pixels.groupBy { it.layerId }
                 .mapValues {
                     it.value.associateTo(SnapshotStateMap()) {
-                        Point(it.x, it.y) to it.asSerializableColor
+                        Point(it.x, it.y) to it.asColorAndShape
                     }
                 }
         )
     }
 }
 
-fun generateSelectionsMap(layers: List<LayerAndPixel>): Map<Long, Map<Point, SerializableColor>> =
+fun generateSelectionsMap(layers: List<LayerAndPixel>): Map<Long, Map<Point, ColorAndShape>> =
     layers.flatMap {
         it.pixels
     }.groupBy {
         it.layerId
     }.mapValues {
         it.value.associateTo(SnapshotStateMap()) { pixel ->
-            Point(pixel.x, pixel.y) to pixel.asSerializableColor
+            Point(pixel.x, pixel.y) to pixel.asColorAndShape
         }
     }
 
@@ -66,7 +66,7 @@ fun generateBoxes(
 
 fun DrawScope.drawShapes(
     layers: List<LayerUi>,
-    selections: Map<Long, Map<Point, SerializableColor>>,
+    selections: Map<Long, Map<Point, ColorAndShape>>,
     boxes: Map<Point, RectF>
 ) {
     if (boxes.isEmpty()) return
@@ -85,7 +85,7 @@ fun DrawScope.drawShapes(
 
 fun DrawScope.drawShapes(
     layerId: Long,
-    selections: Map<Point, SerializableColor>?,
+    selections: Map<Point, ColorAndShape>?,
     boxes: Map<Point, RectF>
 ) {
     Timber.d("DrawTest - drawing: ${selections?.size}, ${layerId}, ${boxes.size}")
@@ -124,7 +124,7 @@ fun DrawScope.pngBackground(size: Float) {
 
 fun DrawScope.drawCustomShape(
     pos: RectF,
-    color: SerializableColor
+    color: ColorAndShape
 ) {
     when (color.shape) {
         Shape.Box -> drawBox(pos, color)

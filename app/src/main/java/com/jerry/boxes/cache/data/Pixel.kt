@@ -1,10 +1,11 @@
 package com.jerry.boxes.cache.data
 
+import androidx.compose.ui.graphics.Color
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.jerry.boxes.ui.boxes.SerializableColor
+import com.jerry.boxes.ui.boxes.ColorAndShape
 import com.jerry.boxes.ui.shapes.Shape
 import java.io.Serializable
 
@@ -33,5 +34,5 @@ data class Pixel(
         const val TABLE_NAME = "pixel"
     }
 
-    val asSerializableColor get() = SerializableColor(color, shape)
+    val asColorAndShape get() = ColorAndShape(Color(color), shape)
 }

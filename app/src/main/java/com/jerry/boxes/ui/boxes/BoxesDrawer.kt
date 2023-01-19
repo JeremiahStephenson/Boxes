@@ -28,7 +28,6 @@ import com.jerry.boxes.ui.common.IconMenuButton
 import com.jerry.boxes.ui.common.IconSelectableMenuButton
 import com.jerry.boxes.ui.common.SetNameDialog
 import com.jerry.boxes.util.ArrangementLastItem
-import timber.log.Timber
 
 @Composable
 fun DrawerMenu(
@@ -82,7 +81,6 @@ fun DrawerMenu(
         }
 
         item {
-            Timber.d("RecomposeTest - tools")
             ButtonSection(R.string.tools) {
                 IconMenuButton(
                     onClick = { onAction(Action.SetTapType(TapType.PICKER)) },

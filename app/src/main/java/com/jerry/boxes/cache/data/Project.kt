@@ -1,8 +1,9 @@
 package com.jerry.boxes.cache.data
 
+import androidx.compose.ui.graphics.Color
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.jerry.boxes.ui.boxes.SerializableColor
+import com.jerry.boxes.ui.boxes.ColorAndShape
 import com.jerry.boxes.ui.shapes.Shape
 import java.io.Serializable
 
@@ -26,8 +27,8 @@ data class Project(
     }
 
     @Transient
-    private var _color: SerializableColor? = null
-    val serializableColor: SerializableColor
+    private var _color: ColorAndShape? = null
+    val colorAndShape: ColorAndShape
         get() =
-        _color ?: SerializableColor(currentColor).also { _color = it }
+        _color ?: ColorAndShape(Color(currentColor)).also { _color = it }
 }

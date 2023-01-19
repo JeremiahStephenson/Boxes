@@ -199,7 +199,7 @@ fun SelectionsBoxes(
     offset: Offset,
     layers: List<LayerUi>,
     boxes: Map<Point, RectF>,
-    selections: Map<Long, Map<Point, SerializableColor>>
+    selections: Map<Long, Map<Point, ColorAndShape>>
 ) {
     Canvas(
         modifier = Modifier

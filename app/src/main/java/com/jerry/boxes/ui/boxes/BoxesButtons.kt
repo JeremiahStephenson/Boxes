@@ -9,7 +9,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import com.jerry.boxes.ui.common.unboundClickable
@@ -19,11 +18,11 @@ import com.jerry.boxes.ui.shapes.Shape
 fun ShapeOption(
     modifier: Modifier = Modifier,
     shape: Shape,
-    color: SerializableColor? = null,
+    color: ColorAndShape? = null,
     onClick: () -> Unit
 ) {
     val onSurface = MaterialTheme.colorScheme.onSurface
-    val shapeColor = (color ?: SerializableColor(onSurface.toArgb())).copy(shape = shape)
+    val shapeColor = (color ?: ColorAndShape(onSurface)).copy(shape = shape)
     val size = with(LocalDensity.current) { 24.dp.toPx() }
     val stroke = with(LocalDensity.current) { 1.dp.toPx() }
     Canvas(

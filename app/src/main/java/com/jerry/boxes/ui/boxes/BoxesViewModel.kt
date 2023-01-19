@@ -58,7 +58,7 @@ class BoxesViewModel(
 
     private val selectedLayerStateFlow = handle.getStateFlow<Long?>(SELECTED_LAYER, null)
 
-    private var usedColorsHandle by SavedHandle<MutableList<SerializableColor>>(
+    private var usedColorsHandle by SavedHandle<MutableList<ColorAndShape>>(
         handle,
         USED_COLORS_STATE,
         mutableListOf()
@@ -67,11 +67,10 @@ class BoxesViewModel(
     private val projectId = BoxesMainDestination.argsFrom(handle).projectId
 
     private val colorsMutex = Mutex()
-    val usedColors get() = usedColorsHandle as List<SerializableColor>
+    val usedColors get() = usedColorsHandle as List<ColorAndShape>
 
-    val projectFlow = boxesDao.getProjectAndLayersFlowById(projectId)
+    val projectFlow = boxesDao.getProjectFlowById(projectId)
         .filterNotNull()
-        .map { it.copy(layers = it.layers.sortedByDescending { layer -> layer.index }) }
         .stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(1000),
@@ -94,23 +93,23 @@ class BoxesViewModel(
 
     private var fillJob: Job? = null
 
-    private val layerFlow = projectFlow.map { it?.layers }
+    private val layerFlow = boxesDao.getProjectLayersByProjectId(projectId)
     val layerStateFlow =
         combine(layerState, layerFlow, selectedLayerStateFlow) { state, layers, selectedLayer ->
             if (layerStateHandle == null) {
                 layerStateHandle =
-                    layers?.filter { it.on }?.associate { it.id to it.on }?.toMutableMap()
+                    layers.filter { it.on }.associate { it.id to it.on }.toMutableMap()
             }
 
             // Remove any layers in the state that are not here anymore
-            safeLet(state?.map { it.key }, layers?.map { it.id }) { states, lays ->
+            safeLet(state?.map { it.key }, layers.map { it.id }) { states, lays ->
                 val diff = states.filterNot { lays.contains(it) }
                 diff.forEach {
                     state?.remove(it)
                     if (selectedLayer == it) {
                         // The selected layer was deleted so we need
                         // to automatically assign another layer
-                        selectedLayerStateHandle = layers?.firstOrNull()?.id
+                        selectedLayerStateHandle = layers.firstOrNull()?.id
                         selectedLayerStateHandle?.let { id ->
                             setLayerOnOrOff(id, true)
                         }
@@ -119,17 +118,17 @@ class BoxesViewModel(
             }
 
             val selected =
-                if (selectedLayer != null && layers?.any { it.id == selectedLayer } == true) {
+                if (selectedLayer != null && layers.any { it.id == selectedLayer }) {
                     selectedLayer
                 } else {
-                    layers?.firstOrNull { it.on }?.id
+                    layers.firstOrNull { it.on }?.id
                 }
 
-            layers?.forEach {
+            layers.forEach {
                 state?.putIfAbsent(it.id, it.on)
             }
 
-            layers?.map {
+            layers.map {
                 val isOn = state?.getOrDefault(it.id, it.on) == true
                 LayerUi(it.id,
                     it.projectId,
@@ -140,7 +139,8 @@ class BoxesViewModel(
                     visibilityEnabled = !(isOn && state?.count { it.value } == 1),
                     showControls = layers.size > 1
                 )
-            } ?: emptyList()
+            }.sortedByDescending { layer -> layer.index }
+
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(1000), emptyList())
 
     val historyCountFlow = layerStateFlow.flatMapLatest { layers ->
@@ -163,9 +163,9 @@ class BoxesViewModel(
         }
     }
 
-    fun updateProjectColor(color: SerializableColor) {
+    fun updateProjectColor(color: ColorAndShape) {
         viewModelScope.launch {
-            boxesDao.updateProjectColor(projectId, color.colorArgb)
+            boxesDao.updateProjectColor(projectId, color.color.toArgb())
         }
     }
 
@@ -200,7 +200,7 @@ class BoxesViewModel(
         }
     }
 
-    suspend fun addUsedColor(color: SerializableColor) {
+    suspend fun addUsedColor(color: ColorAndShape) {
         colorsMutex.withLock {
             usedColorsHandle?.addIfNotFound(color)
             if ((usedColorsHandle?.size ?: 0) > 10) {
@@ -216,7 +216,7 @@ class BoxesViewModel(
     fun addLayer(
         name: String,
         index: Int,
-        selections: Map<Long, Map<Point, SerializableColor?>?>
+        selections: Map<Long, Map<Point, ColorAndShape?>?>
     ) {
         viewModelScope.launch {
             updateDatabase {
@@ -228,7 +228,7 @@ class BoxesViewModel(
 
     fun save(
         boxes: List<Point>? = null,
-        selections: Map<Long, Map<Point, SerializableColor>>,
+        selections: Map<Long, Map<Point, ColorAndShape>>,
         layers: List<Pair<Long, Boolean>>
     ) {
         viewModelScope.launch {
@@ -244,7 +244,7 @@ class BoxesViewModel(
     fun fill(
         point: Point,
         layerId: Long,
-        currentColor: SerializableColor,
+        currentColor: ColorAndShape,
         currentShape: Shape,
         columns: Int,
         rows: Int,
@@ -272,7 +272,7 @@ class BoxesViewModel(
 
     private suspend fun saveProject(
         boxes: List<Point>? = null,
-        selections: Map<Long, Map<Point, SerializableColor?>?>
+        selections: Map<Long, Map<Point, ColorAndShape?>?>
     ) {
         val now = Instant.now().toEpochMilli()
 
@@ -295,7 +295,7 @@ class BoxesViewModel(
     private suspend fun fillInArea(
         point: Point,
         layerId: Long,
-        color: SerializableColor,
+        color: ColorAndShape,
         shape: Shape,
         columns: Int,
         rows: Int
@@ -322,7 +322,7 @@ class BoxesViewModel(
         }
         val layer = pixelsFlow.value.data?.getOrPut(layerId) { SnapshotStateMap() }
         val currentSelection = layer?.let { l -> fillMap.associateWith { l[it] } } ?: emptyMap()
-        val history = HashMap<Point, SerializableColor?>()
+        val history = HashMap<Point, ColorAndShape?>()
         history.putAll(currentSelection)
         layer?.keys?.removeAll(fillMap)
         layer?.putAll(fillMap.map { it to newColor })
@@ -331,7 +331,7 @@ class BoxesViewModel(
         }
     }
 
-    private suspend fun updateHistory(layerId: Long, points: Map<Point, SerializableColor?>) {
+    private suspend fun updateHistory(layerId: Long, points: Map<Point, ColorAndShape?>) {
         val index = boxesDao.findMaxIndexForHistory(layerId)
         val historyId = boxesDao.insertHistory(History(layerId, index + 1))
         points.forEach { (point, color) ->
