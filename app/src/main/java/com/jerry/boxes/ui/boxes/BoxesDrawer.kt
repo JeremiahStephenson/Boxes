@@ -19,6 +19,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.flowlayout.FlowRow
 import com.jerry.boxes.R
+import com.jerry.boxes.cache.data.Project
 import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.boxes.state.ButtonsState
 import com.jerry.boxes.ui.boxes.state.CanvasState
@@ -32,6 +33,7 @@ import com.jerry.boxes.util.ArrangementLastItem
 fun DrawerMenu(
     canvasState: CanvasState,
     buttonsState: ButtonsState,
+    project: Project,
     onAction: (Action) -> Unit
 ) {
     LazyColumn(
@@ -95,12 +97,12 @@ fun DrawerMenu(
                 )
                 IconSelectableMenuButton(
                     onClick = { onAction(Action.ShowGrid) },
-                    isSelected = { buttonsState.showGridState },
+                    isSelected = { project.showGrid },
                     drawableResOn = R.drawable.ic_grid_on_24
                 )
                 IconSelectableMenuButton(
                     onClick = { onAction(Action.ShowPngBackground) },
-                    isSelected = { buttonsState.showPngBackgroundState },
+                    isSelected = { project.showPngBg },
                     drawableResOn = R.drawable.ic_opacity_on_24
                 )
                 IconSelectableMenuButton(

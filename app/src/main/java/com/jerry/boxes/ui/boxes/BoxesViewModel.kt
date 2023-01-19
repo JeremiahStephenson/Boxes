@@ -29,7 +29,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeout
-import timber.log.Timber
 import java.time.Instant
 import java.util.*
 
@@ -82,7 +81,6 @@ class BoxesViewModel(
     val pixelsFlow = boxesDao.getProjectPixelsFlow(projectId)
         .map {
             //delay(2000)
-            Timber.d("ProjectTest - pixels")
             DataResource.done(generateSelections(it))
         }
         .stateIn(
@@ -159,6 +157,30 @@ class BoxesViewModel(
         }
     }
 
+    fun updateProjectShape(shape: Shape) {
+        viewModelScope.launch {
+            boxesDao.updateProjectShape(projectId, shape)
+        }
+    }
+
+    fun updateProjectColor(color: SerializableColor) {
+        viewModelScope.launch {
+            boxesDao.updateProjectColor(projectId, color.colorArgb)
+        }
+    }
+
+    fun updateProjectShowGrid(showGrid: Boolean) {
+        viewModelScope.launch {
+            boxesDao.updateProjectShowGrid(projectId, showGrid)
+        }
+    }
+
+    fun updateProjectShowPngBg(showPngBg: Boolean) {
+        viewModelScope.launch {
+            boxesDao.updateProjectShowPngBg(projectId, showPngBg)
+        }
+    }
+
     suspend fun addToHistory(userHistory: UserHistory) {
         if (userHistory.points.isEmpty()) return
         viewModelScope.launch {
@@ -207,15 +229,11 @@ class BoxesViewModel(
     fun save(
         boxes: List<Point>? = null,
         selections: Map<Long, Map<Point, SerializableColor>>,
-        layers: List<Pair<Long, Boolean>>,
-        currentColor: SerializableColor,
-        currentShape: Shape,
-        showGrid: Boolean,
-        showPngBg: Boolean
+        layers: List<Pair<Long, Boolean>>
     ) {
         viewModelScope.launch {
             updateDatabase {
-                saveProject(boxes, selections, currentColor, currentShape, showGrid, showPngBg)
+                saveProject(boxes, selections)
                 layers.forEach {
                     boxesDao.turnOnOrOffLayer(it.second, it.first)
                 }
@@ -254,11 +272,7 @@ class BoxesViewModel(
 
     private suspend fun saveProject(
         boxes: List<Point>? = null,
-        selections: Map<Long, Map<Point, SerializableColor?>?>,
-        currentColor: SerializableColor? = null,
-        currentShape: Shape? = null,
-        showGrid: Boolean? = null,
-        showPngBg: Boolean? = null
+        selections: Map<Long, Map<Point, SerializableColor?>?>
     ) {
         val now = Instant.now().toEpochMilli()
 
@@ -276,15 +290,6 @@ class BoxesViewModel(
         }
         boxesDao.insertAllPixels(list)
         boxesDao.deletePixelsFromProject(projectId, now)
-        safeLet(currentColor, currentShape, showGrid, showPngBg) { color, shape, grid, png ->
-            boxesDao.updateProjectColorAndShape(
-                color.color.toArgb(),
-                shape,
-                projectId,
-                grid,
-                png
-            )
-        }
     }
 
     private suspend fun fillInArea(

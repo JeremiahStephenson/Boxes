@@ -20,7 +20,7 @@ interface BoxesDao {
     @Query("SELECT * FROM project WHERE id = :id")
     fun getProjectAndLayersFlowById(id: Long): Flow<ProjectAndLayers>
 
-    @Query("SELECT * FROM pixel JOIN layer ON layer.id == pixel.layerId JOIN project ON project.id == layer.projectId AND project.id = :projectId")
+    @Query("SELECT * FROM pixel JOIN layer ON layer.id == pixel.layerId WHERE layer.projectId = :projectId")
     fun getProjectPixelsFlow(projectId: Long): Flow<List<Pixel>>
 
     @Query("SELECT * FROM project WHERE id = :id")
@@ -47,13 +47,17 @@ interface BoxesDao {
     @Query("UPDATE project SET name = :name, rows = :rows, columns = :columns WHERE id = :id")
     suspend fun updateProject(name: String, columns: Int, rows: Int, id: Long)
 
-    @Query("UPDATE project SET currentColor = :color, currentShape = :shape, showGrid = :showGrid, showPngBg = :showPngBg WHERE id = :id")
-    suspend fun updateProjectColorAndShape(
-        color: Int,
-        shape: Shape, id: Long,
-        showGrid: Boolean,
-        showPngBg: Boolean
-    )
+    @Query("UPDATE project SET currentColor = :color WHERE id = :id")
+    suspend fun updateProjectColor(id: Long, color: Int)
+
+    @Query("UPDATE project SET currentShape = :shape WHERE id = :id")
+    suspend fun updateProjectShape(id: Long, shape: Shape)
+
+    @Query("UPDATE project SET showGrid = :showGrid WHERE id = :id")
+    suspend fun updateProjectShowGrid(id: Long, showGrid: Boolean)
+
+    @Query("UPDATE project SET showPngBg = :showPngBg WHERE id = :id")
+    suspend fun updateProjectShowPngBg(id: Long, showPngBg: Boolean)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAllPixels(pixelList: List<Pixel>)

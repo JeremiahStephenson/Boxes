@@ -2,6 +2,7 @@ package com.jerry.boxes.cache.data
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.jerry.boxes.ui.boxes.SerializableColor
 import com.jerry.boxes.ui.shapes.Shape
 import java.io.Serializable
 
@@ -23,4 +24,10 @@ data class Project(
     companion object {
         const val TABLE_NAME = "project"
     }
+
+    @Transient
+    private var _color: SerializableColor? = null
+    val serializableColor: SerializableColor
+        get() =
+        _color ?: SerializableColor(currentColor).also { _color = it }
 }

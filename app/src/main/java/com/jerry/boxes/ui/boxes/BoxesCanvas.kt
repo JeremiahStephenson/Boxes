@@ -23,6 +23,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
+import com.jerry.boxes.cache.data.Project
 import com.jerry.boxes.extensions.findBox
 import com.jerry.boxes.extensions.findBoxes
 import com.jerry.boxes.extensions.safeLet
@@ -41,8 +42,7 @@ fun BoxCanvas(
     canvasState: CanvasState,
     buttonsState: ButtonsState,
     selectionState: SelectionState,
-    columns: Int,
-    rows: Int,
+    project: Project,
     scale: Float,
     size: Constraints,
     offset: Offset,
@@ -59,10 +59,10 @@ fun BoxCanvas(
     val offsetState by rememberUpdatedState(offset)
     val sizeState by rememberUpdatedState(size)
     val pngBoxSize = with(LocalDensity.current) { 10.dp.toPx() }
-    val columnsState by rememberUpdatedState(columns)
-    val rowsState by rememberUpdatedState(rows)
+    val columnsState by rememberUpdatedState(project.columns)
+    val rowsState by rememberUpdatedState(project.rows)
 
-    if (buttonsState.showPngBackgroundState) {
+    if (project.showPngBg) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -156,14 +156,14 @@ fun BoxCanvas(
             canvasState = canvasState
         )
 
-        if (buttonsState.showGridState) {
-            val color = when (buttonsState.showPngBackgroundState) {
+        if (project.showGrid) {
+            val color = when (project.showPngBg) {
                 true -> MaterialTheme.colorScheme.background
                 else -> Color.Gray
             }
             Grid(
-                rows = rows,
-                columns = columns,
+                rows = rowsState,
+                columns = columnsState,
                 strokeWidth = strokeWidth,
                 strokeColor = color,
                 scale = scale,

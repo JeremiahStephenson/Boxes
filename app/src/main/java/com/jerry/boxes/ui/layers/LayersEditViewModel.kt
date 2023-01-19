@@ -10,10 +10,7 @@ import com.jerry.boxes.cache.data.Layer
 import com.jerry.boxes.extensions.safeLet
 import com.jerry.boxes.ui.destinations.BoxesMainDestination
 import com.jerry.boxes.util.CoroutineContextProvider
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class LayersEditViewModel(
