@@ -28,12 +28,13 @@ import com.jerry.boxes.ui.common.IconMenuButton
 import com.jerry.boxes.ui.common.IconSelectableMenuButton
 import com.jerry.boxes.ui.common.SetNameDialog
 import com.jerry.boxes.util.ArrangementLastItem
+import timber.log.Timber
 
 @Composable
 fun DrawerMenu(
     canvasState: CanvasState,
     buttonsState: ButtonsState,
-    project: Project,
+    getProject: () -> Project,
     onAction: (Action) -> Unit
 ) {
     LazyColumn(
@@ -81,6 +82,7 @@ fun DrawerMenu(
         }
 
         item {
+            Timber.d("RecomposeTest - tools")
             ButtonSection(R.string.tools) {
                 IconMenuButton(
                     onClick = { onAction(Action.SetTapType(TapType.PICKER)) },
@@ -97,12 +99,12 @@ fun DrawerMenu(
                 )
                 IconSelectableMenuButton(
                     onClick = { onAction(Action.ShowGrid) },
-                    isSelected = { project.showGrid },
+                    isSelected = { getProject().showGrid },
                     drawableResOn = R.drawable.ic_grid_on_24
                 )
                 IconSelectableMenuButton(
                     onClick = { onAction(Action.ShowPngBackground) },
-                    isSelected = { project.showPngBg },
+                    isSelected = { getProject().showPngBg },
                     drawableResOn = R.drawable.ic_opacity_on_24
                 )
                 IconSelectableMenuButton(

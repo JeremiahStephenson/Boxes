@@ -127,7 +127,7 @@ fun BoxesMain(
                         buttonsState = buttonsState,
                         onAction = handleAction,
                         canvasState = canvasState,
-                        project = project!!.project
+                        getProject = { project!!.project }
                     )
                 }
             }) {
@@ -256,8 +256,8 @@ private fun MainCanvas(
         }
 
         ButtonBar(
-            color = project.project.serializableColor,
-            shape = project.project.currentShape,
+            getColor = { project.project.serializableColor },
+            getShape = { project.project.currentShape },
             buttonsState = buttonsState,
             canvasState = canvasState,
             onColorChosen = {
@@ -285,10 +285,10 @@ private fun MainCanvas(
 
 @Composable
 private fun ButtonBar(
-    color: SerializableColor,
-    shape: Shape,
     buttonsState: ButtonsState,
     canvasState: CanvasState,
+    getColor: () -> SerializableColor,
+    getShape: () -> Shape,
     getUsedColorList: () -> List<SerializableColor>,
     onAction: (Action) -> Unit,
     onColorChosen: (SerializableColor) -> Unit,
@@ -304,7 +304,7 @@ private fun ButtonBar(
         var colorPicker by rememberSaveable { mutableStateOf(false) }
         if (colorPicker) {
             ColorPickerDialog(
-                color = color,
+                color = getColor(),
                 usedColors = getUsedColorList(),
                 onColorChosen = onColorChosen
             ) {
@@ -315,29 +315,31 @@ private fun ButtonBar(
         var shapePicker by rememberSaveable { mutableStateOf(false) }
         if (shapePicker) {
             ShapePickerDialog(
-                color = color,
+                color = getColor(),
                 onShapeChosen = onShapeChosen,
             ) {
                 shapePicker = false
             }
         }
 
+        Timber.d("RecomposeTest - button bar")
+
         IconMenuButton(
             onClick = { colorPicker = true },
-            color = color,
+            color = getColor(),
             drawableRes = R.drawable.ic_color_lens_24
         )
 
         ShapeOption(
-            shape = shape,
-            color = color
+            shape = getShape(),
+            color = getColor()
         ) {
             shapePicker = true
         }
 
         IconMenuButton(
             onClick = { buttonsState.alternateTapType() },
-            color = color,
+            color = getColor(),
             drawableRes = when (buttonsState.tapTypeState) {
                 TapType.PICKER -> R.drawable.ic_colorize_24
                 TapType.FILL -> R.drawable.ic_format_color_fill_24
