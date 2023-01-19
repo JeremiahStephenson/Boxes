@@ -34,6 +34,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.get
 import org.koin.androidx.compose.koinViewModel
+import timber.log.Timber
 
 @Destination
 @Composable
@@ -53,15 +54,22 @@ fun BoxesMain(
         }
     }
 
+    val projectNotNull by remember { derivedStateOf { project?.project != null } }
+
     val canvasState = rememberCanvasState(viewModel)
-    val buttonsState = rememberSaveable {
-        ButtonsState(
-            eraserSelected = false,
-            showPngBackground = true,
-            showGrid = true,
-            selectToolSelected = false
-        )
+    val buttonState = when (projectNotNull) {
+        true -> rememberSaveable {
+            ButtonsState(
+                eraserSelected = false,
+                showPngBackground = project?.project?.showPngBg == true,
+                showGrid = project?.project?.showGrid == true,
+                selectToolSelected = false
+            )
+        }
+        else -> remember { ButtonsState() }
     }
+    val buttonsState by rememberUpdatedState(buttonState)
+
     val selectionState = rememberSaveable { SelectionState() }
     DefaultContainer(
         title = project?.project?.name.orEmpty(),
@@ -92,7 +100,6 @@ fun BoxesMain(
             )
         }
     ) {
-        val projectNotNull by remember { derivedStateOf { project?.project != null } }
         val colorAndShapeState = when (projectNotNull) {
             true -> rememberSaveable {
                 ColorAndShapeState(
@@ -233,7 +240,8 @@ private fun MainCanvas(
                 },
                 onDrag = {
                     if (canvasState.hasLayersTurnedOn) {
-                        val color = colorAndShapeState.colorState.copy(shape = colorAndShapeState.shapeState)
+                        val color =
+                            colorAndShapeState.colorState.copy(shape = colorAndShapeState.shapeState)
                         canvasState.addToDragHistory(
                             it,
                             currentLayer,
@@ -487,6 +495,7 @@ private fun handleAction(
         is Action.Save -> {
             saveProject(
                 canvasState,
+                buttonsState,
                 colorAndShapeState,
                 project,
                 viewModel,
@@ -568,6 +577,7 @@ private fun handleAction(
 
 private fun saveProject(
     canvasState: CanvasState,
+    buttonsState: ButtonsState,
     colorAndShapeState: ColorAndShapeState,
     project: ProjectAndLayers?,
     viewModel: BoxesViewModel,
@@ -594,7 +604,9 @@ private fun saveProject(
         canvasState.selections,
         canvasState.layers.map { it.id to it.on },
         colorAndShapeState.colorState,
-        colorAndShapeState.shapeState
+        colorAndShapeState.shapeState,
+        buttonsState.showGridState,
+        buttonsState.showPngBackgroundState
     )
 }
 

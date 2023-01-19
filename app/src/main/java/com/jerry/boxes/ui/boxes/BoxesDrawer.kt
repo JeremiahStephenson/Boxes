@@ -223,17 +223,6 @@ private fun LayerItem(
 }
 
 @Composable
-private fun switchColors(layer: LayerUi) = when {
-    layer.on -> {
-        when (layer.visibilityEnabled) {
-            true -> MaterialTheme.colorScheme.surface
-            else -> MaterialTheme.colorScheme.surface.copy(alpha = 0.5F)
-        }
-    }
-    else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5F)
-}
-
-@Composable
 private fun ButtonSection(
     @StringRes title: Int,
     content: @Composable () -> Unit

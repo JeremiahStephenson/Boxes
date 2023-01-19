@@ -47,8 +47,13 @@ interface BoxesDao {
     @Query("UPDATE project SET name = :name, rows = :rows, columns = :columns WHERE id = :id")
     suspend fun updateProject(name: String, columns: Int, rows: Int, id: Long)
 
-    @Query("UPDATE project SET currentColor = :color, currentShape = :shape WHERE id = :id")
-    suspend fun updateProjectColorAndShape(color: Int, shape: Shape, id: Long)
+    @Query("UPDATE project SET currentColor = :color, currentShape = :shape, showGrid = :showGrid, showPngBg = :showPngBg WHERE id = :id")
+    suspend fun updateProjectColorAndShape(
+        color: Int,
+        shape: Shape, id: Long,
+        showGrid: Boolean,
+        showPngBg: Boolean
+    )
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAllPixels(pixelList: List<Pixel>)

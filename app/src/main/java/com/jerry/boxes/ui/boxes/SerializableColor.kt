@@ -12,5 +12,5 @@ data class SerializableColor(
     @Transient
     private var _color: Color? = null
     val color: Color get() =
-        _color ?: Color(colorArgb)
+        _color ?: Color(colorArgb).also { _color = it }
 }

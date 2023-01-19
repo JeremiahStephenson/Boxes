@@ -29,6 +29,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeout
+import timber.log.Timber
 import java.time.Instant
 import java.util.*
 
@@ -81,6 +82,7 @@ class BoxesViewModel(
     val pixelsFlow = boxesDao.getProjectPixelsFlow(projectId)
         .map {
             //delay(2000)
+            Timber.d("ProjectTest - pixels")
             DataResource.done(generateSelections(it))
         }
         .stateIn(
@@ -207,11 +209,13 @@ class BoxesViewModel(
         selections: Map<Long, Map<Point, SerializableColor>>,
         layers: List<Pair<Long, Boolean>>,
         currentColor: SerializableColor,
-        currentShape: Shape
+        currentShape: Shape,
+        showGrid: Boolean,
+        showPngBg: Boolean
     ) {
         viewModelScope.launch {
             updateDatabase {
-                saveProject(boxes, selections, currentColor, currentShape)
+                saveProject(boxes, selections, currentColor, currentShape, showGrid, showPngBg)
                 layers.forEach {
                     boxesDao.turnOnOrOffLayer(it.second, it.first)
                 }
@@ -231,15 +235,13 @@ class BoxesViewModel(
         fillJob = viewModelScope.launch(cc.io) {
             _loading.value = true
             withTimeout(FILL_TIMEOUT) {
-                //fillMutex.withLock {
-                    try {
-                        fillInArea(point, layerId, currentColor, currentShape, columns, rows)
-                        _loading.value = false
-                    } catch (t: Throwable) {
-                        // todo handle this
-                        _loading.value = false
-                    }
-                //}
+                try {
+                    fillInArea(point, layerId, currentColor, currentShape, columns, rows)
+                    _loading.value = false
+                } catch (t: Throwable) {
+                    // todo handle this
+                    _loading.value = false
+                }
             }
         }
     }
@@ -254,7 +256,9 @@ class BoxesViewModel(
         boxes: List<Point>? = null,
         selections: Map<Long, Map<Point, SerializableColor?>?>,
         currentColor: SerializableColor? = null,
-        currentShape: Shape? = null
+        currentShape: Shape? = null,
+        showGrid: Boolean? = null,
+        showPngBg: Boolean? = null
     ) {
         val now = Instant.now().toEpochMilli()
 
@@ -272,11 +276,13 @@ class BoxesViewModel(
         }
         boxesDao.insertAllPixels(list)
         boxesDao.deletePixelsFromProject(projectId, now)
-        safeLet(currentColor, currentShape) { color, shape ->
+        safeLet(currentColor, currentShape, showGrid, showPngBg) { color, shape, grid, png ->
             boxesDao.updateProjectColorAndShape(
                 color.color.toArgb(),
                 shape,
-                projectId
+                projectId,
+                grid,
+                png
             )
         }
     }
@@ -297,7 +303,8 @@ class BoxesViewModel(
         while (iterator.isNotEmpty()) {
             iterator.peek()?.let { p ->
                 if (p.isNotOutside(columns, rows) &&
-                    !fillMap.contains(p) && pixelsFlow.value.data?.get(layerId)?.get(p) == currentColor
+                    !fillMap.contains(p) && pixelsFlow.value.data?.get(layerId)
+                        ?.get(p) == currentColor
                 ) {
                     fillMap.add(p)
                     iterator.add(Point(p.x - 1, p.y))

@@ -13,7 +13,9 @@ data class Project(
     val columns: Int,
     val rows: Int,
     val currentColor: Int,
-    val currentShape: Shape
+    val currentShape: Shape,
+    val showGrid: Boolean,
+    val showPngBg: Boolean
 ) : Serializable {
     @PrimaryKey(autoGenerate = true)
     var id: Long = 0L

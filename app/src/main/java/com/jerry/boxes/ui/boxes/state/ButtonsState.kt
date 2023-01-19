@@ -12,10 +12,10 @@ import kotlinx.parcelize.Parcelize
 @Parcelize
 @Stable
 class ButtonsState(
-    private val eraserSelected: Boolean,
-    private val showPngBackground: Boolean,
-    private val showGrid: Boolean,
-    private val selectToolSelected: Boolean
+    private val eraserSelected: Boolean = false,
+    private val showPngBackground: Boolean = false,
+    private val showGrid: Boolean = true,
+    private val selectToolSelected: Boolean = false
 ) : Parcelable {
 
     @IgnoredOnParcel

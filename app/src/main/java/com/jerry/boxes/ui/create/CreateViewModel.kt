@@ -45,7 +45,9 @@ class CreateViewModel(
                             columns,
                             rows,
                             Color.Green.toArgb(),
-                            Shape.Box
+                            Shape.Box,
+                            showGrid = true,
+                            showPngBg = false
                         )
                     )
                     boxesDao.insertLayer(Layer(projectId, 0, "Layer 1", true))
