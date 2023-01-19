@@ -95,6 +95,6 @@ interface BoxesDao {
     @Query("SELECT * FROM historyItem WHERE historyId = :historyId")
     suspend fun findAllHistoryItems(historyId: Long): List<HistoryItem>
 
-    @Query("SELECT Count(*) FROM historyItem JOIN history ON history.id == historyItem.historyId JOIN layer ON layer.id == history.layerId AND layer.id == :layerId")
+    @Query("SELECT Count(*) FROM history JOIN layer ON layer.id == history.layerId AND layer.id == :layerId")
     fun layerHistoryCount(layerId: Long): Flow<Int>
 }

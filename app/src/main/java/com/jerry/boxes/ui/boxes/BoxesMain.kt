@@ -372,6 +372,8 @@ private fun AdditionalButtonBar(
     rows: Int,
     onAction: (Action) -> Unit
 ) {
+    val columnsState by rememberUpdatedState(columns)
+    val rowsState by rememberUpdatedState(rows)
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -423,8 +425,8 @@ private fun AdditionalButtonBar(
                     )
                     val isAtBottomEdge by remember {
                         derivedStateOf {
-                            (selectionState.bottomRightState?.y ?: 0) >= (rows - 1) ||
-                                    (selectionState.topLeftState?.y ?: 0) >= (rows - 1)
+                            (selectionState.bottomRightState?.y ?: 0) >= (rowsState - 1) ||
+                                    (selectionState.topLeftState?.y ?: 0) >= (rowsState - 1)
                         }
                     }
                     IconMenuButton(
@@ -435,8 +437,8 @@ private fun AdditionalButtonBar(
                 }
                 val isAtRightEdge by remember {
                     derivedStateOf {
-                        (selectionState.bottomRightState?.x ?: 0) >= (columns - 1) ||
-                                (selectionState.topLeftState?.x ?: 0) >= (columns - 1)
+                        (selectionState.bottomRightState?.x ?: 0) >= (columnsState - 1) ||
+                                (selectionState.topLeftState?.x ?: 0) >= (columnsState - 1)
                     }
                 }
                 IconMenuButton(
