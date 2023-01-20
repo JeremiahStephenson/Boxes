@@ -146,13 +146,15 @@ private fun LazyItemScope.LayerItem(
                 IconMenuButton(
                     modifier = Modifier.alpha(if (showUpArrow()) 1F else 0F),
                     onClick = { onMoveItem(layer.layer.id, layer.layer.index + 1) },
-                    drawableRes = R.drawable.ic_arrow_upward_24
+                    drawableRes = R.drawable.ic_arrow_upward_24,
+                    contentDescription = stringResource(R.string.move_layer_up)
                 )
                 Spacer(modifier = Modifier.weight(1F))
                 IconMenuButton(
                     modifier = Modifier.alpha(if (showDownArrow()) 1F else 0F),
                     onClick = { onMoveItem(layer.layer.id, layer.layer.index - 1) },
-                    drawableRes = R.drawable.ic_arrow_downward_24
+                    drawableRes = R.drawable.ic_arrow_downward_24,
+                    contentDescription = stringResource(R.string.move_layer_down)
                 )
             }
         }
@@ -195,12 +197,14 @@ private fun ButtonRow(
     ) {
         IconMenuButton(
             onClick = onShowNameDialog,
-            drawableRes = R.drawable.ic_edit_24
+            drawableRes = R.drawable.ic_edit_24,
+            contentDescription = stringResource(R.string.change_layer_name)
         )
         if (showDeleteBtn()) {
             IconMenuButton(
                 onClick = onShowDeleteDialog,
-                drawableRes = R.drawable.ic_delete_24
+                drawableRes = R.drawable.ic_delete_24,
+                contentDescription = stringResource(R.string.delete_layer)
             )
         }
     }

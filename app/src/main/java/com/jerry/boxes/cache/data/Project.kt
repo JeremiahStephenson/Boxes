@@ -30,5 +30,5 @@ data class Project(
     private var _color: ColorAndShape? = null
     val colorAndShape: ColorAndShape
         get() =
-        _color ?: ColorAndShape(Color(currentColor)).also { _color = it }
+            _color ?: ColorAndShape(Color(currentColor)).also { _color = it }
 }

@@ -22,7 +22,7 @@
     <string name="columns">Columns</string>
     <string name="rows">Rows</string>
     <string name="add_new_project">Add new project</string>
-    <string name="edit_project">Editing: %1$s</string>
+    <string name="editing_project">Editing: %1$s</string>
     <string name="are_you_sure_project">Are you sure you want to delete the project: %1$s?</string>
 
     <string name="set_color">Set Color</string>
@@ -32,4 +32,32 @@
     <string name="export">Export</string>
 
     <string name="name_required">A name is required</string>
+
+    <string name="edit_layer_options">Edit Layer Options</string>
+    <string name="save_project">Save Project</string>
+    <string name="edit_project">Edit Project</string>
+    <string name="save_to_png">Save to PNG File</string>
+    <string name="clear_layer">Clear the Selected Layer</string>
+    <string name="toggle_layer_visibility">Toggle Layer Visibility</string>
+    <string name="select_and_move">Toggles Select and Move</string>
+    <string name="turn_off_select_and_move">Turn Off Select and Move</string>
+    <string name="toggle_opacity_bg">Toggles Opacity Background Visibility</string>
+    <string name="toggle_grid_visibility">Toggles the Grid Visibility</string>
+    <string name="toggle_eraser">Toggles the Eraser</string>
+    <string name="turn_off_eraser">Turn off Eraser</string>
+    <string name="toggle_fill">Toggles the Fill Bucket</string>
+    <string name="toggle_color_picker">Toggles the Color Picker</string>
+    <string name="color_selector">Color Selector</string>
+    <string name="toggle_tap_tool">Switches Tap Tool</string>
+    <string name="undo_history">Undo</string>
+    <string name="re_center">Center the Canvas</string>
+    <string name="move_left">Move Left</string>
+    <string name="move_right">Move Right</string>
+    <string name="move_up">Move Up</string>
+    <string name="move_down">Move Down</string>
+    <string name="move_layer_up">Move Layer Up</string>
+    <string name="move_layer_down">Move Layer Down</string>
+    <string name="un_select">Un-select Current Selection</string>
+    <string name="change_layer_name">Change Layer Name</string>
+    <string name="delete_layer">Delete Layer</string>
 </resources>

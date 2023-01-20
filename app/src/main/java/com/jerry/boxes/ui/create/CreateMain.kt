@@ -40,7 +40,7 @@ fun CreateMain(
     DefaultContainer(
         title = when (projectState) {
             null -> stringResource(R.string.add_new_project)
-            else -> stringResource(R.string.edit_project, projectState!!.name)
+            else -> stringResource(R.string.editing_project, projectState!!.name)
         }
     ) {
         val context = LocalContext.current

@@ -1,6 +1,5 @@
 package com.jerry.boxes.cache
 
-import androidx.paging.PagingSource
 import androidx.room.*
 import com.jerry.boxes.cache.data.*
 import com.jerry.boxes.ui.shapes.Shape
@@ -10,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 interface BoxesDao {
 
     @Query("SELECT * FROM project ORDER BY name COLLATE NOCASE ASC")
-    fun findAllProjects(): PagingSource<Int, Project>
+    fun findAllProjects(): Flow<List<Project>>
 
     @Transaction
     @Query("SELECT * FROM project WHERE id = :id")

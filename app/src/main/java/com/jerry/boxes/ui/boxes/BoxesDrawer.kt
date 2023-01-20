@@ -58,7 +58,8 @@ fun DrawerMenu(
                 IconMenuButton(
                     padding = PaddingValues(8.dp),
                     onClick = { onAction(Action.GoToLayerEdit) },
-                    drawableRes = R.drawable.ic_edit_24
+                    drawableRes = R.drawable.ic_edit_24,
+                    contentDescription = stringResource(R.string.edit_layer_options)
                 )
             }
             Divider(modifier = Modifier.padding(horizontal = 16.dp))
@@ -66,7 +67,8 @@ fun DrawerMenu(
 
         items(
             items = canvasState.layers,
-            key = { it.id }) { layer ->
+            key = { it.id }
+        ) { layer ->
             LayerItem(
                 layer = layer,
                 onAction = onAction
@@ -82,33 +84,43 @@ fun DrawerMenu(
 
         item {
             ButtonSection(R.string.tools) {
-                IconMenuButton(
+                val isPickerOn by remember { derivedStateOf { buttonsState.tapTypeState == TapType.PICKER } }
+                IconSelectableMenuButton(
                     onClick = { onAction(Action.SetTapType(TapType.PICKER)) },
-                    drawableRes = R.drawable.ic_colorize_24
+                    isSelected = { isPickerOn },
+                    drawableResOn = R.drawable.ic_colorize_24,
+                    contentDescription = stringResource(R.string.toggle_color_picker)
                 )
-                IconMenuButton(
+                val isFillOn by remember { derivedStateOf { buttonsState.tapTypeState == TapType.FILL } }
+                IconSelectableMenuButton(
                     onClick = { onAction(Action.SetTapType(TapType.FILL)) },
-                    drawableRes = R.drawable.ic_format_color_fill_24
+                    isSelected = { isFillOn },
+                    drawableResOn = R.drawable.ic_format_color_fill_24,
+                    contentDescription = stringResource(R.string.toggle_fill)
                 )
                 IconSelectableMenuButton(
                     onClick = { onAction(Action.Eraser) },
                     isSelected = { buttonsState.eraserSelectedState },
-                    drawableResOn = R.drawable.ic_eraser_on_24
+                    drawableResOn = R.drawable.ic_eraser_on_24,
+                    contentDescription = stringResource(R.string.toggle_eraser)
                 )
                 IconSelectableMenuButton(
                     onClick = { onAction(Action.ShowGrid) },
                     isSelected = { getProject().showGrid },
-                    drawableResOn = R.drawable.ic_grid_on_24
+                    drawableResOn = R.drawable.ic_grid_on_24,
+                    contentDescription = stringResource(R.string.toggle_grid_visibility)
                 )
                 IconSelectableMenuButton(
                     onClick = { onAction(Action.ShowPngBackground) },
                     isSelected = { getProject().showPngBg },
-                    drawableResOn = R.drawable.ic_opacity_on_24
+                    drawableResOn = R.drawable.ic_opacity_on_24,
+                    contentDescription = stringResource(R.string.toggle_opacity_bg)
                 )
                 IconSelectableMenuButton(
                     onClick = { onAction(Action.SelectTool) },
                     isSelected = { buttonsState.selectToolSelectedState },
-                    drawableResOn = R.drawable.ic_select_all_24
+                    drawableResOn = R.drawable.ic_select_all_24,
+                    contentDescription = stringResource(R.string.select_and_move)
                 )
             }
         }
@@ -117,11 +129,13 @@ fun DrawerMenu(
             ButtonSection(R.string.save) {
                 IconMenuButton(
                     onClick = { onAction(Action.Save(false)) },
-                    drawableRes = R.drawable.ic_save_24
+                    drawableRes = R.drawable.ic_save_24,
+                    contentDescription = stringResource(R.string.save_project)
                 )
                 IconMenuButton(
                     onClick = { onAction(Action.Edit) },
-                    drawableRes = R.drawable.ic_edit_24
+                    drawableRes = R.drawable.ic_edit_24,
+                    contentDescription = stringResource(R.string.edit_project)
                 )
             }
         }
@@ -131,7 +145,8 @@ fun DrawerMenu(
             ButtonSection(R.string.export) {
                 IconMenuButton(
                     onClick = { onAction(Action.Export(1000F)) },
-                    drawableRes = R.drawable.ic_image_24
+                    drawableRes = R.drawable.ic_image_24,
+                    contentDescription = stringResource(R.string.save_to_png)
                 )
             }
         }
@@ -140,7 +155,8 @@ fun DrawerMenu(
             ButtonSection(R.string.clear) {
                 IconMenuButton(
                     onClick = { onAction(Action.Clear) },
-                    drawableRes = R.drawable.ic_auto_renew
+                    drawableRes = R.drawable.ic_auto_renew,
+                    contentDescription = stringResource(R.string.clear_layer)
                 )
             }
         }
@@ -161,7 +177,8 @@ private fun AddLayerBtn(
                 .padding(top = 8.dp),
             onClick = {
                 showNameDialog = true
-            }) {
+            }
+        ) {
             Text(stringResource(R.string.add_layer))
         }
     }
@@ -218,7 +235,8 @@ private fun LayerItem(
                 isSelected = { layer.on },
                 drawableResOn = R.drawable.ic_visibility_off_24,
                 drawableResOff = R.drawable.ic_visibility_on_24,
-                isEnabled = { layer.visibilityEnabled }
+                isEnabled = { layer.visibilityEnabled },
+                contentDescription = stringResource(R.string.toggle_layer_visibility)
             )
         }
     }

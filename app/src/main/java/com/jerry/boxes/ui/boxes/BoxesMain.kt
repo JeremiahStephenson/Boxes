@@ -10,10 +10,12 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -128,8 +130,8 @@ fun BoxesMain(
                         getProject = { project!! }
                     )
                 }
-            }) {
-
+            }
+        ) {
             if (projectNotNull) {
                 MainCanvas(
                     project = project!!,
@@ -165,7 +167,6 @@ private fun MainCanvas(
     onAction: (Action) -> Unit
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-
         val density = LocalDensity.current
         val strokeWidth = remember { with(density) { 2.dp.toPx() } }
         val buttonBarOffset = remember { with(density) { 56.dp.toPx() } }
@@ -258,6 +259,7 @@ private fun MainCanvas(
             getShape = { project.currentShape },
             buttonsState = buttonsState,
             canvasState = canvasState,
+            transformerState = transformerState,
             onColorChosen = {
                 buttonsState.turnOffEraser()
                 onAction(Action.SetColor(it))
@@ -285,20 +287,20 @@ private fun MainCanvas(
 private fun ButtonBar(
     buttonsState: ButtonsState,
     canvasState: CanvasState,
+    transformerState: TransformerState,
     getColor: () -> ColorAndShape,
     getShape: () -> Shape,
     getUsedColorList: () -> List<ColorAndShape>,
     onAction: (Action) -> Unit,
     onColorChosen: (ColorAndShape) -> Unit,
-    onShapeChosen: (Shape) -> Unit,
+    onShapeChosen: (Shape) -> Unit
 ) {
     Row(
         modifier = Modifier
             .height(56.dp)
-            .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6F))
+            .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.8F))
             .fillMaxWidth()
     ) {
-
         var colorPicker by rememberSaveable { mutableStateOf(false) }
         if (colorPicker) {
             ColorPickerDialog(
@@ -314,7 +316,7 @@ private fun ButtonBar(
         if (shapePicker) {
             ShapePickerDialog(
                 color = getColor(),
-                onShapeChosen = onShapeChosen,
+                onShapeChosen = onShapeChosen
             ) {
                 shapePicker = false
             }
@@ -323,7 +325,8 @@ private fun ButtonBar(
         IconMenuButton(
             onClick = { colorPicker = true },
             color = getColor(),
-            drawableRes = R.drawable.ic_color_lens_24
+            drawableRes = R.drawable.ic_color_lens_24,
+            contentDescription = stringResource(R.string.color_selector)
         )
 
         ShapeOption(
@@ -345,7 +348,8 @@ private fun ButtonBar(
         IconMenuButton(
             onClick = { buttonsState.alternateTapType() },
             color = getColor(),
-            drawableRes = tapTypeState
+            drawableRes = tapTypeState,
+            contentDescription = stringResource(R.string.toggle_tap_tool)
         )
 
         Spacer(modifier = Modifier.weight(1F))
@@ -354,14 +358,20 @@ private fun ButtonBar(
         IconMenuButton(
             enabled = historyEnabled,
             onClick = { onAction(Action.Undo) },
-            drawableRes = R.drawable.ic_undo_24
+            drawableRes = R.drawable.ic_undo_24,
+            allowTooltip = false,
+            contentDescription = stringResource(R.string.undo_history)
         )
 
         Spacer(modifier = Modifier.weight(1F))
 
+        val isTransformed by remember { derivedStateOf { transformerState.scale > 1F || transformerState.offset != Offset.Zero } }
         IconMenuButton(
+            enabled = isTransformed,
             onClick = { onAction(Action.ResetZoom) },
-            drawableRes = R.drawable.ic_zoom_out_map_24
+            drawableRes = R.drawable.ic_zoom_out_map_24,
+            allowTooltip = false,
+            contentDescription = stringResource(R.string.re_center)
         )
     }
 }
@@ -387,12 +397,14 @@ private fun AdditionalButtonBar(
                 buttonsState.selectToolSelectedState -> IconMenuButton(
                     modifier = Modifier,
                     onClick = { onAction(Action.SelectTool) },
-                    drawableRes = R.drawable.ic_select_all_24
+                    drawableRes = R.drawable.ic_select_all_24,
+                    contentDescription = stringResource(R.string.turn_off_select_and_move)
                 )
                 buttonsState.eraserSelectedState -> IconMenuButton(
                     modifier = Modifier,
                     onClick = { onAction(Action.Eraser) },
-                    drawableRes = R.drawable.ic_eraser_on_24
+                    drawableRes = R.drawable.ic_eraser_on_24,
+                    contentDescription = stringResource(R.string.turn_off_eraser)
                 )
             }
         }
@@ -401,7 +413,7 @@ private fun AdditionalButtonBar(
             val isAtLeftEdge by remember {
                 derivedStateOf {
                     (selectionState.bottomRightState?.x ?: 0) <= 0 ||
-                            (selectionState.topLeftState?.x ?: 0) <= 0
+                        (selectionState.topLeftState?.x ?: 0) <= 0
                 }
             }
             Spacer(modifier = Modifier.weight(1F))
@@ -411,48 +423,53 @@ private fun AdditionalButtonBar(
                 IconMenuButton(
                     enabled = !isAtLeftEdge && enabled,
                     onClick = { onAction(Action.Move(Direction.LEFT)) },
-                    drawableRes = R.drawable.ic_arrow_back_24
+                    drawableRes = R.drawable.ic_arrow_back_24,
+                    contentDescription = stringResource(R.string.move_left)
                 )
                 Column {
                     val isAtTopEdge by remember {
                         derivedStateOf {
                             (selectionState.bottomRightState?.y ?: 0) <= 0 ||
-                                    (selectionState.topLeftState?.y ?: 0) <= 0
+                                (selectionState.topLeftState?.y ?: 0) <= 0
                         }
                     }
                     IconMenuButton(
                         enabled = !isAtTopEdge && enabled,
                         onClick = { onAction(Action.Move(Direction.UP)) },
-                        drawableRes = R.drawable.ic_arrow_upward_24
+                        drawableRes = R.drawable.ic_arrow_upward_24,
+                        contentDescription = stringResource(R.string.move_up)
                     )
                     val isAtBottomEdge by remember {
                         derivedStateOf {
                             (selectionState.bottomRightState?.y ?: 0) >= (rowsState - 1) ||
-                                    (selectionState.topLeftState?.y ?: 0) >= (rowsState - 1)
+                                (selectionState.topLeftState?.y ?: 0) >= (rowsState - 1)
                         }
                     }
                     IconMenuButton(
                         enabled = !isAtBottomEdge && enabled,
                         onClick = { onAction(Action.Move(Direction.DOWN)) },
-                        drawableRes = R.drawable.ic_arrow_downward_24
+                        drawableRes = R.drawable.ic_arrow_downward_24,
+                        contentDescription = stringResource(R.string.move_down)
                     )
                 }
                 val isAtRightEdge by remember {
                     derivedStateOf {
                         (selectionState.bottomRightState?.x ?: 0) >= (columnsState - 1) ||
-                                (selectionState.topLeftState?.x ?: 0) >= (columnsState - 1)
+                            (selectionState.topLeftState?.x ?: 0) >= (columnsState - 1)
                     }
                 }
                 IconMenuButton(
                     enabled = !isAtRightEdge && enabled,
                     onClick = { onAction(Action.Move(Direction.RIGHT)) },
-                    drawableRes = R.drawable.ic_arrow_forward_24
+                    drawableRes = R.drawable.ic_arrow_forward_24,
+                    contentDescription = stringResource(R.string.move_right)
                 )
             }
             Spacer(modifier = Modifier.weight(1F))
             IconMenuButton(
                 onClick = { onAction(Action.ClearSelect) },
-                drawableRes = R.drawable.ic_close_24
+                drawableRes = R.drawable.ic_close_24,
+                contentDescription = stringResource(R.string.un_select)
             )
         }
     }
@@ -607,5 +624,3 @@ private fun rememberCanvasState(viewModel: BoxesViewModel): CanvasState {
     val historyCountState = viewModel.historyCountFlow.collectAsStateWithLifecycle(0)
     return remember { CanvasState(layerState, loadingState, historyCountState, pixelsState) }
 }
-
-

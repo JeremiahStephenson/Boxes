@@ -11,9 +11,7 @@ class HomeViewModel(
     private val boxesDao: BoxesDao
 ) : ViewModel() {
 
-    val projectsFlow = Pager(PagingConfig(40)) {
-        boxesDao.findAllProjects()
-    }.flow
+    val projectsFlow = boxesDao.findAllProjects()
 
     fun deleteProject(projectId: Long) {
         viewModelScope.launch {
