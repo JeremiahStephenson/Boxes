@@ -27,6 +27,7 @@ import com.godaddy.android.colorpicker.ClassicColorPicker
 import com.godaddy.android.colorpicker.HsvColor
 import com.jerry.boxes.R
 import com.jerry.boxes.extensions.asColorAndShape
+import com.jerry.boxes.ui.common.ShapeOption
 import com.jerry.boxes.ui.common.pngBackground
 import com.jerry.boxes.ui.common.unboundClickable
 import com.jerry.boxes.ui.shapes.Shape
@@ -268,7 +269,7 @@ fun ShapePickerDialog(
                 .clip(MaterialTheme.shapes.large)
                 .background(MaterialTheme.colorScheme.surfaceVariant),
             contentPadding = PaddingValues(16.dp),
-            columns = GridCells.Fixed(COLUMN_COUNT),
+            columns = GridCells.Fixed(COLUMN_COUNT)
         ) {
             items(
                 items = shapes,
@@ -285,14 +286,13 @@ fun ShapePickerDialog(
                     )
                 }
             ) {
-                Box {
-                    ShapeOption(
-                        color = color,
-                        shape = it
-                    ) {
-                        onShapeChosen(it)
-                        onDismiss()
-                    }
+                ShapeOption(
+                    shapeSize = 34.dp,
+                    color = color,
+                    shape = it
+                ) {
+                    onShapeChosen(it)
+                    onDismiss()
                 }
             }
         }

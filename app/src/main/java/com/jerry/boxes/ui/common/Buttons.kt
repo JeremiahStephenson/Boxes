@@ -1,29 +1,38 @@
 package com.jerry.boxes.ui.common
 
+import android.graphics.RectF
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.runtime.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.*
+import androidx.compose.ui.window.Popup
+import com.jerry.boxes.R
 import com.jerry.boxes.ui.boxes.ColorAndShape
-import com.skydoves.balloon.ArrowOrientation
-import com.skydoves.balloon.ArrowPositionRules
-import com.skydoves.balloon.BalloonAnimation
-import com.skydoves.balloon.BalloonSizeSpec
-import com.skydoves.balloon.compose.Balloon
-import com.skydoves.balloon.compose.rememberBalloonBuilder
+import com.jerry.boxes.ui.boxes.drawCustomShape
+import com.jerry.boxes.ui.shapes.Shape
+import com.jerry.boxes.util.TooltipPositionProvider
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -37,22 +46,8 @@ fun IconMenuButton(
     allowTooltip: Boolean = true,
     @DrawableRes drawableRes: Int
 ) {
-    val builder = rememberBalloonBuilder {
-        setArrowPosition(0.5F)
-        setArrowPositionRules(ArrowPositionRules.ALIGN_ANCHOR)
-        setWidth(BalloonSizeSpec.WRAP)
-        setHeight(BalloonSizeSpec.WRAP)
-        setPadding(12)
-        setCornerRadius(8F)
-        setBalloonAnimation(BalloonAnimation.ELASTIC)
-    }
-    Balloon(
-        modifier = Modifier,
-        builder = builder,
-        balloonContent = {
-            Text(text = contentDescription)
-        }
-    ) { balloonWindow ->
+    Box {
+        var popupControl by remember { mutableStateOf(false) }
         Icon(
             modifier = Modifier
                 .clip(CircleShape)
@@ -62,7 +57,7 @@ fun IconMenuButton(
                             onClick = { onClick() },
                             onLongClick = {
                                 if (allowTooltip) {
-                                    balloonWindow.showAlignTop()
+                                    popupControl = true
                                 }
                             }
                         )
@@ -82,6 +77,9 @@ fun IconMenuButton(
             },
             contentDescription = contentDescription
         )
+        if (popupControl) {
+            ToolTip(text = contentDescription) { popupControl = false }
+        }
     }
 }
 
@@ -95,32 +93,15 @@ fun IconSelectableMenuButton(
     @DrawableRes drawableResOn: Int,
     @DrawableRes drawableResOff: Int? = null
 ) {
-    val builder = rememberBalloonBuilder {
-        setArrowSize(10)
-        setArrowPosition(0.5F)
-        setArrowPositionRules(ArrowPositionRules.ALIGN_ANCHOR)
-        setWidth(BalloonSizeSpec.WRAP)
-        setHeight(BalloonSizeSpec.WRAP)
-        setPadding(12)
-        setCornerRadius(8F)
-        setBalloonAnimation(BalloonAnimation.ELASTIC)
-    }
-    Balloon(
-        modifier = Modifier,
-        builder = builder,
-        balloonContent = {
-            Text(text = contentDescription)
-        }
-    ) { balloonWindow ->
+    Box {
+        var popupControl by remember { mutableStateOf(false) }
         Icon(
             modifier = modifier
                 .run {
                     when (isEnabled()) {
                         true -> unboundClickable(
                             onClick = { onClick() },
-                            onLongClick = {
-                                balloonWindow.showAlignTop()
-                            }
+                            onLongClick = { popupControl = true }
                         )
                         else -> this
                     }
@@ -152,5 +133,72 @@ fun IconSelectableMenuButton(
                 else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4F)
             }
         )
+        if (popupControl) {
+            ToolTip(text = contentDescription) { popupControl = false }
+        }
+    }
+}
+
+@Composable
+fun ShapeOption(
+    modifier: Modifier = Modifier,
+    shape: Shape,
+    color: ColorAndShape? = null,
+    showToolTip: Boolean = false,
+    shapeSize: Dp = 26.dp,
+    onClick: () -> Unit
+) {
+    Box(modifier) {
+        var popupControl by remember { mutableStateOf(false) }
+        val onSurface = MaterialTheme.colorScheme.onSurface
+        val shapeColor = (color ?: ColorAndShape(onSurface)).copy(shape = shape)
+        val size = with(LocalDensity.current) { (shapeSize - 2.dp).toPx() }
+        val stroke = with(LocalDensity.current) { 1.dp.toPx() }
+        Canvas(
+            modifier = Modifier
+                .unboundClickable(
+                    onClick = { onClick() },
+                    onLongClick = { if (showToolTip) popupControl = true }
+                )
+                .padding(16.dp)
+                .size(shapeSize)
+                .then(modifier)
+        ) {
+            drawCustomShape(
+                RectF(0F, 0F, size, size),
+                shapeColor
+            )
+            drawRect(
+                color = onSurface.copy(alpha = 0.4F),
+                style = Stroke(stroke),
+                size = Size(size, size)
+            )
+        }
+        if (popupControl) {
+            ToolTip(text = stringResource(R.string.select_shape)) {
+                popupControl = false
+            }
+        }
+    }
+}
+
+@Composable
+private fun ToolTip(
+    text: String,
+    onDismiss: () -> Unit
+) {
+    val offsetY = with(LocalDensity.current) { 16.dp.roundToPx() }
+    Popup(
+        popupPositionProvider = TooltipPositionProvider(offsetY),
+        onDismissRequest = onDismiss
+    ) {
+        Box(
+            modifier = Modifier
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.secondaryContainer)
+                .padding(16.dp)
+        ) {
+            Text(text = text)
+        }
     }
 }

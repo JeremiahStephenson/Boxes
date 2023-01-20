@@ -9,6 +9,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -70,32 +71,14 @@ fun BoxCanvas(
         )
     }
 
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .pointerInput(appBarExpanded) {
-            detectTapGestures { point ->
-                if (state.isTransformInProgress) return@detectTapGestures
-                point
-                    .findBox(
-                        scaleState,
-                        offsetState,
-                        sizeState,
-                        columnsState,
-                        rowsState,
-                        canvasState.boxes
-                    )
-                    ?.let {
-                        onTap(it)
-                    }
-            }
-        }
-        .pointerInput(appBarExpanded) {
-            detectDragGestures(
-                onDragStart = {
-                    if (state.isTransformInProgress) return@detectDragGestures
-                    when (buttonsState.selectToolSelectedState) {
-                        true -> selectionState.startSelection(
-                            it,
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(appBarExpanded) {
+                detectTapGestures { point ->
+                    if (state.isTransformInProgress) return@detectTapGestures
+                    point
+                        .findBox(
                             scaleState,
                             offsetState,
                             sizeState,
@@ -103,51 +86,70 @@ fun BoxCanvas(
                             rowsState,
                             canvasState.boxes
                         )
-                        else -> onDragStart()
-                    }
-                },
-                onDragEnd = {
-                    if (!buttonsState.selectToolSelectedState) {
-                        onDragEnd()
-                    }
-                },
-                onDragCancel = {
-                    if (!buttonsState.selectToolSelectedState) {
-                        onDragEnd()
-                    }
-                },
-                onDrag = { position, change ->
-                    if (state.isTransformInProgress) return@detectDragGestures
-                    when (buttonsState.selectToolSelectedState) {
-                        true -> {
-                            selectionState.updateSelection(
-                                position.position,
+                        ?.let {
+                            onTap(it)
+                        }
+                }
+            }
+            .pointerInput(appBarExpanded) {
+                detectDragGestures(
+                    onDragStart = {
+                        if (state.isTransformInProgress) return@detectDragGestures
+                        when (buttonsState.selectToolSelectedState) {
+                            true -> selectionState.startSelection(
+                                it,
                                 scaleState,
                                 offsetState,
                                 sizeState,
                                 columnsState,
                                 rowsState,
                                 canvasState.boxes
+                            )
+                            else -> onDragStart()
+                        }
+                    },
+                    onDragEnd = {
+                        if (!buttonsState.selectToolSelectedState) {
+                            onDragEnd()
+                        }
+                    },
+                    onDragCancel = {
+                        if (!buttonsState.selectToolSelectedState) {
+                            onDragEnd()
+                        }
+                    },
+                    onDrag = { position, change ->
+                        if (state.isTransformInProgress) return@detectDragGestures
+                        when (buttonsState.selectToolSelectedState) {
+                            true -> {
+                                selectionState.updateSelection(
+                                    position.position,
+                                    scaleState,
+                                    offsetState,
+                                    sizeState,
+                                    columnsState,
+                                    rowsState,
+                                    canvasState.boxes
+                                )
+                            }
+                            else -> onDrag(
+                                getDragPoints(canvasState, change, position).findBoxes(
+                                    scaleState,
+                                    offsetState,
+                                    sizeState,
+                                    columnsState,
+                                    rowsState,
+                                    canvasState.boxes
+                                )
                             )
                         }
-                        else -> onDrag(
-                            getDragPoints(canvasState, change, position).findBoxes(
-                                scaleState,
-                                offsetState,
-                                sizeState,
-                                columnsState,
-                                rowsState,
-                                canvasState.boxes
-                            )
-                        )
                     }
-                }
+                )
+            }
+            .transformable(
+                state = state,
+                lockRotationOnZoomPan = true
             )
-        }
-        .transformable(
-            state = state,
-            lockRotationOnZoomPan = true
-        )
     ) {
         SelectionsBoxes(
             scale = scale,
@@ -222,6 +224,27 @@ fun SelectionsBoxes(
     size: Constraints,
     canvasState: CanvasState
 ) {
+    // val test by rememberUpdatedState(canvasState.layers)
+//    val layersTest by remember { derivedStateOf { canvasState.layers.filter { it.on }.sortedBy { it.index } } }
+//    layersTest.forEach { layer ->
+//        Canvas(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .graphicsLayer {
+//                    transformOrigin = TransformOrigin(
+//                        ((size.maxWidth / 2F) - offset.x) / size.maxWidth,
+//                        ((size.maxHeight / 2F) - offset.y) / size.maxHeight
+//                    )
+//                    scaleX = scale
+//                    scaleY = scale
+//                    translationX = offset.x
+//                    translationY = offset.y
+//                }
+//        ) {
+//            drawShapes(layer.id, canvasState.selections[layer.id], canvasState.boxes)
+//        }
+//    }
+
     Canvas(
         modifier = Modifier
             .fillMaxSize()
@@ -387,9 +410,9 @@ private fun getDragPoints(
             val distance =
                 sqrt(
                     (position.position.x - position.previousPosition.x).pow(2) +
-                            (position.position.y - position.previousPosition.y).pow(
-                                2
-                            )
+                        (position.position.y - position.previousPosition.y).pow(
+                            2
+                        )
                 )
             for (i in 1..(distance / boxSize).toInt()) {
                 val t = (boxSize * i) / distance

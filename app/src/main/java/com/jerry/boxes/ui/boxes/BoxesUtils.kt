@@ -71,7 +71,7 @@ fun DrawScope.drawShapes(
 ) {
     if (boxes.isEmpty()) return
     val layerIds = layers.filter { it.on }.sortedBy { it.index }.map { it.id }
-    Timber.d("DrawTest - drawing start: ${System.currentTimeMillis()}, ${selections.size}, ${layers.size}, ${boxes.size}")
+    Timber.d("DrawTest - skipped start: ${System.currentTimeMillis()}, ${selections.size}, ${layers.size}, ${boxes.size}")
     layerIds.forEach { layerId ->
         selections[layerId]?.forEach {
             val position = boxes[it.key]
@@ -80,7 +80,7 @@ fun DrawScope.drawShapes(
             }
         }
     }
-    //Timber.d("DrawTest - drawing end: ${System.currentTimeMillis()}")
+    Timber.d("DrawTest - skipped end: ${System.currentTimeMillis()}")
 }
 
 fun DrawScope.drawShapes(
@@ -88,7 +88,7 @@ fun DrawScope.drawShapes(
     selections: Map<Point, ColorAndShape>?,
     boxes: Map<Point, RectF>
 ) {
-    Timber.d("DrawTest - drawing: ${selections?.size}, ${layerId}, ${boxes.size}")
+    Timber.d("DrawTest - skipped: ${System.currentTimeMillis()}, ${selections?.size}, $layerId, ${boxes.size}")
     if (boxes.isEmpty() || selections.isNullOrEmpty()) return
     selections.forEach {
         val position = boxes[it.key]
@@ -96,6 +96,7 @@ fun DrawScope.drawShapes(
             drawCustomShape(pos, it.value)
         }
     }
+    Timber.d("DrawTest - skipped end: ${System.currentTimeMillis()}")
 }
 
 fun DrawScope.pngBackground(size: Float) {

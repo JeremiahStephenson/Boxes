@@ -332,7 +332,8 @@ private fun ButtonBar(
 
         ShapeOption(
             shape = getShape(),
-            color = getColor()
+            color = getColor(),
+            showToolTip = true
         ) {
             shapePicker = true
         }
@@ -360,7 +361,6 @@ private fun ButtonBar(
             enabled = historyEnabled,
             onClick = { onAction(Action.Undo) },
             drawableRes = R.drawable.ic_undo_24,
-            allowTooltip = false,
             contentDescription = stringResource(R.string.undo_history)
         )
 
@@ -371,7 +371,6 @@ private fun ButtonBar(
             enabled = isTransformed,
             onClick = { onAction(Action.ResetZoom) },
             drawableRes = R.drawable.ic_zoom_out_map_24,
-            allowTooltip = false,
             contentDescription = stringResource(R.string.re_center)
         )
     }

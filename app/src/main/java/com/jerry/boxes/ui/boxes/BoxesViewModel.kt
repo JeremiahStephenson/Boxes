@@ -24,6 +24,7 @@ import com.jerry.boxes.util.CoroutineContextProvider
 import com.jerry.boxes.util.DataResource
 import com.jerry.boxes.util.SavedHandle
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -79,9 +80,9 @@ class BoxesViewModel(
 
     val pixelsFlow = boxesDao.getProjectPixelsFlow(projectId)
         .map {
-            //delay(2000)
             DataResource.done(generateSelections(it))
         }
+        .flowOn(cc.io)
         .stateIn(
             viewModelScope,
             SharingStarted.Eagerly,
@@ -93,7 +94,9 @@ class BoxesViewModel(
 
     private var fillJob: Job? = null
 
-    private val layerFlow = boxesDao.getProjectLayersByProjectId(projectId)
+    private val layerFlow = boxesDao
+        .getProjectLayersByProjectId(projectId)
+        .map { it.sortedByDescending { layer -> layer.index } }
     val layerStateFlow =
         combine(layerState, layerFlow, selectedLayerStateFlow) { state, layers, selectedLayer ->
             if (layerStateHandle == null) {
@@ -130,7 +133,8 @@ class BoxesViewModel(
 
             layers.map {
                 val isOn = state?.getOrDefault(it.id, it.on) == true
-                LayerUi(it.id,
+                LayerUi(
+                    it.id,
                     it.projectId,
                     it.index,
                     it.name,
@@ -139,8 +143,7 @@ class BoxesViewModel(
                     visibilityEnabled = !(isOn && state?.count { it.value } == 1),
                     showControls = layers.size > 1
                 )
-            }.sortedByDescending { layer -> layer.index }
-
+            }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(1000), emptyList())
 
     val historyCountFlow = layerStateFlow.flatMapLatest { layers ->
@@ -193,9 +196,11 @@ class BoxesViewModel(
     suspend fun getLastHistoryItem(layerId: Long): List<HistoryItem> {
         val max = boxesDao.findMaxIndexForHistory(layerId)
         val history = boxesDao.findMaxHistory(layerId, max)
-        return (history?.let {
-            boxesDao.findAllHistoryItems(history.id)
-        } ?: emptyList()).also {
+        return (
+            history?.let {
+                boxesDao.findAllHistoryItems(history.id)
+            } ?: emptyList()
+            ).also {
             history?.let { boxesDao.deleteHistory(it.id) }
         }
     }
@@ -247,7 +252,7 @@ class BoxesViewModel(
         currentColor: ColorAndShape,
         currentShape: Shape,
         columns: Int,
-        rows: Int,
+        rows: Int
     ) {
         if (fillJob?.isActive == true) return
         fillJob = viewModelScope.launch(cc.io) {
