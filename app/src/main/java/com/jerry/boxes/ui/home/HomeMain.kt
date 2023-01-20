@@ -80,7 +80,7 @@ fun HomeMain(
                     onGoToProject = {
                         editMode = false
                         navController.navigate(
-                            BoxesMainDestination(it)
+                            BoxesMainDestination(it, item.name)
                         )
                     },
                     onDeleteProject = {

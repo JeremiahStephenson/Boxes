@@ -52,7 +52,7 @@ fun CreateMain(
                     true -> Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
                     else -> when (viewModel.isSave) {
                         true -> navController.popBackStack()
-                        else -> navController.navigate(BoxesMainDestination(it.data!!)) {
+                        else -> navController.navigate(BoxesMainDestination(it.data!!, null)) {
                             popUpTo(CreateMainDestination.route) {
                                 inclusive = true
                             }

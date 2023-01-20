@@ -24,7 +24,7 @@ import com.ramcosta.composedestinations.animations.rememberAnimatedNavHostEngine
 
 @OptIn(
     ExperimentalMaterialNavigationApi::class,
-    ExperimentalLayoutApi::class,
+    ExperimentalLayoutApi::class
 )
 @Composable
 fun MainContent(
@@ -82,7 +82,8 @@ fun MainContent(
                 val derived by remember { derivedStateOf { fab != null } }
                 AnimatedVisibility(
                     visible = derived,
-                    enter = fadeIn() + expandIn { IntSize(width = 1, height = 1) }) {
+                    enter = fadeIn() + expandIn { IntSize(width = 1, height = 1) }
+                ) {
                     FloatingActionButton(
                         modifier = Modifier.systemBarsPadding(),
                         onClick = fab?.onClick ?: {}
@@ -104,7 +105,7 @@ fun MainContent(
                 engine = engine,
                 navGraph = NavGraphs.root,
                 navController = navController,
-                startRoute = NavGraphs.root.startRoute,
+                startRoute = NavGraphs.root.startRoute
             )
         }
     }
@@ -158,7 +159,7 @@ fun Toolbar(
             scrolledContainerColor = appBarContainerColor,
             navigationIconContentColor = topAppBarElementColor,
             titleContentColor = topAppBarElementColor,
-            actionIconContentColor = topAppBarElementColor,
+            actionIconContentColor = topAppBarElementColor
         ),
         scrollBehavior = scrollBehavior
     )

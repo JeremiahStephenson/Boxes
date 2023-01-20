@@ -45,6 +45,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun BoxesMain(
     projectId: Long,
+    projectName: String?,
     navController: DestinationsNavigator,
     cc: CoroutineContextProvider = get(),
     viewModel: BoxesViewModel = koinViewModel()
@@ -71,7 +72,7 @@ fun BoxesMain(
 
     val selectionState = rememberSaveable { SelectionState() }
     DefaultContainer(
-        title = project?.name.orEmpty(),
+        title = projectName ?: project?.name.orEmpty(),
         disableAppbarScroll = true,
         appBarActions = {
             Icon(
