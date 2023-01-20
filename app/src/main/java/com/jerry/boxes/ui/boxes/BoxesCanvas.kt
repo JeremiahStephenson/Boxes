@@ -9,7 +9,6 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -213,7 +212,11 @@ fun SelectionsBoxes(
                 translationY = offset.y
             )
     ) {
-        drawShapes(layers, selections, boxes)
+        drawShapes(
+            layers,
+            selections,
+            boxes
+        )
     }
 }
 
@@ -224,27 +227,6 @@ fun SelectionsBoxes(
     size: Constraints,
     canvasState: CanvasState
 ) {
-    // val test by rememberUpdatedState(canvasState.layers)
-//    val layersTest by remember { derivedStateOf { canvasState.layers.filter { it.on }.sortedBy { it.index } } }
-//    layersTest.forEach { layer ->
-//        Canvas(
-//            modifier = Modifier
-//                .fillMaxSize()
-//                .graphicsLayer {
-//                    transformOrigin = TransformOrigin(
-//                        ((size.maxWidth / 2F) - offset.x) / size.maxWidth,
-//                        ((size.maxHeight / 2F) - offset.y) / size.maxHeight
-//                    )
-//                    scaleX = scale
-//                    scaleY = scale
-//                    translationX = offset.x
-//                    translationY = offset.y
-//                }
-//        ) {
-//            drawShapes(layer.id, canvasState.selections[layer.id], canvasState.boxes)
-//        }
-//    }
-
     Canvas(
         modifier = Modifier
             .fillMaxSize()
@@ -259,7 +241,11 @@ fun SelectionsBoxes(
                 translationY = offset.y
             }
     ) {
-        drawShapes(canvasState.layers, canvasState.selections, canvasState.boxes)
+        drawShapes(
+            canvasState.layers,
+            canvasState.selections,
+            canvasState.boxes
+        )
     }
 }
 

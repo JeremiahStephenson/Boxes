@@ -1,6 +1,6 @@
 package com.jerry.boxes.ui.boxes
 
-import android.view.View
+import android.content.Context
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
@@ -12,8 +12,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -33,12 +33,10 @@ import com.jerry.boxes.ui.common.*
 import com.jerry.boxes.ui.destinations.CreateMainDestination
 import com.jerry.boxes.ui.destinations.LayersEditMainDestination
 import com.jerry.boxes.ui.shapes.Shape
-import com.jerry.boxes.util.CoroutineContextProvider
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import org.koin.androidx.compose.get
 import org.koin.androidx.compose.koinViewModel
 
 @Destination
@@ -47,7 +45,6 @@ fun BoxesMain(
     projectId: Long,
     projectName: String?,
     navController: DestinationsNavigator,
-    cc: CoroutineContextProvider = get(),
     viewModel: BoxesViewModel = koinViewModel()
 ) {
     val project by viewModel.projectFlow.collectAsStateWithLifecycle()
@@ -72,7 +69,7 @@ fun BoxesMain(
 
     val selectionState = rememberSaveable { SelectionState() }
     DefaultContainer(
-        title = projectName ?: project?.name.orEmpty(),
+        title = project?.name ?: projectName ?: "",
         disableAppbarScroll = true,
         appBarActions = {
             Icon(
@@ -101,7 +98,7 @@ fun BoxesMain(
         }
     ) {
         val transformerState = remember { TransformerState() }
-        val rootView = LocalView.current.rootView
+        val context = LocalContext.current
         val handleAction: (Action) -> Unit = remember {
             {
                 handleAction(
@@ -113,8 +110,7 @@ fun BoxesMain(
                     project,
                     viewModel,
                     scope,
-                    cc,
-                    rootView,
+                    context,
                     navController,
                     it
                 )
@@ -484,8 +480,7 @@ private fun handleAction(
     project: Project?,
     viewModel: BoxesViewModel,
     scope: CoroutineScope,
-    cc: CoroutineContextProvider,
-    rootView: View,
+    context: Context,
     navController: DestinationsNavigator,
     action: Action
 ) {
@@ -503,15 +498,14 @@ private fun handleAction(
         is Action.Eraser -> buttonsState.toggleEraserSelected()
         is Action.SetTapType -> buttonsState.setTapType(action.tapType)
         is Action.Save -> {
-            saveProject(
-                canvasState,
-                project,
-                viewModel,
-                cc,
-                rootView,
-                action.autoSave,
-                scope
-            )
+            project?.let {
+                saveProject(
+                    canvasState,
+                    it,
+                    viewModel,
+                    action.autoSave
+                )
+            }
         }
         is Action.SelectLayer -> viewModel.selectLayer(action.layerId)
         is Action.Clear -> if (canvasState.hasLayersTurnedOn) {
@@ -558,14 +552,13 @@ private fun handleAction(
             navController.navigate(LayersEditMainDestination(it))
         }
         is Action.Export -> exportCanvas(
-            rootView = rootView,
+            context = context,
             imageSize = action.size,
             projectId = project?.id ?: 0,
             rows = project?.rows ?: 0,
             columns = project?.columns ?: 0,
             layers = canvasState.layers,
             selections = canvasState.selections,
-            cc = cc,
             export = true
         )
         is Action.SelectTool -> buttonsState.toggleSelectTool()
@@ -589,30 +582,15 @@ private fun handleAction(
 
 private fun saveProject(
     canvasState: CanvasState,
-    project: Project?,
+    project: Project,
     viewModel: BoxesViewModel,
-    cc: CoroutineContextProvider,
-    rootView: View,
-    autoSave: Boolean,
-    scope: CoroutineScope
+    autoSave: Boolean
 ) {
-    scope.launch(cc.main) {
-        exportCanvas(
-            rootView = rootView,
-            imageSize = 100F,
-            projectId = project?.id ?: 0,
-            rows = project?.rows ?: 0,
-            columns = project?.columns ?: 0,
-            layers = canvasState.layers.map { it.copy(on = true) },
-            selections = canvasState.selections,
-            cc = cc,
-            export = false
-        )
-    }
-    viewModel.save(
+    viewModel.saveProject(
+        project,
         if (autoSave) null else canvasState.boxes.keys.toList(),
         canvasState.selections,
-        canvasState.layers.map { it.id to it.on }
+        canvasState.layers
     )
 }
 

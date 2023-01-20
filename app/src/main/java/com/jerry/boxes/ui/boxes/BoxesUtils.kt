@@ -1,5 +1,6 @@
 package com.jerry.boxes.ui.boxes
 
+import android.graphics.Canvas
 import android.graphics.Point
 import android.graphics.RectF
 import androidx.compose.runtime.snapshots.SnapshotStateMap
@@ -11,7 +12,6 @@ import com.jerry.boxes.cache.data.LayerAndPixel
 import com.jerry.boxes.cache.data.Pixel
 import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.shapes.*
-import timber.log.Timber
 import kotlin.math.roundToInt
 
 fun generateSelections(pixels: List<Pixel>): SnapshotStateMap<Long, SnapshotStateMap<Point, ColorAndShape>> {
@@ -64,14 +64,13 @@ fun generateBoxes(
     }
 }
 
-fun DrawScope.drawShapes(
+fun Canvas.drawShapes(
     layers: List<LayerUi>,
     selections: Map<Long, Map<Point, ColorAndShape>>,
     boxes: Map<Point, RectF>
 ) {
     if (boxes.isEmpty()) return
     val layerIds = layers.filter { it.on }.sortedBy { it.index }.map { it.id }
-    Timber.d("DrawTest - skipped start: ${System.currentTimeMillis()}, ${selections.size}, ${layers.size}, ${boxes.size}")
     layerIds.forEach { layerId ->
         selections[layerId]?.forEach {
             val position = boxes[it.key]
@@ -80,7 +79,23 @@ fun DrawScope.drawShapes(
             }
         }
     }
-    Timber.d("DrawTest - skipped end: ${System.currentTimeMillis()}")
+}
+
+fun DrawScope.drawShapes(
+    layers: List<LayerUi>,
+    selections: Map<Long, Map<Point, ColorAndShape>>,
+    boxes: Map<Point, RectF>
+) {
+    if (boxes.isEmpty()) return
+    val layerIds = layers.filter { it.on }.sortedBy { it.index }.map { it.id }
+    layerIds.forEach { layerId ->
+        selections[layerId]?.forEach {
+            val position = boxes[it.key]
+            position?.let { pos ->
+                drawCustomShape(pos, it.value)
+            }
+        }
+    }
 }
 
 fun DrawScope.drawShapes(
@@ -88,7 +103,6 @@ fun DrawScope.drawShapes(
     selections: Map<Point, ColorAndShape>?,
     boxes: Map<Point, RectF>
 ) {
-    Timber.d("DrawTest - skipped: ${System.currentTimeMillis()}, ${selections?.size}, $layerId, ${boxes.size}")
     if (boxes.isEmpty() || selections.isNullOrEmpty()) return
     selections.forEach {
         val position = boxes[it.key]
@@ -96,7 +110,6 @@ fun DrawScope.drawShapes(
             drawCustomShape(pos, it.value)
         }
     }
-    Timber.d("DrawTest - skipped end: ${System.currentTimeMillis()}")
 }
 
 fun DrawScope.pngBackground(size: Float) {
@@ -127,51 +140,14 @@ fun DrawScope.drawCustomShape(
     pos: RectF,
     color: ColorAndShape
 ) {
-    when (color.shape) {
-        Shape.Box -> drawBox(pos, color)
-        Shape.TriangleBottomLeft -> drawTriangleBottomLeft(pos, color)
-        Shape.TriangleBottomRight -> drawTriangleBottomRight(pos, color)
-        Shape.TriangleTopRight -> drawTriangleTopRight(pos, color)
-        Shape.TriangleTopLeft -> drawTriangleTopLeft(pos, color)
-        Shape.TriangleBottomLeftSmall -> drawTriangleBottomLeftSmall(pos, color)
-        Shape.TriangleBottomRightSmall -> drawTriangleBottomRightSmall(pos, color)
-        Shape.TriangleTopRightSmall -> drawTriangleTopRightSmall(pos, color)
-        Shape.TriangleTopLeftSmall -> drawTriangleTopLeftSmall(pos, color)
-        Shape.TriangleBottomLeftSmallest -> drawTriangleBottomLeftSmallest(pos, color)
-        Shape.TriangleBottomRightSmallest -> drawTriangleBottomRightSmallest(pos, color)
-        Shape.TriangleTopRightSmallest -> drawTriangleTopRightSmallest(pos, color)
-        Shape.TriangleTopLeftSmallest -> drawTriangleTopLeftSmallest(pos, color)
-        Shape.RectangleTop -> drawRectangleTop(pos, color)
-        Shape.RectangleBottom -> drawRectangleBottom(pos, color)
-        Shape.RectangleLeft -> drawRectangleLeft(pos, color)
-        Shape.RectangleRight -> drawRectangleRight(pos, color)
-        Shape.ArcCornerLeft -> drawCornerArcLeft(pos, color)
-        Shape.ArcCornerLeftInverse -> drawCornerArcLeftInverse(pos, color)
-        Shape.ArcCornerRight -> drawCornerArcRight(pos, color)
-        Shape.ArcCornerRightInverse -> drawCornerArcRightInverse(pos, color)
-        Shape.Circle -> drawCircle(pos, color)
-        Shape.Star -> drawStar(pos, color)
-        Shape.BoxBottomLeft -> drawBoxBottomLeft(pos, color)
-        Shape.BoxBottomRight -> drawBoxBottomRight(pos, color)
-        Shape.BoxTopLeft -> drawBoxTopLeft(pos, color)
-        Shape.BoxTopRight -> drawBoxTopRight(pos, color)
-        Shape.Diamond -> drawDiamond(pos, color)
-        Shape.ArcRight -> drawArcRight(pos, color)
-        Shape.ArcTop -> drawArcTop(pos, color)
-        Shape.ArcLeft -> drawArcLeft(pos, color)
-        Shape.ArcBottom -> drawArcBottom(pos, color)
-        Shape.BottomLeftToTopRightLine -> drawBottomLeftToTopRightLine(pos, color)
-        Shape.TopLeftToBottomRightLine -> drawTopLeftToBottomRightLine(pos, color)
-        Shape.HorizontalLine -> drawHorizontalLine(pos, color)
-        Shape.VerticalLine -> drawVerticalLine(pos, color)
-        Shape.BottomLeftElbow -> drawBottomLeftElbow(pos, color)
-        Shape.BottomRightElbow -> drawBottomRightElbow(pos, color)
-        Shape.TopLeftElbow -> drawTopLeftElbow(pos, color)
-        Shape.TopRightElbow -> drawTopRightElbow(pos, color)
-        Shape.Lego -> drawLegoSquare(pos, color)
-        Shape.LegoRound -> drawLegoRound(pos, color)
-        else -> {}
-    }
+    (color.shape as ShapersInterface).draw(this, pos, color)
+}
+
+fun Canvas.drawCustomShape(
+    pos: RectF,
+    color: ColorAndShape
+) {
+    (color.shape as ShapersInterface).draw(this, pos, color)
 }
 
 private const val GRID_ODD_ALPHA = 0.5F

@@ -2,17 +2,12 @@ package com.jerry.boxes.ui.boxes
 
 import android.graphics.Point
 import androidx.compose.runtime.snapshots.SnapshotStateMap
-import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.room.withTransaction
-import com.jerry.boxes.cache.BoxesDao
-import com.jerry.boxes.cache.BoxesDatabase
-import com.jerry.boxes.cache.data.History
+import com.jerry.boxes.BoxesRepository
 import com.jerry.boxes.cache.data.HistoryItem
-import com.jerry.boxes.cache.data.Layer
-import com.jerry.boxes.cache.data.Pixel
+import com.jerry.boxes.cache.data.Project
 import com.jerry.boxes.extensions.addIfNotFound
 import com.jerry.boxes.extensions.isNotOutside
 import com.jerry.boxes.extensions.safeLet
@@ -24,19 +19,16 @@ import com.jerry.boxes.util.CoroutineContextProvider
 import com.jerry.boxes.util.DataResource
 import com.jerry.boxes.util.SavedHandle
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeout
-import java.time.Instant
 import java.util.*
 
 class BoxesViewModel(
     private val handle: SavedStateHandle,
-    private val boxesDao: BoxesDao,
-    private val boxesDatabase: BoxesDatabase,
+    private val boxesRepository: BoxesRepository,
     private val cc: CoroutineContextProvider
 ) : ViewModel() {
 
@@ -70,19 +62,14 @@ class BoxesViewModel(
     private val colorsMutex = Mutex()
     val usedColors get() = usedColorsHandle as List<ColorAndShape>
 
-    val projectFlow = boxesDao.getProjectFlowById(projectId)
-        .filterNotNull()
+    val projectFlow = boxesRepository.getProjectFlowById(projectId)
         .stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(1000),
             null
         )
 
-    val pixelsFlow = boxesDao.getProjectPixelsFlow(projectId)
-        .map {
-            DataResource.done(generateSelections(it))
-        }
-        .flowOn(cc.io)
+    val pixelsFlow = boxesRepository.getPixelsFlow(projectId)
         .stateIn(
             viewModelScope,
             SharingStarted.Eagerly,
@@ -94,9 +81,7 @@ class BoxesViewModel(
 
     private var fillJob: Job? = null
 
-    private val layerFlow = boxesDao
-        .getProjectLayersByProjectId(projectId)
-        .map { it.sortedByDescending { layer -> layer.index } }
+    private val layerFlow = boxesRepository.getLayersFlow(projectId)
     val layerStateFlow =
         combine(layerState, layerFlow, selectedLayerStateFlow) { state, layers, selectedLayer ->
             if (layerStateHandle == null) {
@@ -147,7 +132,8 @@ class BoxesViewModel(
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(1000), emptyList())
 
     val historyCountFlow = layerStateFlow.flatMapLatest { layers ->
-        layers.firstOrNull { it.selected }?.let { boxesDao.layerHistoryCount(it.id) } ?: emptyFlow()
+        layers.firstOrNull { it.selected }?.let { boxesRepository.getLayerHistoryCount(it.id) }
+            ?: emptyFlow()
     }
 
     fun setLayerOnOrOff(layerId: Long, on: Boolean) {
@@ -162,47 +148,37 @@ class BoxesViewModel(
 
     fun updateProjectShape(shape: Shape) {
         viewModelScope.launch {
-            boxesDao.updateProjectShape(projectId, shape)
+            boxesRepository.updateProjectShape(projectId, shape)
         }
     }
 
     fun updateProjectColor(color: ColorAndShape) {
         viewModelScope.launch {
-            boxesDao.updateProjectColor(projectId, color.color.toArgb())
+            boxesRepository.updateProjectColor(projectId, color)
         }
     }
 
     fun updateProjectShowGrid(showGrid: Boolean) {
         viewModelScope.launch {
-            boxesDao.updateProjectShowGrid(projectId, showGrid)
+            boxesRepository.updateProjectShowGrid(projectId, showGrid)
         }
     }
 
     fun updateProjectShowPngBg(showPngBg: Boolean) {
         viewModelScope.launch {
-            boxesDao.updateProjectShowPngBg(projectId, showPngBg)
+            boxesRepository.updateProjectShowPngBg(projectId, showPngBg)
         }
     }
 
     suspend fun addToHistory(userHistory: UserHistory) {
         if (userHistory.points.isEmpty()) return
         viewModelScope.launch {
-            updateDatabase {
-                updateHistory(userHistory.layerId, userHistory.points)
-            }
+            boxesRepository.updateHistory(userHistory.layerId, userHistory.points)
         }
     }
 
     suspend fun getLastHistoryItem(layerId: Long): List<HistoryItem> {
-        val max = boxesDao.findMaxIndexForHistory(layerId)
-        val history = boxesDao.findMaxHistory(layerId, max)
-        return (
-            history?.let {
-                boxesDao.findAllHistoryItems(history.id)
-            } ?: emptyList()
-            ).also {
-            history?.let { boxesDao.deleteHistory(it.id) }
-        }
+        return boxesRepository.getLastHistoryItem(layerId)
     }
 
     suspend fun addUsedColor(color: ColorAndShape) {
@@ -224,25 +200,7 @@ class BoxesViewModel(
         selections: Map<Long, Map<Point, ColorAndShape?>?>
     ) {
         viewModelScope.launch {
-            updateDatabase {
-                saveProject(selections = selections)
-                selectLayer(boxesDao.insertLayer(Layer(projectId, index, name, true)))
-            }
-        }
-    }
-
-    fun save(
-        boxes: List<Point>? = null,
-        selections: Map<Long, Map<Point, ColorAndShape>>,
-        layers: List<Pair<Long, Boolean>>
-    ) {
-        viewModelScope.launch {
-            updateDatabase {
-                saveProject(boxes, selections)
-                layers.forEach {
-                    boxesDao.turnOnOrOffLayer(it.second, it.first)
-                }
-            }
+            selectLayer(boxesRepository.addLayer(projectId, name, index, selections))
         }
     }
 
@@ -269,32 +227,13 @@ class BoxesViewModel(
         }
     }
 
-    private suspend fun updateDatabase(block: suspend () -> Unit) {
-        boxesDatabase.withTransaction {
-            block()
-        }
-    }
-
-    private suspend fun saveProject(
+    fun saveProject(
+        project: Project,
         boxes: List<Point>? = null,
-        selections: Map<Long, Map<Point, ColorAndShape?>?>
+        selections: Map<Long, Map<Point, ColorAndShape>>,
+        layers: List<LayerUi>
     ) {
-        val now = Instant.now().toEpochMilli()
-
-        val list = selections.flatMap { layer ->
-            layer.value?.filterKeys { boxes?.contains(it) ?: true }?.map {
-                Pixel(
-                    layer.key,
-                    it.key.x,
-                    it.key.y,
-                    it.value!!.color.toArgb(),
-                    it.value!!.shape,
-                    now
-                )
-            } ?: emptyList()
-        }
-        boxesDao.insertAllPixels(list)
-        boxesDao.deletePixelsFromProject(projectId, now)
+        boxesRepository.save(project, boxes, selections, layers)
     }
 
     private suspend fun fillInArea(
@@ -336,33 +275,10 @@ class BoxesViewModel(
         }
     }
 
-    private suspend fun updateHistory(layerId: Long, points: Map<Point, ColorAndShape?>) {
-        val index = boxesDao.findMaxIndexForHistory(layerId)
-        val historyId = boxesDao.insertHistory(History(layerId, index + 1))
-        points.forEach { (point, color) ->
-            boxesDao.insertHistoryItem(
-                HistoryItem(
-                    historyId,
-                    point.x,
-                    point.y,
-                    color?.color?.toArgb(),
-                    color?.shape
-                )
-            )
-        }
-        if (index >= MAX_HISTORY_PER_LAYER) {
-            val min = boxesDao.findMinIndexForHistory(layerId)
-            boxesDao.cleanHistory(min, layerId)
-            boxesDao.updateIndicies(layerId)
-        }
-    }
-
     companion object {
         private const val LAYER_LIST_STATE = "LAYER_LIST_STATE"
         private const val USED_COLORS_STATE = "USED_COLOR_STATE"
         private const val SELECTED_LAYER = "SELECTED_LAYER"
-
-        private const val MAX_HISTORY_PER_LAYER = 20
 
         private const val FILL_TIMEOUT = 10000L
     }

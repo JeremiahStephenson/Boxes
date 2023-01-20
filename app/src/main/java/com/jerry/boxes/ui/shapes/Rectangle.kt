@@ -1,10 +1,13 @@
 package com.jerry.boxes.ui.shapes
 
+import android.graphics.Canvas
+import android.graphics.Paint
 import android.graphics.RectF
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
+import androidx.compose.ui.graphics.toArgb
 import com.jerry.boxes.ui.boxes.ColorAndShape
 
 fun DrawScope.drawRectangleLeft(
@@ -16,6 +19,16 @@ fun DrawScope.drawRectangleLeft(
         topLeft = Offset(pos.left, pos.top),
         size = Size(pos.width() / 2, pos.height()),
         color = color.color
+    )
+}
+
+fun Canvas.drawRectangleLeft(
+    pos: RectF,
+    color: ColorAndShape
+) {
+    drawRect(
+        RectF(pos.left, pos.top, pos.right - (pos.width() / 2), pos.bottom),
+        Paint().apply { this.color = color.color.toArgb() }
     )
 }
 
@@ -31,6 +44,16 @@ fun DrawScope.drawRectangleRight(
     )
 }
 
+fun Canvas.drawRectangleRight(
+    pos: RectF,
+    color: ColorAndShape
+) {
+    drawRect(
+        RectF(pos.left + (pos.width() / 2), pos.top, pos.right, pos.bottom),
+        Paint().apply { this.color = color.color.toArgb() }
+    )
+}
+
 fun DrawScope.drawRectangleTop(
     pos: RectF,
     color: ColorAndShape
@@ -40,6 +63,16 @@ fun DrawScope.drawRectangleTop(
         topLeft = Offset(pos.left, pos.top),
         size = Size(pos.width(), pos.height() / 2),
         color = color.color
+    )
+}
+
+fun Canvas.drawRectangleTop(
+    pos: RectF,
+    color: ColorAndShape
+) {
+    drawRect(
+        RectF(pos.left, pos.top, pos.right, pos.top + (pos.height() / 2)),
+        Paint().apply { this.color = color.color.toArgb() }
     )
 }
 
@@ -55,6 +88,16 @@ fun DrawScope.drawRectangleBottom(
     )
 }
 
+fun Canvas.drawRectangleBottom(
+    pos: RectF,
+    color: ColorAndShape
+) {
+    drawRect(
+        RectF(pos.left, pos.top + (pos.height() / 2), pos.right, pos.bottom),
+        Paint().apply { this.color = color.color.toArgb() }
+    )
+}
+
 fun DrawScope.drawBoxTopRight(
     pos: RectF,
     color: ColorAndShape
@@ -64,6 +107,16 @@ fun DrawScope.drawBoxTopRight(
         topLeft = Offset(pos.left + (pos.width() / 2), pos.top),
         size = Size(pos.width() / 2, pos.height() / 2),
         color = color.color
+    )
+}
+
+fun Canvas.drawBoxTopRight(
+    pos: RectF,
+    color: ColorAndShape
+) {
+    drawRect(
+        RectF(pos.left + (pos.width() / 2), pos.top, pos.right, pos.top + (pos.height() / 2)),
+        Paint().apply { this.color = color.color.toArgb() }
     )
 }
 
@@ -79,6 +132,16 @@ fun DrawScope.drawBoxTopLeft(
     )
 }
 
+fun Canvas.drawBoxTopLeft(
+    pos: RectF,
+    color: ColorAndShape
+) {
+    drawRect(
+        RectF(pos.left, pos.top, pos.right - (pos.width() / 2), pos.top + (pos.height() / 2)),
+        Paint().apply { this.color = color.color.toArgb() }
+    )
+}
+
 fun DrawScope.drawBoxBottomRight(
     pos: RectF,
     color: ColorAndShape
@@ -91,6 +154,16 @@ fun DrawScope.drawBoxBottomRight(
     )
 }
 
+fun Canvas.drawBoxBottomRight(
+    pos: RectF,
+    color: ColorAndShape
+) {
+    drawRect(
+        RectF(pos.left + (pos.width() / 2), pos.top + (pos.height() / 2), pos.right, pos.bottom),
+        Paint().apply { this.color = color.color.toArgb() }
+    )
+}
+
 fun DrawScope.drawBoxBottomLeft(
     pos: RectF,
     color: ColorAndShape
@@ -100,5 +173,15 @@ fun DrawScope.drawBoxBottomLeft(
         topLeft = Offset(pos.left, pos.top + (pos.height() / 2)),
         size = Size(pos.width() / 2, pos.height() / 2),
         color = color.color
+    )
+}
+
+fun Canvas.drawBoxBottomLeft(
+    pos: RectF,
+    color: ColorAndShape
+) {
+    drawRect(
+        RectF(pos.left, pos.top + (pos.height() / 2), pos.left + (pos.height() / 2), pos.bottom),
+        Paint().apply { this.color = color.color.toArgb() }
     )
 }
