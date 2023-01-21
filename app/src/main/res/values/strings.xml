@@ -24,6 +24,7 @@
     <string name="extra_large">X Large</string>
     <string name="extra_extra_large">XX Large</string>
     <string name="add_layer">Add Layer</string>
+    <string name="layer_hint">Layer %1$d</string>
     <string name="are_you_sure_layer">Are you sure you want to delete the layer: %1$s?</string>
 
     <string name="name">Name</string>

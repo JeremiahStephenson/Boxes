@@ -1,9 +1,7 @@
 package com.jerry.boxes.ui.common
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -22,6 +20,7 @@ import com.jerry.boxes.R
 fun SetNameDialog(
     existingName: String,
     dismiss: () -> Unit,
+    hint: String? = null,
     onName: (String) -> Unit
 ) {
     Dialog(onDismissRequest = dismiss) {
@@ -55,6 +54,7 @@ fun SetNameDialog(
                     modifier = Modifier.fillMaxWidth(),
                     value = name,
                     isError = nameError,
+                    label = { Text(text = hint.orEmpty()) },
                     onValueChange = {
                         if (it.isNotEmpty()) {
                             nameError = false
@@ -62,8 +62,9 @@ fun SetNameDialog(
                         if (it.length < 30) {
                             name = it
                         }
-                    })
-                FadeAnimatedVisibility (nameError) {
+                    }
+                )
+                FadeAnimatedVisibility(nameError) {
                     Text(
                         text = stringResource(R.string.name_required),
                         color = MaterialTheme.colorScheme.error,
@@ -71,28 +72,28 @@ fun SetNameDialog(
                     )
                 }
             }
-            OutlinedButton(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                onClick = dismiss
-            ) {
-                Text(text = stringResource(R.string.cancel))
-            }
-            Button(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
-                onClick = {
-                    when (name.trim().isEmpty()) {
-                        true -> nameError = true
-                        else -> {
-                            onName(name.trim())
-                            dismiss()
+            Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+                Button(
+                    modifier = Modifier.weight(1F),
+                    onClick = {
+                        when (name.trim().isEmpty()) {
+                            true -> nameError = true
+                            else -> {
+                                onName(name.trim())
+                                dismiss()
+                            }
                         }
                     }
+                ) {
+                    Text(text = stringResource(R.string.save))
                 }
-            ) {
-                Text(text = stringResource(R.string.save))
+                Spacer(modifier = Modifier.width(8.dp))
+                OutlinedButton(
+                    modifier = Modifier,
+                    onClick = dismiss
+                ) {
+                    Text(text = stringResource(R.string.cancel))
+                }
             }
         }
     }

@@ -198,7 +198,7 @@ private fun AddLayerBtn(
     Spacer(modifier = Modifier.height(16.dp))
     if (showNameDialog) {
         SetNameDialog(
-            existingName = "",
+            existingName = stringResource(R.string.layer_hint, (canvasState.layers.firstOrNull()?.index ?: 0) + 2),
             dismiss = { showNameDialog = false },
             onName = {
                 onAction(Action.AddLayer(it))

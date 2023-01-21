@@ -31,7 +31,6 @@ import com.jerry.boxes.ui.common.ShapeOption
 import com.jerry.boxes.ui.common.pngBackground
 import com.jerry.boxes.ui.common.unboundClickable
 import com.jerry.boxes.ui.shapes.Shape
-import kotlin.math.max
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -139,60 +138,20 @@ fun ColorPickerDialog(
                 }
             }
 
-            when (isPortrait) {
-                true ->
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        ColorPickerButtonsColumn(
-                            onColorChosen = { onColorChosen(currentColor) },
-                            onDismiss = onDismiss
-                        )
-                    }
-                else ->
-                    Row(modifier = Modifier.fillMaxWidth()) {
-                        ColorPickerButtonsRow(
-                            onColorChosen = { onColorChosen(currentColor) },
-                            onDismiss = onDismiss
-                        )
-                    }
+            Row(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                SetColorButton(
+                    modifier = Modifier.weight(1F),
+                    onColorChosen = { onColorChosen(currentColor) },
+                    onDismiss = onDismiss
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                CloseColorButton(
+                    modifier = Modifier,
+                    onDismiss = onDismiss
+                )
             }
         }
     }
-}
-
-@Composable
-private fun RowScope.ColorPickerButtonsRow(
-    onColorChosen: () -> Unit,
-    onDismiss: () -> Unit
-) {
-    SetColorButton(
-        modifier = Modifier.weight(1F),
-        onColorChosen = onColorChosen,
-        onDismiss = onDismiss
-    )
-    CloseColorButton(
-        modifier = Modifier
-            .weight(1F)
-            .padding(vertical = 16.dp),
-        onDismiss = onDismiss
-    )
-}
-
-@Composable
-private fun ColorPickerButtonsColumn(
-    onColorChosen: () -> Unit,
-    onDismiss: () -> Unit
-) {
-    SetColorButton(
-        modifier = Modifier.fillMaxWidth(),
-        onColorChosen = onColorChosen,
-        onDismiss = onDismiss
-    )
-    CloseColorButton(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 16.dp),
-        onDismiss = onDismiss
-    )
 }
 
 @Composable
@@ -202,12 +161,7 @@ private fun SetColorButton(
     onDismiss: () -> Unit
 ) {
     Button(
-        modifier = Modifier
-            .padding(
-                vertical = 16.dp,
-                horizontal = 16.dp
-            )
-            .then(modifier),
+        modifier = modifier,
         onClick = {
             onColorChosen()
             onDismiss()
@@ -223,9 +177,7 @@ private fun CloseColorButton(
     onDismiss: () -> Unit
 ) {
     OutlinedButton(
-        modifier = Modifier
-            .padding(horizontal = 16.dp)
-            .then(modifier),
+        modifier = modifier,
         onClick = onDismiss
     ) {
         Text(text = stringResource(R.string.close))
