@@ -36,7 +36,7 @@ fun Bitmap.storeImage(
     } catch (e: IOException) {
         Timber.d("Error accessing file: ${e.message}")
         return null
-    } catch (e : java.lang.Exception) {
+    } catch (e: java.lang.Exception) {
         Timber.d("Error accessing file: ${e.message}")
         return null
     }
@@ -67,22 +67,25 @@ private fun getOutputMediaFile(
     // Create a media file name
     val timeStamp: String = SimpleDateFormat("ddMMyyyy_HHmm", Locale.getDefault()).format(Date())
     val mediaFile: File
-    val mImageName = if (export) "${if (name != null) name + "_" else ""}MI_$timeStamp.png" else (if (name != null) "$name.png" else "MI_$timeStamp.png")
+    val mImageName =
+        if (export) "${if (name != null) name + "_" else ""}MI_$timeStamp.png" else (if (name != null) "$name.png" else "MI_$timeStamp.png")
     mediaFile = File(mediaStorageDir.getPath() + File.separator.toString() + mImageName)
     return mediaFile
 }
 
 fun Context.openImage(path: String) {
-    startActivity(Intent(Intent.ACTION_VIEW).apply {
-        val file = File(path)
-        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        val photoURI = FileProvider.getUriForFile(
-            this@openImage,
-            this@openImage.applicationContext.packageName + ".provider",
-            file
-        )
-        setDataAndType(photoURI, "image/*")
-    })
+    startActivity(
+        Intent(Intent.ACTION_VIEW).apply {
+            val file = File(path)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            val photoURI = FileProvider.getUriForFile(
+                this@openImage,
+                this@openImage.applicationContext.packageName + ".provider",
+                file
+            )
+            setDataAndType(photoURI, "image/*")
+        }
+    )
 }
 
 val Context.thumbnailLocation get() = File(filesDir, "pixels")

@@ -22,15 +22,20 @@ fun exportCanvas(
 ): String? {
     val boxSize = max(imageSize / columns.toFloat(), imageSize / rows.toFloat())
     val newBoxes = generateBoxes(columns, rows, boxSize.roundToInt().toFloat(), 0F, 0F)
-    val bitmap = Bitmap.createBitmap(
-        columns * boxSize.roundToInt(),
-        rows * boxSize.roundToInt(),
-        Bitmap.Config.ARGB_8888
-    )
+    return try {
+        val bitmap = Bitmap.createBitmap(
+            columns * boxSize.roundToInt(),
+            rows * boxSize.roundToInt(),
+            Bitmap.Config.ARGB_8888
+        )
 
-    bitmap.applyCanvas {
-        drawShapes(layers, selections, newBoxes)
+        bitmap.applyCanvas {
+            drawShapes(layers, selections, newBoxes)
+        }
+
+        bitmap.storeImage(context, export, name)
+    } catch (t: Throwable) {
+        // todo
+        null
     }
-
-    return bitmap.storeImage(context, export, name)
 }

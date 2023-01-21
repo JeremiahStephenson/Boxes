@@ -319,7 +319,7 @@ fun ExportDialog(
                 text = stringResource(R.string.image_size),
                 style = MaterialTheme.typography.titleLarge
             )
-            var quality by remember { mutableStateOf(max(rows, columns) * MEDIUM) }
+            var quality by remember { mutableStateOf(MEDIUM) }
             OutlinedTextField(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -339,29 +339,29 @@ fun ExportDialog(
 
             Row(modifier = Modifier.fillMaxWidth()) {
                 SizeButton(titleRes = R.string.extra_small) {
-                    quality = max(columns, rows) * XSMALL
+                    quality = XSMALL
                 }
                 Spacer(modifier = Modifier.size(8.dp))
                 SizeButton(titleRes = R.string.small) {
-                    quality = max(columns, rows) * SMALL
+                    quality = SMALL
                 }
             }
             Row(modifier = Modifier.fillMaxWidth()) {
                 SizeButton(titleRes = R.string.medium) {
-                    quality = max(columns, rows) * MEDIUM
+                    quality = MEDIUM
                 }
                 Spacer(modifier = Modifier.size(8.dp))
                 SizeButton(titleRes = R.string.large) {
-                    quality = max(columns, rows) * LARGE
+                    quality = LARGE
                 }
             }
             Row(modifier = Modifier.fillMaxWidth()) {
                 SizeButton(titleRes = R.string.extra_large) {
-                    quality = max(columns, rows) * XLARGE
+                    quality = XLARGE
                 }
                 Spacer(modifier = Modifier.size(8.dp))
                 SizeButton(titleRes = R.string.extra_extra_large) {
-                    quality = max(columns, rows) * XXLARGE
+                    quality = XXLARGE
                 }
             }
             Divider(
@@ -414,12 +414,12 @@ private fun RowScope.SizeButton(
 }
 
 private const val COLUMN_COUNT = 4
-private const val HIGHEST_QUALITY = 51200
+private const val HIGHEST_QUALITY = 12800
 private const val LOWEST_QUALITY = 50
 
-private const val XSMALL = 16
-private const val SMALL = 32
-private const val MEDIUM = 64
-private const val LARGE = 128
-private const val XLARGE = 256
-private const val XXLARGE = 512
+private const val XSMALL = 256
+private const val SMALL = 512
+private const val MEDIUM = 1024
+private const val LARGE = 2048
+private const val XLARGE = 4096
+private const val XXLARGE = 8192
