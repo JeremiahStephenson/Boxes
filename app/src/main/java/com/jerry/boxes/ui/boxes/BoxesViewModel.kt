@@ -11,6 +11,8 @@ import com.jerry.boxes.cache.data.Project
 import com.jerry.boxes.extensions.addIfNotFound
 import com.jerry.boxes.extensions.isNotOutside
 import com.jerry.boxes.extensions.safeLet
+import com.jerry.boxes.ui.boxes.data.ColorAndShape
+import com.jerry.boxes.ui.boxes.data.Export
 import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.boxes.history.UserHistory
 import com.jerry.boxes.ui.destinations.BoxesMainDestination
@@ -80,7 +82,7 @@ class BoxesViewModel(
     private val _loading = MutableStateFlow(false)
     val loadingState = _loading.asStateFlow()
 
-    private val _exportedFlow = MutableSharedFlow<String>(0, 1, BufferOverflow.DROP_OLDEST)
+    private val _exportedFlow = MutableSharedFlow<Export>(0, 1, BufferOverflow.DROP_OLDEST)
     val exportedFlow = _exportedFlow.asSharedFlow()
 
     private var fillJob: Job? = null
@@ -200,16 +202,16 @@ class BoxesViewModel(
         selections: Map<Long, Map<Point, ColorAndShape>>,
         layers: List<LayerUi>,
         imageSize: Int,
-        export: Boolean
+        isExport: Boolean
     ) {
         if (exportJob?.isActive == true) return
         exportJob = viewModelScope.launch(cc.io) {
             _loading.value = true
             try {
-                val path = boxesRepository.export(project, project.name, selections, layers, imageSize, export)
-                path?.let { _exportedFlow.emit(it) }
+                val path = boxesRepository.export(project, project.name, selections, layers, imageSize, true)
+                path?.let { _exportedFlow.emit(Export(it, null, isExport)) }
             } catch (t: Throwable) {
-                // todo
+                _exportedFlow.emit(Export(null, t.message, isExport))
             }
             _loading.value = false
         }

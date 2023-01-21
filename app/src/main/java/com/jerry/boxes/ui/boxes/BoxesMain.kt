@@ -1,6 +1,7 @@
 package com.jerry.boxes.ui.boxes
 
 import android.content.Context
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
@@ -22,6 +23,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jerry.boxes.R
 import com.jerry.boxes.cache.data.Project
 import com.jerry.boxes.extensions.safeLet
+import com.jerry.boxes.ui.boxes.data.ColorAndShape
 import com.jerry.boxes.ui.boxes.history.UserHistory
 import com.jerry.boxes.ui.boxes.state.ButtonsState
 import com.jerry.boxes.ui.boxes.state.CanvasState
@@ -34,6 +36,7 @@ import com.jerry.boxes.ui.destinations.CreateMainDestination
 import com.jerry.boxes.ui.destinations.LayersEditMainDestination
 import com.jerry.boxes.ui.shapes.Shape
 import com.jerry.boxes.util.openImage
+import com.jerry.boxes.util.openShareSheet
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.CoroutineScope
@@ -156,10 +159,20 @@ fun BoxesMain(
             SnackBarImageLocator(snackBarHostState = snackBarHostState)
             LaunchedEffect(Unit) {
                 viewModel.exportedFlow.collectLatest {
-                    snackBarHostState.showSnackbar(
-                        it,
-                        duration = SnackbarDuration.Indefinite
-                    )
+                    when (it.error) {
+                        null -> when (it.isExport) {
+                            true -> it.filePath?.let { path ->
+                                snackBarHostState.showSnackbar(
+                                    path,
+                                    duration = SnackbarDuration.Indefinite
+                                )
+                            }
+                            else -> {
+                                it.filePath?.let { context.openShareSheet(it) }
+                            }
+                        }
+                        else -> Toast.makeText(context, it.error, Toast.LENGTH_LONG).show()
+                    }
                 }
             }
         }
@@ -607,7 +620,7 @@ private fun handleAction(
                     canvasState.selections,
                     canvasState.layers,
                     action.size,
-                    true
+                    action.isExport
                 )
             }
         is Action.SelectTool -> buttonsState.toggleSelectTool()

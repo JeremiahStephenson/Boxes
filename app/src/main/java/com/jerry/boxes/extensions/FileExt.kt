@@ -73,19 +73,33 @@ private fun getOutputMediaFile(
     return mediaFile
 }
 
-fun Context.openImage(path: String) {
-    startActivity(
-        Intent(Intent.ACTION_VIEW).apply {
-            val file = File(path)
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            val photoURI = FileProvider.getUriForFile(
-                this@openImage,
-                this@openImage.applicationContext.packageName + ".provider",
-                file
-            )
-            setDataAndType(photoURI, "image/*")
+private fun Context.fileIntent(
+    path: String,
+    export: Boolean
+): Intent {
+    return Intent(
+        when (export) {
+            true -> Intent.ACTION_VIEW
+            else -> Intent.ACTION_SEND
         }
-    )
+    ).apply {
+        val file = File(path)
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        val photoURI = FileProvider.getUriForFile(
+            this@fileIntent,
+            this@fileIntent.applicationContext.packageName + ".provider",
+            file
+        )
+        setDataAndType(photoURI, "image/*")
+    }
+}
+
+fun Context.openImage(path: String) {
+    startActivity(fileIntent(path, true))
+}
+
+fun Context.openShareSheet(path: String) {
+    startActivity(Intent.createChooser(fileIntent(path, false), null))
 }
 
 val Context.thumbnailLocation get() = File(filesDir, "pixels")

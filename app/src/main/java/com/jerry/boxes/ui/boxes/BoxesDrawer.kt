@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import com.google.accompanist.flowlayout.FlowRow
 import com.jerry.boxes.R
 import com.jerry.boxes.cache.data.Project
+import com.jerry.boxes.ui.boxes.data.ExportState
 import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.boxes.state.ButtonsState
 import com.jerry.boxes.ui.boxes.state.CanvasState
@@ -126,7 +127,7 @@ fun DrawerMenu(
         }
 
         item {
-            ButtonSection(R.string.save) {
+            ButtonSection(R.string.project) {
                 IconMenuButton(
                     onClick = { onAction(Action.Save(false)) },
                     drawableRes = R.drawable.ic_save_24,
@@ -137,29 +138,29 @@ fun DrawerMenu(
                     drawableRes = R.drawable.ic_edit_24,
                     contentDescription = stringResource(R.string.edit_project)
                 )
-            }
-        }
-
-        item {
-            var exportDialog by rememberSaveable {
-                mutableStateOf(false)
-            }
-            if (exportDialog) {
-                ExportDialog(
-                    true,
-                    getProject().columns,
-                    getProject().rows,
-                    onExport = { onAction(Action.Export(it)) }
-                ) {
-                    exportDialog = false
+                var exportDialog by rememberSaveable {
+                    mutableStateOf(ExportState.NONE)
                 }
-            }
-            // onAction(Action.Export(5000F))
-            ButtonSection(R.string.export) {
+                if (exportDialog != ExportState.NONE) {
+                    ExportDialog(
+                        when (exportDialog) {
+                            ExportState.SHARE -> false
+                            else -> true
+                        },
+                        onExport = { size, isExport -> onAction(Action.Export(size, isExport)) }
+                    ) {
+                        exportDialog = ExportState.NONE
+                    }
+                }
                 IconMenuButton(
-                    onClick = { exportDialog = true },
+                    onClick = { exportDialog = ExportState.EXPORT },
                     drawableRes = R.drawable.ic_image_24,
                     contentDescription = stringResource(R.string.save_to_png)
+                )
+                IconMenuButton(
+                    onClick = { exportDialog = ExportState.SHARE },
+                    drawableRes = R.drawable.ic_share_24,
+                    contentDescription = stringResource(R.string.share_with_people)
                 )
             }
         }
@@ -198,7 +199,10 @@ private fun AddLayerBtn(
     Spacer(modifier = Modifier.height(16.dp))
     if (showNameDialog) {
         SetNameDialog(
-            existingName = stringResource(R.string.layer_hint, (canvasState.layers.firstOrNull()?.index ?: 0) + 2),
+            existingName = stringResource(
+                R.string.layer_hint,
+                (canvasState.layers.firstOrNull()?.index ?: 0) + 2
+            ),
             dismiss = { showNameDialog = false },
             onName = {
                 onAction(Action.AddLayer(it))

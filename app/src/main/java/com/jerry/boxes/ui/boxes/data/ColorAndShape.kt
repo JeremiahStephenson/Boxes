@@ -1,4 +1,4 @@
-package com.jerry.boxes.ui.boxes
+package com.jerry.boxes.ui.boxes.data
 
 import androidx.compose.ui.graphics.Color
 import com.jerry.boxes.ui.shapes.Shape

@@ -10,7 +10,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.core.graphics.withRotation
-import com.jerry.boxes.ui.boxes.ColorAndShape
+import com.jerry.boxes.ui.boxes.data.ColorAndShape
 
 fun DrawScope.drawBox(
     pos: RectF,

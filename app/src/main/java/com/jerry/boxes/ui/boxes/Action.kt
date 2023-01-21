@@ -1,6 +1,7 @@
 package com.jerry.boxes.ui.boxes
 
 import android.graphics.Point
+import com.jerry.boxes.ui.boxes.data.ColorAndShape
 import com.jerry.boxes.ui.boxes.history.UserHistory
 import com.jerry.boxes.ui.boxes.state.enums.Direction
 import com.jerry.boxes.ui.boxes.state.enums.TapType
@@ -22,7 +23,7 @@ sealed class Action {
     data class Move(val direction: Direction) : Action()
     data class Fill(val point: Point, val layerId: Long) : Action()
     data class SetTapType(val tapType: TapType) : Action()
-    data class Export(val size: Int) : Action()
+    data class Export(val size: Int, val isExport: Boolean) : Action()
     data class AddLayer(val name: String) : Action()
     data class SelectLayer(val layerId: Long) : Action()
     data class AddColorToUsedList(val color: ColorAndShape) : Action()

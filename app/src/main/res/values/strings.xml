@@ -12,7 +12,7 @@
     <string name="done">Done</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
-    <string name="clear">Clear</string>
+    <string name="clear">Clear Layer</string>
     <string name="layers">Layers</string>
     <string name="error">Error</string>
 
@@ -37,6 +37,7 @@
     <string name="set_color">Set Color</string>
     <string name="error_save">There was a problem creating your project. Please try again.</string>
 
+    <string name="project">Project</string>
     <string name="tools">Tools</string>
     <string name="export">Export</string>
     <string name="share">Share</string>
@@ -51,6 +52,7 @@
     <string name="save_project">Save Project</string>
     <string name="edit_project">Edit Project</string>
     <string name="save_to_png">Save to PNG File</string>
+    <string name="share_with_people">Share Your Creation</string>
     <string name="clear_layer">Clear the Selected Layer</string>
     <string name="toggle_layer_visibility">Toggle Layer Visibility</string>
     <string name="select_and_move">Toggles Select and Move</string>

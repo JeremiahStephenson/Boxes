@@ -7,7 +7,7 @@ import androidx.room.withTransaction
 import com.jerry.boxes.cache.BoxesDao
 import com.jerry.boxes.cache.BoxesDatabase
 import com.jerry.boxes.cache.data.*
-import com.jerry.boxes.ui.boxes.ColorAndShape
+import com.jerry.boxes.ui.boxes.data.ColorAndShape
 import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.boxes.exportCanvas
 import com.jerry.boxes.ui.boxes.generateSelections
@@ -16,7 +16,6 @@ import com.jerry.boxes.util.CoroutineContextProvider
 import com.jerry.boxes.util.DataResource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOn

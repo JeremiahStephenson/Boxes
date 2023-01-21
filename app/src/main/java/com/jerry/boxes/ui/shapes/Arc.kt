@@ -7,7 +7,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.toArgb
-import com.jerry.boxes.ui.boxes.ColorAndShape
+import com.jerry.boxes.ui.boxes.data.ColorAndShape
 
 fun DrawScope.drawCornerArcRight(
     pos: RectF,

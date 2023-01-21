@@ -6,7 +6,7 @@ import android.graphics.RectF
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.toArgb
-import com.jerry.boxes.ui.boxes.ColorAndShape
+import com.jerry.boxes.ui.boxes.data.ColorAndShape
 
 fun DrawScope.drawTriangleBottomLeft(
     pos: RectF,

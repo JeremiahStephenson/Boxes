@@ -3,7 +3,7 @@ package com.jerry.boxes.cache.data
 import androidx.compose.ui.graphics.Color
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.jerry.boxes.ui.boxes.ColorAndShape
+import com.jerry.boxes.ui.boxes.data.ColorAndShape
 import com.jerry.boxes.ui.shapes.Shape
 import java.io.Serializable
 

@@ -4,12 +4,11 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Point
 import androidx.core.graphics.applyCanvas
+import com.jerry.boxes.ui.boxes.data.ColorAndShape
 import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.util.storeImage
-import timber.log.Timber
 import kotlin.math.ceil
 import kotlin.math.min
-import kotlin.math.roundToInt
 
 // todo clean this up and add error handling
 fun exportCanvas(

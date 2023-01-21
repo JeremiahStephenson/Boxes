@@ -27,6 +27,7 @@ import com.jerry.boxes.cache.data.Project
 import com.jerry.boxes.extensions.findBox
 import com.jerry.boxes.extensions.findBoxes
 import com.jerry.boxes.extensions.safeLet
+import com.jerry.boxes.ui.boxes.data.ColorAndShape
 import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.boxes.state.ButtonsState
 import com.jerry.boxes.ui.boxes.state.CanvasState

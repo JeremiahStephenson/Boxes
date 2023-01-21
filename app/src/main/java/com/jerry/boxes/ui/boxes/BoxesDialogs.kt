@@ -28,6 +28,7 @@ import com.godaddy.android.colorpicker.ClassicColorPicker
 import com.godaddy.android.colorpicker.HsvColor
 import com.jerry.boxes.R
 import com.jerry.boxes.extensions.asColorAndShape
+import com.jerry.boxes.ui.boxes.data.ColorAndShape
 import com.jerry.boxes.ui.common.ShapeOption
 import com.jerry.boxes.ui.common.pngBackground
 import com.jerry.boxes.ui.common.unboundClickable
@@ -258,9 +259,7 @@ fun ShapePickerDialog(
 @Composable
 fun ExportDialog(
     export: Boolean,
-    columns: Int,
-    rows: Int,
-    onExport: (Int) -> Unit,
+    onExport: (Int, Boolean) -> Unit,
     onDismiss: () -> Unit
 ) {
     Dialog(onDismissRequest = onDismiss) {
@@ -370,7 +369,7 @@ fun ExportDialog(
                 Button(
                     modifier = Modifier.weight(1F),
                     onClick = {
-                        onExport(quality)
+                        onExport(quality, export)
                         onDismiss()
                     }
                 ) {

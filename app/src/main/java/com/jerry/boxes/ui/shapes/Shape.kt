@@ -3,7 +3,7 @@ package com.jerry.boxes.ui.shapes
 import android.graphics.Canvas
 import android.graphics.RectF
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import com.jerry.boxes.ui.boxes.ColorAndShape
+import com.jerry.boxes.ui.boxes.data.ColorAndShape
 
 interface ShapersInterface {
     fun draw(

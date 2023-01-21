@@ -1,7 +1,7 @@
 package com.jerry.boxes.extensions
 
 import com.godaddy.android.colorpicker.HsvColor
-import com.jerry.boxes.ui.boxes.ColorAndShape
+import com.jerry.boxes.ui.boxes.data.ColorAndShape
 
 val HsvColor.asColorAndShape get() =
     ColorAndShape(this.toColor())

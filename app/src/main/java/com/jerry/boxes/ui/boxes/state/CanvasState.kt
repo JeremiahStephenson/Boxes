@@ -11,7 +11,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Constraints
 import com.jerry.boxes.cache.data.HistoryItem
 import com.jerry.boxes.extensions.adjust
-import com.jerry.boxes.ui.boxes.ColorAndShape
+import com.jerry.boxes.ui.boxes.data.ColorAndShape
 import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.boxes.generateBoxes
 import com.jerry.boxes.ui.boxes.history.UserHistory

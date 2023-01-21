@@ -29,7 +29,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.window.Popup
 import com.jerry.boxes.R
-import com.jerry.boxes.ui.boxes.ColorAndShape
+import com.jerry.boxes.ui.boxes.data.ColorAndShape
 import com.jerry.boxes.ui.boxes.drawCustomShape
 import com.jerry.boxes.ui.shapes.Shape
 import com.jerry.boxes.util.TooltipPositionProvider
