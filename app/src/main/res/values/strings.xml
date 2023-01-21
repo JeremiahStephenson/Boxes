@@ -17,7 +17,7 @@
     <string name="error">Error</string>
 
     <string name="image_size">Image Size:</string>
-    <string name="extra_small">Extra Small</string>
+    <string name="extra_small">X Small</string>
     <string name="small">Small</string>
     <string name="medium">Medium</string>
     <string name="large">Large</string>
@@ -37,12 +37,16 @@
     <string name="set_color">Set Color</string>
     <string name="error_save">There was a problem creating your project. Please try again.</string>
 
+    <string name="error_message">Error! %1$s</string>
+    <string name="error_export">Error creating media file, check storage permissions</string>
+
     <string name="project">Project</string>
     <string name="tools">Tools</string>
     <string name="export">Export</string>
     <string name="share">Share</string>
     <string name="view">View</string>
     <string name="dismiss">Dismiss</string>
+    <string name="other">Other</string>
 
     <string name="name_required">A name is required</string>
     <string name="value_too_high">The value is too large</string>
@@ -50,7 +54,7 @@
 
     <string name="edit_layer_options">Edit Layer Options</string>
     <string name="save_project">Save Project</string>
-    <string name="edit_project">Edit Project</string>
+    <string name="edit_project">Edit Project Details</string>
     <string name="save_to_png">Save to PNG File</string>
     <string name="share_with_people">Share Your Creation</string>
     <string name="clear_layer">Clear the Selected Layer</string>
@@ -64,7 +68,7 @@
     <string name="toggle_fill">Toggles the Fill Bucket</string>
     <string name="toggle_color_picker">Toggles the Color Picker</string>
     <string name="color_selector">Color Selector</string>
-    <string name="toggle_tap_tool">Switches Tap Tool</string>
+    <string name="toggle_tap_tool">Switch Tap Tool</string>
     <string name="undo_history">Undo</string>
     <string name="re_center">Center the Canvas</string>
     <string name="move_left">Move Left</string>

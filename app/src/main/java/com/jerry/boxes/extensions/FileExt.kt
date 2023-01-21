@@ -3,15 +3,47 @@ package com.jerry.boxes.util
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.Point
+import android.net.Uri
 import android.os.Environment
 import androidx.core.content.FileProvider
-import timber.log.Timber
+import androidx.core.graphics.applyCanvas
+import com.jerry.boxes.R
+import com.jerry.boxes.ui.boxes.data.ColorAndShape
+import com.jerry.boxes.ui.boxes.data.LayerUi
+import com.jerry.boxes.ui.boxes.drawShapes
+import com.jerry.boxes.ui.boxes.generateBoxes
 import java.io.File
-import java.io.FileNotFoundException
 import java.io.FileOutputStream
-import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.ceil
+import kotlin.math.min
+
+fun Context?.exportCanvas(
+    name: String,
+    export: Boolean,
+    rows: Int,
+    columns: Int,
+    imageSize: Int,
+    layers: List<LayerUi>,
+    selections: Map<Long, Map<Point, ColorAndShape>>
+): String? {
+    val context = this ?: return null
+    val boxSize = ceil(min(imageSize / columns.toFloat(), imageSize / rows.toFloat())).toInt()
+    val newBoxes = generateBoxes(columns, rows, boxSize.toFloat(), 0F, 0F)
+    val bitmap = Bitmap.createBitmap(
+        columns * boxSize,
+        rows * boxSize,
+        Bitmap.Config.ARGB_8888
+    )
+
+    bitmap.applyCanvas {
+        drawShapes(layers, selections, newBoxes)
+    }
+
+    return bitmap.storeImage(context, export, name)
+}
 
 fun Bitmap.storeImage(
     context: Context,
@@ -19,27 +51,13 @@ fun Bitmap.storeImage(
     name: String? = null
 ): String? {
     val pictureFile = getOutputMediaFile(context, export, name)
-    if (pictureFile == null) {
-        Timber.d(
-            "Error creating media file, check storage permissions: "
-        ) // e.getMessage());
-        return null
-    }
-    try {
-        val fos = FileOutputStream(pictureFile)
-        compress(Bitmap.CompressFormat.PNG, 90, fos)
-        fos.close()
-        return pictureFile.path
-    } catch (e: FileNotFoundException) {
-        Timber.d("File not found: ${e.message}")
-        return null
-    } catch (e: IOException) {
-        Timber.d("Error accessing file: ${e.message}")
-        return null
-    } catch (e: java.lang.Exception) {
-        Timber.d("Error accessing file: ${e.message}")
-        return null
-    }
+        ?: throw (Throwable(context.getString(R.string.error_export)))
+
+    val fos = FileOutputStream(pictureFile)
+    compress(Bitmap.CompressFormat.PNG, 90, fos)
+    fos.close()
+
+    return pictureFile.path
 }
 
 /** Create a File for saving an image or video  */
@@ -90,7 +108,8 @@ private fun Context.fileIntent(
             this@fileIntent.applicationContext.packageName + ".provider",
             file
         )
-        setDataAndType(photoURI, "image/*")
+        putExtra(Intent.EXTRA_STREAM, photoURI)
+        setDataAndType(photoURI, "image/png")
     }
 }
 

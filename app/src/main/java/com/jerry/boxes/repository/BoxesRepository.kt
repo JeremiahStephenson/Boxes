@@ -9,11 +9,11 @@ import com.jerry.boxes.cache.BoxesDatabase
 import com.jerry.boxes.cache.data.*
 import com.jerry.boxes.ui.boxes.data.ColorAndShape
 import com.jerry.boxes.ui.boxes.data.LayerUi
-import com.jerry.boxes.ui.boxes.exportCanvas
 import com.jerry.boxes.ui.boxes.generateSelections
 import com.jerry.boxes.ui.shapes.Shape
 import com.jerry.boxes.util.CoroutineContextProvider
 import com.jerry.boxes.util.DataResource
+import com.jerry.boxes.util.exportCanvas
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
@@ -73,14 +73,18 @@ class BoxesRepository(
     ) {
         if (saveJob?.isActive == true) return
         saveJob = applicationScope.launch(cc.io) {
-            export(
-                project = project,
-                fileName = project.id.toString(),
-                imageSize = 200,
-                layers = layers,
-                selections = selections,
-                export = false
-            )
+            try {
+                export(
+                    project = project,
+                    fileName = project.id.toString(),
+                    imageSize = 200,
+                    layers = layers,
+                    selections = selections,
+                    export = false
+                )
+            } catch (t: Throwable) {
+                // todo log this out
+            }
             boxesDatabase.withTransaction {
                 saveProject(project.id, boxes, selections)
                 layers.forEach {
@@ -98,8 +102,7 @@ class BoxesRepository(
         imageSize: Int,
         export: Boolean
     ): String? {
-        return exportCanvas(
-            context = application,
+        return application.exportCanvas(
             imageSize = imageSize,
             name = fileName,
             rows = project.rows,

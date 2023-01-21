@@ -127,16 +127,16 @@ fun DrawerMenu(
         }
 
         item {
-            ButtonSection(R.string.project) {
-                IconMenuButton(
-                    onClick = { onAction(Action.Save(false)) },
-                    drawableRes = R.drawable.ic_save_24,
-                    contentDescription = stringResource(R.string.save_project)
-                )
+            ButtonSection(R.string.other) {
                 IconMenuButton(
                     onClick = { onAction(Action.Edit) },
                     drawableRes = R.drawable.ic_edit_24,
                     contentDescription = stringResource(R.string.edit_project)
+                )
+                IconMenuButton(
+                    onClick = { onAction(Action.Save(false)) },
+                    drawableRes = R.drawable.ic_save_24,
+                    contentDescription = stringResource(R.string.save_project)
                 )
                 var exportDialog by rememberSaveable {
                     mutableStateOf(ExportState.NONE)

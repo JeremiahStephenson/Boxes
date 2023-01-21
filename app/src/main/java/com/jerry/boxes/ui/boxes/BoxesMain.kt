@@ -171,7 +171,11 @@ fun BoxesMain(
                                 it.filePath?.let { context.openShareSheet(it) }
                             }
                         }
-                        else -> Toast.makeText(context, it.error, Toast.LENGTH_LONG).show()
+                        else -> Toast.makeText(
+                            context,
+                            context.getString(R.string.error_message, it.error),
+                            Toast.LENGTH_LONG
+                        ).show()
                     }
                 }
             }

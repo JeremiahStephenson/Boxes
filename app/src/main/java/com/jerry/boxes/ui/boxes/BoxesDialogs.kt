@@ -309,55 +309,43 @@ fun ExportDialog(
             }
 
             Row(modifier = Modifier.fillMaxWidth()) {
-                val isXSmallSelected by remember { derivedStateOf { quality == XSMALL } }
                 SizeButton(
                     titleRes = R.string.extra_small,
-                    isSelected = { isXSmallSelected }
-                ) {
+                    getQuality = { quality },
                     quality = XSMALL
-                }
+                ) { quality = XSMALL }
                 Spacer(modifier = Modifier.size(8.dp))
-                val isSmallSelected by remember { derivedStateOf { quality == SMALL } }
                 SizeButton(
                     titleRes = R.string.small,
-                    isSelected = { isSmallSelected }
-                ) {
+                    getQuality = { quality },
                     quality = SMALL
-                }
+                ) { quality = SMALL }
             }
             Row(modifier = Modifier.fillMaxWidth()) {
-                val isMediumSelected by remember { derivedStateOf { quality == MEDIUM } }
                 SizeButton(
                     titleRes = R.string.medium,
-                    isSelected = { isMediumSelected }
-                ) {
+                    getQuality = { quality },
                     quality = MEDIUM
-                }
+                ) { quality = MEDIUM }
                 Spacer(modifier = Modifier.size(8.dp))
-                val isLargeSelected by remember { derivedStateOf { quality == LARGE } }
                 SizeButton(
                     titleRes = R.string.large,
-                    isSelected = { isLargeSelected }
-                ) {
+                    getQuality = { quality },
                     quality = LARGE
-                }
+                ) { quality = LARGE }
             }
             Row(modifier = Modifier.fillMaxWidth()) {
-                val isXLargeSelected by remember { derivedStateOf { quality == XLARGE } }
                 SizeButton(
                     titleRes = R.string.extra_large,
-                    isSelected = { isXLargeSelected }
-                ) {
+                    getQuality = { quality },
                     quality = XLARGE
-                }
+                ) { quality = XLARGE }
                 Spacer(modifier = Modifier.size(8.dp))
-                val isXXLargeSelected by remember { derivedStateOf { quality == XXLARGE } }
                 SizeButton(
                     titleRes = R.string.extra_extra_large,
-                    isSelected = { isXXLargeSelected }
-                ) {
+                    getQuality = { quality },
                     quality = XXLARGE
-                }
+                ) { quality = XXLARGE }
             }
             Divider(
                 modifier = Modifier.padding(vertical = 16.dp),
@@ -398,15 +386,17 @@ fun ExportDialog(
 @Composable
 private fun RowScope.SizeButton(
     @StringRes titleRes: Int,
-    isSelected: () -> Boolean,
+    quality: Int,
+    getQuality: () -> Int,
     onClick: () -> Unit
 ) {
+    val isSelected by remember { derivedStateOf { getQuality() == quality } }
     OutlinedButton(
         modifier = Modifier
             .weight(1F),
         colors = ButtonDefaults.outlinedButtonColors(
             containerColor =
-            when (isSelected()) {
+            when (isSelected) {
                 true -> MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.4F)
                 else -> Color.Transparent
             }
