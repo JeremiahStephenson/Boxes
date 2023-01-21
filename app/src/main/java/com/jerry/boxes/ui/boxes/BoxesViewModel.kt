@@ -19,6 +19,7 @@ import com.jerry.boxes.ui.destinations.BoxesMainDestination
 import com.jerry.boxes.ui.shapes.Shape
 import com.jerry.boxes.util.CoroutineContextProvider
 import com.jerry.boxes.util.DataResource
+import com.jerry.boxes.util.ImmutableList
 import com.jerry.boxes.util.SavedHandle
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
@@ -63,7 +64,7 @@ class BoxesViewModel(
     private val projectId = BoxesMainDestination.argsFrom(handle).projectId
 
     private val colorsMutex = Mutex()
-    val usedColors get() = usedColorsHandle as List<ColorAndShape>
+    val usedColors get() = ImmutableList(usedColorsHandle as List<ColorAndShape>)
 
     val projectFlow = boxesRepository.getProjectFlowById(projectId)
         .stateIn(

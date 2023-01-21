@@ -33,12 +33,13 @@ import com.jerry.boxes.ui.common.ShapeOption
 import com.jerry.boxes.ui.common.pngBackground
 import com.jerry.boxes.ui.common.unboundClickable
 import com.jerry.boxes.ui.shapes.Shape
+import com.jerry.boxes.util.ImmutableList
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ColorPickerDialog(
     color: ColorAndShape,
-    usedColors: List<ColorAndShape>,
+    usedColors: ImmutableList<ColorAndShape>,
     onColorChosen: (ColorAndShape) -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -76,7 +77,7 @@ fun ColorPickerDialog(
                     }
                 }
 
-                val showTopSpace by remember { derivedStateOf { usedColors.isNotEmpty() } }
+                val showTopSpace by remember { derivedStateOf { usedColors.items.isNotEmpty() } }
 
                 if (!isPortrait && showTopSpace) {
                     LazyVerticalGrid(
@@ -85,7 +86,7 @@ fun ColorPickerDialog(
                             .height(height),
                         columns = GridCells.Fixed(4)
                     ) {
-                        items(usedColors) {
+                        items(usedColors.items) {
                             ColorBox(
                                 size = size,
                                 color = it,
@@ -112,7 +113,7 @@ fun ColorPickerDialog(
                             modifier = Modifier.fillMaxWidth(),
                             columns = GridCells.Fixed(5)
                         ) {
-                            items(usedColors) {
+                            items(usedColors.items) {
                                 ColorBox(
                                     size = size,
                                     color = it,

@@ -35,6 +35,7 @@ import com.jerry.boxes.ui.common.*
 import com.jerry.boxes.ui.destinations.CreateMainDestination
 import com.jerry.boxes.ui.destinations.LayersEditMainDestination
 import com.jerry.boxes.ui.shapes.Shape
+import com.jerry.boxes.util.ImmutableList
 import com.jerry.boxes.util.openImage
 import com.jerry.boxes.util.openShareSheet
 import com.ramcosta.composedestinations.annotation.Destination
@@ -226,7 +227,7 @@ private fun MainCanvas(
     buttonsState: ButtonsState,
     selectionState: SelectionState,
     transformerState: TransformerState,
-    getUsedColorList: () -> List<ColorAndShape>,
+    getUsedColorList: () -> ImmutableList<ColorAndShape>,
     onAction: (Action) -> Unit
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
@@ -353,7 +354,7 @@ private fun ButtonBar(
     transformerState: TransformerState,
     getColor: () -> ColorAndShape,
     getShape: () -> Shape,
-    getUsedColorList: () -> List<ColorAndShape>,
+    getUsedColorList: () -> ImmutableList<ColorAndShape>,
     onAction: (Action) -> Unit,
     onColorChosen: (ColorAndShape) -> Unit,
     onShapeChosen: (Shape) -> Unit
