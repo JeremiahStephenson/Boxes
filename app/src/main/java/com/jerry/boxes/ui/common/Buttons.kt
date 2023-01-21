@@ -33,6 +33,7 @@ import com.jerry.boxes.ui.boxes.ColorAndShape
 import com.jerry.boxes.ui.boxes.drawCustomShape
 import com.jerry.boxes.ui.shapes.Shape
 import com.jerry.boxes.util.TooltipPositionProvider
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -192,6 +193,10 @@ private fun ToolTip(
         popupPositionProvider = TooltipPositionProvider(offsetY),
         onDismissRequest = onDismiss
     ) {
+        LaunchedEffect(Unit) {
+            delay(5000L)
+            onDismiss()
+        }
         Box(
             modifier = Modifier
                 .clip(CircleShape)

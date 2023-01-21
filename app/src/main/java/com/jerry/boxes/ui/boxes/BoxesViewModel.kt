@@ -19,6 +19,7 @@ import com.jerry.boxes.util.CoroutineContextProvider
 import com.jerry.boxes.util.DataResource
 import com.jerry.boxes.util.SavedHandle
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -78,6 +79,9 @@ class BoxesViewModel(
 
     private val _loading = MutableStateFlow(false)
     val loadingState = _loading.asStateFlow()
+
+    private val _exportedFlow = MutableSharedFlow<String>(0, 1, BufferOverflow.DROP_OLDEST)
+    val exportedFlow = _exportedFlow.asSharedFlow()
 
     private var fillJob: Job? = null
 
@@ -187,6 +191,27 @@ class BoxesViewModel(
             if ((usedColorsHandle?.size ?: 0) > 10) {
                 usedColorsHandle?.removeFirst()
             }
+        }
+    }
+
+    private var exportJob: Job? = null
+    fun export(
+        project: Project,
+        selections: Map<Long, Map<Point, ColorAndShape>>,
+        layers: List<LayerUi>,
+        imageSize: Int,
+        export: Boolean
+    ) {
+        if (exportJob?.isActive == true) return
+        exportJob = viewModelScope.launch(cc.io) {
+            _loading.value = true
+            try {
+                val path = boxesRepository.export(project, project.name, selections, layers, imageSize, export)
+                path?.let { _exportedFlow.emit(it) }
+            } catch (t: Throwable) {
+                // todo
+            }
+            _loading.value = false
         }
     }
 

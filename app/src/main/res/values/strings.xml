@@ -14,7 +14,15 @@
     <string name="no">No</string>
     <string name="clear">Clear</string>
     <string name="layers">Layers</string>
+    <string name="error">Error</string>
 
+    <string name="image_size">Image Size:</string>
+    <string name="extra_small">Extra Small</string>
+    <string name="small">Small</string>
+    <string name="medium">Medium</string>
+    <string name="large">Large</string>
+    <string name="extra_large">X Large</string>
+    <string name="extra_extra_large">XX Large</string>
     <string name="add_layer">Add Layer</string>
     <string name="are_you_sure_layer">Are you sure you want to delete the layer: %1$s?</string>
 
@@ -30,6 +38,9 @@
 
     <string name="tools">Tools</string>
     <string name="export">Export</string>
+    <string name="share">Share</string>
+    <string name="view">View</string>
+    <string name="dismiss">Dismiss</string>
 
     <string name="name_required">A name is required</string>
 

@@ -1,6 +1,7 @@
 package com.jerry.boxes.ui.boxes
 
 import android.content.res.Configuration
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -8,10 +9,8 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Text
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -20,6 +19,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -31,6 +31,7 @@ import com.jerry.boxes.ui.common.ShapeOption
 import com.jerry.boxes.ui.common.pngBackground
 import com.jerry.boxes.ui.common.unboundClickable
 import com.jerry.boxes.ui.shapes.Shape
+import kotlin.math.max
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -61,13 +62,11 @@ fun ColorPickerDialog(
                 .clip(MaterialTheme.shapes.large)
                 .background(MaterialTheme.colorScheme.surfaceVariant)
         ) {
-
             Row(
                 modifier = Modifier
                     .clip(MaterialTheme.shapes.large)
                     .background(MaterialTheme.colorScheme.surfaceVariant)
             ) {
-
                 val size = with(LocalDensity.current) { 10.dp.toPx() }
                 val height = remember {
                     when (isPortrait) {
@@ -100,7 +99,6 @@ fun ColorPickerDialog(
                     modifier = Modifier.weight(1F),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-
                     if (isPortrait) {
                         if (showTopSpace) {
                             Spacer(
@@ -180,7 +178,7 @@ private fun RowScope.ColorPickerButtonsRow(
 }
 
 @Composable
-private fun ColumnScope.ColorPickerButtonsColumn(
+private fun ColorPickerButtonsColumn(
     onColorChosen: () -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -213,7 +211,8 @@ private fun SetColorButton(
         onClick = {
             onColorChosen()
             onDismiss()
-        }) {
+        }
+    ) {
         Text(text = stringResource(R.string.set_color))
     }
 }
@@ -299,5 +298,128 @@ fun ShapePickerDialog(
     }
 }
 
+@Composable
+fun ExportDialog(
+    export: Boolean,
+    columns: Int,
+    rows: Int,
+    onExport: (Int) -> Unit,
+    onDismiss: () -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(MaterialTheme.shapes.large)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .padding(16.dp)
+        ) {
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = stringResource(R.string.image_size),
+                style = MaterialTheme.typography.titleLarge
+            )
+            var quality by remember { mutableStateOf(max(rows, columns) * MEDIUM) }
+            OutlinedTextField(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp),
+                value = quality.toString(),
+                onValueChange = {
+                    val value = it.toIntOrNull()
+                    quality = when {
+                        value == null -> LOWEST_QUALITY
+                        value > HIGHEST_QUALITY -> HIGHEST_QUALITY
+                        value < LOWEST_QUALITY -> LOWEST_QUALITY
+                        else -> value
+                    }
+                },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+
+            Row(modifier = Modifier.fillMaxWidth()) {
+                SizeButton(titleRes = R.string.extra_small) {
+                    quality = max(columns, rows) * XSMALL
+                }
+                Spacer(modifier = Modifier.size(8.dp))
+                SizeButton(titleRes = R.string.small) {
+                    quality = max(columns, rows) * SMALL
+                }
+            }
+            Row(modifier = Modifier.fillMaxWidth()) {
+                SizeButton(titleRes = R.string.medium) {
+                    quality = max(columns, rows) * MEDIUM
+                }
+                Spacer(modifier = Modifier.size(8.dp))
+                SizeButton(titleRes = R.string.large) {
+                    quality = max(columns, rows) * LARGE
+                }
+            }
+            Row(modifier = Modifier.fillMaxWidth()) {
+                SizeButton(titleRes = R.string.extra_large) {
+                    quality = max(columns, rows) * XLARGE
+                }
+                Spacer(modifier = Modifier.size(8.dp))
+                SizeButton(titleRes = R.string.extra_extra_large) {
+                    quality = max(columns, rows) * XXLARGE
+                }
+            }
+            Divider(
+                modifier = Modifier.padding(vertical = 16.dp),
+                color = MaterialTheme.colorScheme.outline
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Button(
+                    modifier = Modifier.weight(1F),
+                    onClick = {
+                        onExport(quality)
+                        onDismiss()
+                    }
+                ) {
+                    Text(
+                        text = stringResource(
+                            when (!export) {
+                                true -> R.string.share
+                                else -> R.string.export
+                            }
+                        )
+                    )
+                }
+                Spacer(modifier = Modifier.size(8.dp))
+                OutlinedButton(
+                    onClick = onDismiss
+                ) {
+                    Text(
+                        text = stringResource(R.string.close)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RowScope.SizeButton(
+    @StringRes titleRes: Int,
+    onClick: () -> Unit
+) {
+    OutlinedButton(
+        modifier = Modifier.weight(1F),
+        onClick = onClick
+    ) {
+        Text(text = stringResource(titleRes))
+    }
+}
+
 private const val COLUMN_COUNT = 4
-private const val COLOR_COLUMN_COUNT = 10
+private const val HIGHEST_QUALITY = 51200
+private const val LOWEST_QUALITY = 50
+
+private const val XSMALL = 16
+private const val SMALL = 32
+private const val MEDIUM = 64
+private const val LARGE = 128
+private const val XLARGE = 256
+private const val XXLARGE = 512

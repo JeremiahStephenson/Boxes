@@ -141,10 +141,23 @@ fun DrawerMenu(
         }
 
         item {
-            // todo add dialog with options
+            var exportDialog by rememberSaveable {
+                mutableStateOf(false)
+            }
+            if (exportDialog) {
+                ExportDialog(
+                    true,
+                    getProject().columns,
+                    getProject().rows,
+                    onExport = { onAction(Action.Export(it)) }
+                ) {
+                    exportDialog = false
+                }
+            }
+            // onAction(Action.Export(5000F))
             ButtonSection(R.string.export) {
                 IconMenuButton(
-                    onClick = { onAction(Action.Export(1000F)) },
+                    onClick = { exportDialog = true },
                     drawableRes = R.drawable.ic_image_24,
                     contentDescription = stringResource(R.string.save_to_png)
                 )

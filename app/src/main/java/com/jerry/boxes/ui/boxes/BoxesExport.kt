@@ -3,7 +3,6 @@ package com.jerry.boxes.ui.boxes
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Point
-import android.view.View
 import androidx.core.graphics.applyCanvas
 import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.util.storeImage
@@ -13,14 +12,14 @@ import kotlin.math.roundToInt
 // todo clean this up and add error handling
 fun exportCanvas(
     context: Context,
-    projectId: Long,
+    name: String,
     export: Boolean,
     rows: Int,
     columns: Int,
-    imageSize: Float,
+    imageSize: Int,
     layers: List<LayerUi>,
     selections: Map<Long, Map<Point, ColorAndShape>>
-) {
+): String? {
     val boxSize = max(imageSize / columns.toFloat(), imageSize / rows.toFloat())
     val newBoxes = generateBoxes(columns, rows, boxSize.roundToInt().toFloat(), 0F, 0F)
     val bitmap = Bitmap.createBitmap(
@@ -33,5 +32,5 @@ fun exportCanvas(
         drawShapes(layers, selections, newBoxes)
     }
 
-    bitmap.storeImage(context, export, projectId.toString())
+    return bitmap.storeImage(context, export, name)
 }

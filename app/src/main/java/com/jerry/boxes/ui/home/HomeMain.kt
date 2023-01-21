@@ -16,7 +16,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -53,7 +52,7 @@ fun HomeMain(
             navController.navigate(CreateMainDestination())
         },
         appBarActions = {
-            val emptyList by remember { derivedStateOf { items.isEmpty() }}
+            val emptyList by remember { derivedStateOf { items.isEmpty() } }
             if (!emptyList) {
                 EditMenu(editMode) {
                     editMode = !editMode
@@ -109,25 +108,11 @@ private fun ProjectItem(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             var showConfirmationDialog by remember { mutableStateOf(false) }
-            val context = LocalContext.current
-            val imagePath =
-                remember(item.id) { context.thumbnailLocation.path + File.separator.toString() + "${item.id}.png" }
-            val pngSize = with(LocalDensity.current) { 10.dp.toPx() }
             BoxWithConstraints(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.TopEnd
             ) {
-                AsyncImage(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(this.maxWidth),
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(imagePath)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = null,
-                    contentScale = ContentScale.Fit
-                )
+                ProjectImage(item.id, item.timestamp)
                 if (editMode) {
                     Icon(
                         modifier = Modifier
@@ -158,6 +143,25 @@ private fun ProjectItem(
             }
         }
     }
+}
+
+@Composable
+private fun BoxWithConstraintsScope.ProjectImage(projectId: Long, memoryKey: Long) {
+    val context = LocalContext.current
+    val imagePath =
+        remember(projectId) { context.thumbnailLocation.path + File.separator.toString() + "$projectId.png" }
+    AsyncImage(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(this.maxWidth),
+        model = ImageRequest.Builder(context)
+            .diskCacheKey(memoryKey.toString())
+            .data(imagePath)
+            .crossfade(true)
+            .build(),
+        contentDescription = null,
+        contentScale = ContentScale.Fit
+    )
 }
 
 @Composable

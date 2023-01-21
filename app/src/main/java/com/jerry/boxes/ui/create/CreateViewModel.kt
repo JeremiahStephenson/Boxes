@@ -8,8 +8,8 @@ import androidx.lifecycle.viewModelScope
 import com.jerry.boxes.cache.BoxesDao
 import com.jerry.boxes.cache.data.Layer
 import com.jerry.boxes.cache.data.Project
-import com.jerry.boxes.ui.shapes.Shape
 import com.jerry.boxes.ui.destinations.CreateMainDestination
+import com.jerry.boxes.ui.shapes.Shape
 import com.jerry.boxes.util.Resource
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.channels.BufferOverflow
@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
+import java.time.Instant
 
 class CreateViewModel(
     handle: SavedStateHandle,
@@ -34,9 +35,11 @@ class CreateViewModel(
         boxesDao.takeIf { projectId != null }?.getProjectFlowById(projectId!!) ?: emptyFlow()
 
     fun saveProject(name: String, columns: Int, rows: Int) {
-        viewModelScope.launch(CoroutineExceptionHandler { _, error ->
-            _uiState.tryEmit(Resource.error(error))
-        }) {
+        viewModelScope.launch(
+            CoroutineExceptionHandler { _, error ->
+                _uiState.tryEmit(Resource.error(error))
+            }
+        ) {
             val id = when (projectId) {
                 null -> {
                     val projectId = boxesDao.insertProject(
@@ -47,7 +50,8 @@ class CreateViewModel(
                             Color.Green.toArgb(),
                             Shape.Box,
                             showGrid = true,
-                            showPngBg = false
+                            showPngBg = false,
+                            timestamp = Instant.now().toEpochMilli()
                         )
                     )
                     boxesDao.insertLayer(Layer(projectId, 0, "Layer 1", true))

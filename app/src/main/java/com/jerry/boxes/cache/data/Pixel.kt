@@ -25,7 +25,7 @@ data class Pixel(
     val y: Int,
     val color: Int,
     val shape: Shape,
-    val timeStamp: Long
+    val timestamp: Long
 ) : Serializable {
     @PrimaryKey(autoGenerate = true)
     var id: Long = 0L

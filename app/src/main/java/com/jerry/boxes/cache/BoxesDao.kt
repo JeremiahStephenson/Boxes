@@ -4,6 +4,7 @@ import androidx.room.*
 import com.jerry.boxes.cache.data.*
 import com.jerry.boxes.ui.shapes.Shape
 import kotlinx.coroutines.flow.Flow
+import java.time.Instant
 
 @Dao
 interface BoxesDao {
@@ -48,6 +49,9 @@ interface BoxesDao {
 
     @Query("UPDATE project SET name = :name, rows = :rows, columns = :columns WHERE id = :id")
     suspend fun updateProject(name: String, columns: Int, rows: Int, id: Long)
+
+    @Query("UPDATE project SET timestamp = :timeStamp WHERE id = :id")
+    suspend fun updateProjectTimestamp(id: Long, timeStamp: Long = Instant.now().toEpochMilli())
 
     @Query("UPDATE project SET currentColor = :color WHERE id = :id")
     suspend fun updateProjectColor(id: Long, color: Int)

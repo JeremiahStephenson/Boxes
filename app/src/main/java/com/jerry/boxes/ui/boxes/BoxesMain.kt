@@ -33,9 +33,11 @@ import com.jerry.boxes.ui.common.*
 import com.jerry.boxes.ui.destinations.CreateMainDestination
 import com.jerry.boxes.ui.destinations.LayersEditMainDestination
 import com.jerry.boxes.ui.shapes.Shape
+import com.jerry.boxes.util.openImage
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
@@ -116,41 +118,88 @@ fun BoxesMain(
                 )
             }
         }
-        DrawerContainer(
-            drawerState = drawerState,
-            drawerContent = {
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            DrawerContainer(
+                drawerState = drawerState,
+                drawerContent = {
+                    if (projectNotNull) {
+                        DrawerMenu(
+                            buttonsState = buttonsState,
+                            onAction = handleAction,
+                            canvasState = canvasState,
+                            getProject = { project!! }
+                        )
+                    }
+                }
+            ) {
                 if (projectNotNull) {
-                    DrawerMenu(
-                        buttonsState = buttonsState,
-                        onAction = handleAction,
+                    MainCanvas(
+                        project = project!!,
                         canvasState = canvasState,
-                        getProject = { project!! }
+                        buttonsState = buttonsState,
+                        selectionState = selectionState,
+                        transformerState = transformerState,
+                        onAction = handleAction,
+                        getUsedColorList = { viewModel.usedColors }
                     )
                 }
             }
-        ) {
-            if (projectNotNull) {
-                MainCanvas(
-                    project = project!!,
-                    canvasState = canvasState,
-                    buttonsState = buttonsState,
-                    selectionState = selectionState,
-                    transformerState = transformerState,
-                    onAction = handleAction,
-                    getUsedColorList = { viewModel.usedColors }
+            if (canvasState.isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center)
                 )
             }
 
-            if (canvasState.isLoading) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
+            val snackBarHostState = remember { SnackbarHostState() }
+            SnackBarImageLocator(snackBarHostState = snackBarHostState)
+            LaunchedEffect(Unit) {
+                viewModel.exportedFlow.collectLatest {
+                    snackBarHostState.showSnackbar(
+                        it,
+                        duration = SnackbarDuration.Indefinite
+                    )
                 }
             }
         }
     }
+}
+
+@Composable
+private fun BoxScope.SnackBarImageLocator(
+    snackBarHostState: SnackbarHostState
+) {
+    val context = LocalContext.current
+    SnackbarHost(
+        modifier = Modifier.align(Alignment.BottomCenter),
+        hostState = snackBarHostState,
+        snackbar = { snackBarData ->
+            Snackbar(
+                action = {
+                    Row {
+                        Button(
+                            onClick = {
+                                context.openImage(snackBarData.visuals.message)
+                                snackBarHostState.currentSnackbarData?.dismiss()
+                            }
+                        ) {
+                            Text(stringResource(R.string.view))
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Button(
+                            onClick = {
+                                snackBarHostState.currentSnackbarData?.dismiss()
+                            }
+                        ) {
+                            Text(stringResource(R.string.dismiss))
+                        }
+                    }
+                },
+                modifier = Modifier.padding(8.dp)
+            ) { Text(text = snackBarData.visuals.message) }
+        }
+    )
 }
 
 @Composable
@@ -551,16 +600,16 @@ private fun handleAction(
         is Action.GoToLayerEdit -> project?.id?.let {
             navController.navigate(LayersEditMainDestination(it))
         }
-        is Action.Export -> exportCanvas(
-            context = context,
-            imageSize = action.size,
-            projectId = project?.id ?: 0,
-            rows = project?.rows ?: 0,
-            columns = project?.columns ?: 0,
-            layers = canvasState.layers,
-            selections = canvasState.selections,
-            export = true
-        )
+        is Action.Export ->
+            project?.let {
+                viewModel.export(
+                    it,
+                    canvasState.selections,
+                    canvasState.layers,
+                    action.size,
+                    true
+                )
+            }
         is Action.SelectTool -> buttonsState.toggleSelectTool()
         is Action.ClearSelect -> selectionState.clear()
         is Action.Move -> {

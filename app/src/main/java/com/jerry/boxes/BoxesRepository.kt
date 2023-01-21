@@ -73,12 +73,10 @@ class BoxesRepository(
     ) {
         if (saveJob?.isActive == true) return
         saveJob = applicationScope.launch(cc.io) {
-            exportCanvas(
-                context = application,
-                imageSize = 200F,
-                projectId = project.id,
-                rows = project.rows,
-                columns = project.columns,
+            export(
+                project = project,
+                fileName = project.id.toString(),
+                imageSize = 200,
                 layers = layers,
                 selections = selections,
                 export = false
@@ -90,6 +88,26 @@ class BoxesRepository(
                 }
             }
         }
+    }
+
+    fun export(
+        project: Project,
+        fileName: String,
+        selections: Map<Long, Map<Point, ColorAndShape>>,
+        layers: List<LayerUi>,
+        imageSize: Int,
+        export: Boolean
+    ): String? {
+        return exportCanvas(
+            context = application,
+            imageSize = imageSize,
+            name = fileName,
+            rows = project.rows,
+            columns = project.columns,
+            layers = layers,
+            selections = selections,
+            export = export
+        )
     }
 
     suspend fun addLayer(
@@ -158,6 +176,7 @@ class BoxesRepository(
                 )
             } ?: emptyList()
         }
+        boxesDao.updateProjectTimestamp(projectId)
         boxesDao.insertAllPixels(list)
         boxesDao.deletePixelsFromProject(projectId, now)
     }
