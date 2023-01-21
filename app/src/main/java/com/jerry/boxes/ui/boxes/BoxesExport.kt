@@ -6,7 +6,9 @@ import android.graphics.Point
 import androidx.core.graphics.applyCanvas
 import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.util.storeImage
-import kotlin.math.max
+import timber.log.Timber
+import kotlin.math.ceil
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 // todo clean this up and add error handling
@@ -20,12 +22,12 @@ fun exportCanvas(
     layers: List<LayerUi>,
     selections: Map<Long, Map<Point, ColorAndShape>>
 ): String? {
-    val boxSize = max(imageSize / columns.toFloat(), imageSize / rows.toFloat())
-    val newBoxes = generateBoxes(columns, rows, boxSize.roundToInt().toFloat(), 0F, 0F)
+    val boxSize = ceil(min(imageSize / columns.toFloat(), imageSize / rows.toFloat())).toInt()
+    val newBoxes = generateBoxes(columns, rows, boxSize.toFloat(), 0F, 0F)
     return try {
         val bitmap = Bitmap.createBitmap(
-            columns * boxSize.roundToInt(),
-            rows * boxSize.roundToInt(),
+            columns * boxSize,
+            rows * boxSize,
             Bitmap.Config.ARGB_8888
         )
 

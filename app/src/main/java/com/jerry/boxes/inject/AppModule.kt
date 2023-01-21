@@ -1,6 +1,6 @@
 package com.jerry.boxes.inject
 
-import com.jerry.boxes.BoxesRepository
+import com.jerry.boxes.repository.BoxesRepository
 import com.jerry.boxes.ui.boxes.BoxesViewModel
 import com.jerry.boxes.ui.create.CreateViewModel
 import com.jerry.boxes.ui.home.HomeViewModel

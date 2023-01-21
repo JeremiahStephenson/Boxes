@@ -1,5 +1,6 @@
 package com.jerry.boxes.ui.common
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -48,7 +49,7 @@ fun SetNameDialog(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 16.dp)
+                    .padding(top = 16.dp, bottom = 0.dp)
             ) {
                 OutlinedTextField(
                     modifier = Modifier.fillMaxWidth(),
@@ -64,15 +65,17 @@ fun SetNameDialog(
                         }
                     }
                 )
-                FadeAnimatedVisibility(nameError) {
-                    Text(
-                        text = stringResource(R.string.name_required),
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.titleSmall
-                    )
-                }
+                Text(
+                    text = if (nameError) stringResource(R.string.name_required) else "",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.titleSmall
+                )
             }
-            Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
+            ) {
                 Button(
                     modifier = Modifier.weight(1F),
                     onClick = {

@@ -1,4 +1,4 @@
-package com.jerry.boxes
+package com.jerry.boxes.repository
 
 import android.content.Context
 import android.graphics.Point
@@ -16,6 +16,7 @@ import com.jerry.boxes.util.CoroutineContextProvider
 import com.jerry.boxes.util.DataResource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOn

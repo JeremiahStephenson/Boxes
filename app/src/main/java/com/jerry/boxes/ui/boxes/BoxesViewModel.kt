@@ -5,7 +5,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.jerry.boxes.BoxesRepository
+import com.jerry.boxes.repository.BoxesRepository
 import com.jerry.boxes.cache.data.HistoryItem
 import com.jerry.boxes.cache.data.Project
 import com.jerry.boxes.extensions.addIfNotFound

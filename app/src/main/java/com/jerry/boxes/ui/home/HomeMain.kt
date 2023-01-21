@@ -26,6 +26,7 @@ import com.jerry.boxes.R
 import com.jerry.boxes.cache.data.Project
 import com.jerry.boxes.ui.common.AreYouSureDialog
 import com.jerry.boxes.ui.common.DefaultContainer
+import com.jerry.boxes.ui.common.ProjectImage
 import com.jerry.boxes.ui.common.unboundClickable
 import com.jerry.boxes.ui.destinations.BoxesMainDestination
 import com.jerry.boxes.ui.destinations.CreateMainDestination
@@ -112,7 +113,7 @@ private fun ProjectItem(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.TopEnd
             ) {
-                ProjectImage(item.id, item.timestamp)
+                ProjectImageItem(item.id, item.timestamp)
                 if (editMode) {
                     Icon(
                         modifier = Modifier
@@ -146,20 +147,16 @@ private fun ProjectItem(
 }
 
 @Composable
-private fun BoxWithConstraintsScope.ProjectImage(projectId: Long, memoryKey: Long) {
+private fun BoxWithConstraintsScope.ProjectImageItem(projectId: Long, memoryKey: Long) {
     val context = LocalContext.current
     val imagePath =
         remember(projectId) { context.thumbnailLocation.path + File.separator.toString() + "$projectId.png" }
-    AsyncImage(
+    ProjectImage(
         modifier = Modifier
             .fillMaxWidth()
             .height(this.maxWidth),
-        model = ImageRequest.Builder(context)
-            .diskCacheKey(memoryKey.toString())
-            .data(imagePath)
-            .crossfade(true)
-            .build(),
-        contentDescription = null,
+        imagePath = imagePath,
+        memoryKey = memoryKey.toString(),
         contentScale = ContentScale.Fit
     )
 }

@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
@@ -138,7 +139,11 @@ fun ColorPickerDialog(
                 }
             }
 
-            Row(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
                 SetColorButton(
                     modifier = Modifier.weight(1F),
                     onColorChosen = { onColorChosen(currentColor) },
@@ -272,47 +277,86 @@ fun ExportDialog(
                 style = MaterialTheme.typography.titleLarge
             )
             var quality by remember { mutableStateOf(MEDIUM) }
-            OutlinedTextField(
+            var qualityError by remember { mutableStateOf(false) }
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 16.dp),
-                value = quality.toString(),
-                onValueChange = {
-                    val value = it.toIntOrNull()
-                    quality = when {
-                        value == null -> LOWEST_QUALITY
-                        value > HIGHEST_QUALITY -> HIGHEST_QUALITY
-                        value < LOWEST_QUALITY -> LOWEST_QUALITY
-                        else -> value
-                    }
-                },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-            )
+                    .padding(top = 16.dp)
+            ) {
+                OutlinedTextField(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    value = quality.toString(),
+                    onValueChange = {
+                        val value = it.toIntOrNull() ?: 0
+                        qualityError = value < LOWEST_QUALITY || value > HIGHEST_QUALITY
+                        quality = value
+                    },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                )
+                Text(
+                    text = when (qualityError) {
+                        true -> stringResource(
+                            when (quality > HIGHEST_QUALITY) {
+                                true -> R.string.value_too_high
+                                else -> R.string.value_too_low
+                            }
+                        )
+                        else -> ""
+                    },
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.titleSmall
+                )
+            }
 
             Row(modifier = Modifier.fillMaxWidth()) {
-                SizeButton(titleRes = R.string.extra_small) {
+                val isXSmallSelected by remember { derivedStateOf { quality == XSMALL } }
+                SizeButton(
+                    titleRes = R.string.extra_small,
+                    isSelected = { isXSmallSelected }
+                ) {
                     quality = XSMALL
                 }
                 Spacer(modifier = Modifier.size(8.dp))
-                SizeButton(titleRes = R.string.small) {
+                val isSmallSelected by remember { derivedStateOf { quality == SMALL } }
+                SizeButton(
+                    titleRes = R.string.small,
+                    isSelected = { isSmallSelected }
+                ) {
                     quality = SMALL
                 }
             }
             Row(modifier = Modifier.fillMaxWidth()) {
-                SizeButton(titleRes = R.string.medium) {
+                val isMediumSelected by remember { derivedStateOf { quality == MEDIUM } }
+                SizeButton(
+                    titleRes = R.string.medium,
+                    isSelected = { isMediumSelected }
+                ) {
                     quality = MEDIUM
                 }
                 Spacer(modifier = Modifier.size(8.dp))
-                SizeButton(titleRes = R.string.large) {
+                val isLargeSelected by remember { derivedStateOf { quality == LARGE } }
+                SizeButton(
+                    titleRes = R.string.large,
+                    isSelected = { isLargeSelected }
+                ) {
                     quality = LARGE
                 }
             }
             Row(modifier = Modifier.fillMaxWidth()) {
-                SizeButton(titleRes = R.string.extra_large) {
+                val isXLargeSelected by remember { derivedStateOf { quality == XLARGE } }
+                SizeButton(
+                    titleRes = R.string.extra_large,
+                    isSelected = { isXLargeSelected }
+                ) {
                     quality = XLARGE
                 }
                 Spacer(modifier = Modifier.size(8.dp))
-                SizeButton(titleRes = R.string.extra_extra_large) {
+                val isXXLargeSelected by remember { derivedStateOf { quality == XXLARGE } }
+                SizeButton(
+                    titleRes = R.string.extra_extra_large,
+                    isSelected = { isXXLargeSelected }
+                ) {
                     quality = XXLARGE
                 }
             }
@@ -355,10 +399,19 @@ fun ExportDialog(
 @Composable
 private fun RowScope.SizeButton(
     @StringRes titleRes: Int,
+    isSelected: () -> Boolean,
     onClick: () -> Unit
 ) {
     OutlinedButton(
-        modifier = Modifier.weight(1F),
+        modifier = Modifier
+            .weight(1F),
+        colors = ButtonDefaults.outlinedButtonColors(
+            containerColor =
+            when (isSelected()) {
+                true -> MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.4F)
+                else -> Color.Transparent
+            }
+        ),
         onClick = onClick
     ) {
         Text(text = stringResource(titleRes))
