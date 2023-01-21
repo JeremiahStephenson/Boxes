@@ -34,6 +34,7 @@ import com.jerry.boxes.ui.boxes.state.CanvasState
 import com.jerry.boxes.ui.boxes.state.SelectionState
 import com.jerry.boxes.ui.common.LocalAppBarHeight
 import com.jerry.boxes.ui.common.pngBackground
+import com.jerry.boxes.util.ImmutableList
 import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -199,7 +200,7 @@ fun BoxCanvas(
 fun SelectionsBoxes(
     scale: Float,
     offset: Offset,
-    layers: List<LayerUi>,
+    layers: ImmutableList<LayerUi>,
     boxes: Map<Point, RectF>,
     selections: Map<Long, Map<Point, ColorAndShape>>
 ) {
@@ -214,7 +215,7 @@ fun SelectionsBoxes(
             )
     ) {
         drawShapes(
-            layers,
+            layers.items,
             selections,
             boxes
         )

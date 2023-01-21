@@ -28,6 +28,7 @@ import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.boxes.generateBoxes
 import com.jerry.boxes.ui.boxes.generateSelectionsMap
 import com.jerry.boxes.ui.common.*
+import com.jerry.boxes.util.ImmutableList
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import org.koin.androidx.compose.koinViewModel
@@ -178,7 +179,7 @@ private fun LazyItemScope.LayerItem(
             SetNameDialog(
                 existingName = layer.layer.name,
                 dismiss = { showNameDialog = false },
-                onName =  onLayerName
+                onName = onLayerName
             )
         }
     }
@@ -233,16 +234,18 @@ private fun CanvasItem(
     }
 
     val layers = remember(layer) {
-        listOf(
-            LayerUi(
-                layer.layer.id,
-                layer.layer.projectId,
-                layer.layer.index,
-                layer.layer.name,
-                on = true,
-                selected = true,
-                visibilityEnabled = true,
-                showControls = true
+        ImmutableList(
+            listOf(
+                LayerUi(
+                    layer.layer.id,
+                    layer.layer.projectId,
+                    layer.layer.index,
+                    layer.layer.name,
+                    on = true,
+                    selected = true,
+                    visibilityEnabled = true,
+                    showControls = true
+                )
             )
         )
     }

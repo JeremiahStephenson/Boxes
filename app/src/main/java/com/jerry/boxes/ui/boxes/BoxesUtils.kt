@@ -13,6 +13,7 @@ import com.jerry.boxes.cache.data.Pixel
 import com.jerry.boxes.ui.boxes.data.ColorAndShape
 import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.shapes.*
+import com.jerry.boxes.util.ImmutableList
 import kotlin.math.roundToInt
 
 fun generateSelections(pixels: List<Pixel>): SnapshotStateMap<Long, SnapshotStateMap<Point, ColorAndShape>> {
