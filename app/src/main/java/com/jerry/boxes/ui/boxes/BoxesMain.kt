@@ -255,7 +255,7 @@ private fun MainCanvas(
 
         val projectState by rememberUpdatedState(project)
         Transformer(transformerState) { scale, offset, state ->
-            val currentLayer by remember { derivedStateOf { canvasState.selectedLayer.value.id } }
+            val currentLayer by remember { derivedStateOf { canvasState.selectedLayer.id } }
             BoxCanvas(
                 canvasState = canvasState,
                 buttonsState = buttonsState,
@@ -579,8 +579,8 @@ private fun handleAction(
             scope.launch {
                 viewModel.addToHistory(
                     UserHistory(
-                        canvasState.selectedLayer.value.id,
-                        canvasState.getCurrentSelectedLayerSelections(canvasState.selectedLayer.value.id)
+                        canvasState.selectedLayer.id,
+                        canvasState.getCurrentSelectedLayerSelections(canvasState.selectedLayer.id)
                     )
                 )
                 canvasState.clear()
@@ -589,8 +589,8 @@ private fun handleAction(
         is Action.Undo -> scope.launch {
             buttonsState.turnOffSelectionTool()
             canvasState.onUndo(
-                canvasState.selectedLayer.value.id,
-                viewModel.getLastHistoryItem(canvasState.selectedLayer.value.id)
+                canvasState.selectedLayer.id,
+                viewModel.getLastHistoryItem(canvasState.selectedLayer.id)
             )
         }
         is Action.AddToHistory -> scope.launch {
@@ -610,7 +610,7 @@ private fun handleAction(
         is Action.AddLayer ->
             viewModel.addLayer(
                 name = action.name,
-                index = (canvasState.layerss.maxOf { it.index } ?: -1) + 1,
+                index = (canvasState.layers.maxOf { it.index } ?: -1) + 1,
                 selections = canvasState.selections
             )
         is Action.TurnOnOrOffLayer -> viewModel.setLayerOnOrOff(action.layerId, action.on)
@@ -623,7 +623,7 @@ private fun handleAction(
                 viewModel.export(
                     it,
                     canvasState.selections,
-                    canvasState.layerss,
+                    canvasState.layers,
                     action.size,
                     action.isExport
                 )
@@ -657,15 +657,24 @@ private fun saveProject(
         project,
         if (autoSave) null else canvasState.boxes.keys.toList(),
         canvasState.selections,
-        canvasState.layerss
+        canvasState.layers
     )
 }
 
 @Composable
 private fun rememberCanvasState(viewModel: BoxesViewModel): CanvasState {
-    //val layerState = viewModel.layerStateFlow.collectAsStateWithLifecycle(emptyList())
+    val layerState = viewModel.layerStateFlow.collectAsStateWithLifecycle(emptyList())
     val pixelsState = viewModel.pixelsFlow.collectAsStateWithLifecycle()
     val loadingState = viewModel.loadingState.collectAsStateWithLifecycle()
     val historyCountState = viewModel.historyCountFlow.collectAsStateWithLifecycle(0)
-    return remember { CanvasState(viewModel.layersStateList, loadingState, historyCountState, pixelsState) }
+    return remember {
+        CanvasState(
+            layerState,
+            viewModel.layersVisibilityList,
+            viewModel.layersOrderStateList,
+            loadingState,
+            historyCountState,
+            pixelsState
+        )
+    }
 }

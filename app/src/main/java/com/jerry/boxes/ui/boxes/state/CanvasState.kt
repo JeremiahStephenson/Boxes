@@ -3,6 +3,7 @@ package com.jerry.boxes.ui.boxes.state
 import android.graphics.Point
 import android.graphics.RectF
 import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Constraints
@@ -21,7 +22,9 @@ import kotlin.math.roundToInt
 
 @Stable
 class CanvasState(
-    private val layerListState: SnapshotStateMap<Int, MutableState<LayerUi>>,
+    layersState: State<List<LayerUi>>,
+    private val layerVisibilityState: SnapshotStateMap<Long, MutableState<Boolean>>,
+    private val layerOrderState: SnapshotStateList<Long>,
     private val loadingState: State<Boolean>,
     private val historyCountState: State<Int>,
     private val snapShot: State<DataResource<SnapshotStateMap<Long, SnapshotStateMap<Point, ColorAndShape>>>>
@@ -33,24 +36,25 @@ class CanvasState(
 
     val isLoading get() = snapShot.value.isLoading || loadingState.value
 
-    val layerss get() = layerListState.map { it.value.value }
+    val layers by layersState
 
-    val layers get() = layerListState.toSortedMap() as Map<Int, State<LayerUi>>
+    val layersVisibility get() = layerVisibilityState as Map<Long, State<Boolean>>
+    val layersOrder get() = layerOrderState as List<Long>
     val historyCount by historyCountState
 
     val boxes = _boxes as Map<Point, RectF>
 
     val selectedLayer
-        get() = layers.values.firstOrNull { it.value.selected }
-            ?: layers.values.filter { it.value.on }.maxByOrNull { it.value.index } ?: layers.values.first()
-    val hasLayersTurnedOn get() = layers.values.any { it.value.on }
+        get() = layers.firstOrNull { it.selected }
+            ?: layers.filter { it.on }.maxByOrNull { it.index } ?: layers.first()
+    val hasLayersTurnedOn get() = layers.any { it.on }
 
     private var currentDragHistory: MutableMap<Point, ColorAndShape?> = mutableMapOf()
 
     fun clear() {
-        val selectedLayer = layers.values.firstOrNull { it.value.selected }
+        val selectedLayer = layers.firstOrNull { it.selected }
         selectedLayer?.let {
-            _selections[it.value.id]?.clear()
+            _selections[it.id]?.clear()
         }
     }
 
@@ -136,7 +140,7 @@ class CanvasState(
                 points.add(Point(c, r))
             }
         }
-        val layer = _selections[selectedLayer.value.id]
+        val layer = _selections[selectedLayer.id]
         val aggregatedPoints = layer?.filterKeys { points.contains(it) }
 
         val adjusted = aggregatedPoints?.map { entry ->
@@ -144,10 +148,10 @@ class CanvasState(
         }?.toMap() ?: emptyMap()
         val merged = aggregatedPoints?.keys?.union(adjusted.keys)?.toSet() ?: emptySet()
         val history = UserHistory(
-            selectedLayer.value.id,
+            selectedLayer.id,
             getCurrentSelections(
                 merged,
-                selectedLayer.value.id,
+                selectedLayer.id,
                 filter = false
             )
         )
@@ -197,9 +201,9 @@ class CanvasState(
     }
 
     fun getCurrentSelection(point: Point): ColorAndShape? {
-        val turnedOnLayers = layers.values.filter { it.value.on }.sortedBy { it.value.index }.reversed()
-        return turnedOnLayers.firstOrNull { _selections[it.value.id]?.get(point) != null }
-            ?.let { getCurrentSelection(point, it.value.id) }
+        val turnedOnLayers = layers.filter { it.on }.sortedBy { it.index }.reversed()
+        return turnedOnLayers.firstOrNull { _selections[it.id]?.get(point) != null }
+            ?.let { getCurrentSelection(point, it.id) }
     }
 
     private fun getCurrentSelections(

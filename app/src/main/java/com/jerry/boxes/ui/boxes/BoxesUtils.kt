@@ -107,7 +107,7 @@ fun DrawScope.drawShapes(
     boxes: Map<Point, RectF>
 ) {
     if (boxes.isEmpty() || selections.isNullOrEmpty()) return
-    Timber.d("DrawTest - drawing")
+    Timber.d("DrawTest - drawing: ${selections.size}")
     selections.forEach {
         val position = boxes[it.key]
         position?.let { pos ->

@@ -229,7 +229,7 @@ fun SelectionsBoxes(
     size: Constraints,
     canvasState: CanvasState
 ) {
-    for (i in 0 until canvasState.layers.count()) {
+    for (i in 0 until canvasState.layersOrder.count()) {
         Canvas(
             modifier = Modifier
                 .fillMaxSize()
@@ -244,11 +244,12 @@ fun SelectionsBoxes(
                     translationY = offset.y
                 }
         ) {
-            val layer = canvasState.layers[i]?.value
-            layer?.takeIf { it.on }?.let {
+            val id = canvasState.layersOrder[i]
+            val layerIsOn = canvasState.layersVisibility[id]?.value ?: false
+            if (layerIsOn) {
                 drawShapes(
-                    it.id,
-                    canvasState.selections[it.id],
+                    id,
+                    canvasState.selections[id],
                     canvasState.boxes
                 )
             }

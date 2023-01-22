@@ -89,7 +89,8 @@ class BoxesViewModel(
 
     private var fillJob: Job? = null
 
-    val layersStateList = mutableStateMapOf<Int, MutableState<LayerUi>>()
+    val layersVisibilityList = mutableStateMapOf<Long, MutableState<Boolean>>()
+    val layersOrderStateList = mutableStateListOf<Long>()
 
     private val layerFlow = boxesRepository.getLayersFlow(projectId)
     val layerStateFlow =
@@ -139,9 +140,16 @@ class BoxesViewModel(
                     showControls = layers.size > 1
                 )
             }.onEach {
-                val current = layersStateList.get(it.index)?.value
-                if (current != it) {
-                    layersStateList.getOrPut(it.index) { mutableStateOf(it) }.apply { this.value = it }
+                val current = layersVisibilityList.get(it.id)?.value
+                if (current != it.on) {
+                    layersVisibilityList.getOrPut(it.id) { mutableStateOf(it.on) }
+                        .apply { this.value = it.on }
+                }
+            }.also {
+                val order = it.sortedBy { it.index }.map { it.id }
+                if (order != layersOrderStateList) {
+                    layersOrderStateList.clear()
+                    layersOrderStateList.addAll(order)
                 }
             }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(1000), emptyList())
