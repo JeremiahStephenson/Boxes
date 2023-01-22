@@ -69,7 +69,7 @@ class BoxesRepository(
         project: Project,
         boxes: List<Point>? = null,
         selections: Map<Long, Map<Point, ColorAndShape>>,
-        layers: List<LayerUi>
+        layers: Collection<LayerUi>
     ) {
         if (saveJob?.isActive == true) return
         saveJob = applicationScope.launch(cc.io) {
@@ -98,7 +98,7 @@ class BoxesRepository(
         project: Project,
         fileName: String,
         selections: Map<Long, Map<Point, ColorAndShape>>,
-        layers: List<LayerUi>,
+        layers: Collection<LayerUi>,
         imageSize: Int,
         export: Boolean
     ): String? {

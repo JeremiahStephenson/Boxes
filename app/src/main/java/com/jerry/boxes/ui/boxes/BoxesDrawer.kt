@@ -67,7 +67,7 @@ fun DrawerMenu(
         }
 
         items(
-            items = canvasState.layers,
+            items = canvasState.layerss,
             key = { it.id }
         ) { layer ->
             LayerItem(
@@ -183,7 +183,7 @@ private fun AddLayerBtn(
     onAction: (Action) -> Unit
 ) {
     var showNameDialog by rememberSaveable { mutableStateOf(false) }
-    if (canvasState.layers.size < 5) {
+    if (canvasState.layers.values.size < 5) {
         OutlinedButton(
             modifier = Modifier
                 .fillMaxWidth()
@@ -201,7 +201,7 @@ private fun AddLayerBtn(
         SetNameDialog(
             existingName = stringResource(
                 R.string.layer_hint,
-                (canvasState.layers.firstOrNull()?.index ?: 0) + 2
+                (canvasState.layerss.firstOrNull()?.index ?: 0) + 2
             ),
             dismiss = { showNameDialog = false },
             onName = {

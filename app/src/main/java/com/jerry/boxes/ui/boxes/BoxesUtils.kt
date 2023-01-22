@@ -68,7 +68,7 @@ fun generateBoxes(
 }
 
 fun Canvas.drawShapes(
-    layers: List<LayerUi>,
+    layers: Collection<LayerUi>,
     selections: Map<Long, Map<Point, ColorAndShape>>,
     boxes: Map<Point, RectF>
 ) {

@@ -26,7 +26,7 @@ fun Context?.exportCanvas(
     rows: Int,
     columns: Int,
     imageSize: Int,
-    layers: List<LayerUi>,
+    layers: Collection<LayerUi>,
     selections: Map<Long, Map<Point, ColorAndShape>>
 ): String? {
     val context = this ?: return null

@@ -35,7 +35,6 @@ import com.jerry.boxes.ui.boxes.state.SelectionState
 import com.jerry.boxes.ui.common.LocalAppBarHeight
 import com.jerry.boxes.ui.common.pngBackground
 import com.jerry.boxes.util.ImmutableList
-import timber.log.Timber
 import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -245,7 +244,7 @@ fun SelectionsBoxes(
                     translationY = offset.y
                 }
         ) {
-            val layer = canvasState.layers.getOrNull((canvasState.layers.size - i) - 1)
+            val layer = canvasState.layers[i]?.value
             layer?.takeIf { it.on }?.let {
                 drawShapes(
                     it.id,

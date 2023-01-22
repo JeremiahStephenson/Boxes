@@ -1,16 +1,17 @@
 package com.jerry.boxes.ui.boxes
 
 import android.graphics.Point
+import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.jerry.boxes.repository.BoxesRepository
 import com.jerry.boxes.cache.data.HistoryItem
 import com.jerry.boxes.cache.data.Project
 import com.jerry.boxes.extensions.addIfNotFound
 import com.jerry.boxes.extensions.isNotOutside
 import com.jerry.boxes.extensions.safeLet
+import com.jerry.boxes.repository.BoxesRepository
 import com.jerry.boxes.ui.boxes.data.ColorAndShape
 import com.jerry.boxes.ui.boxes.data.Export
 import com.jerry.boxes.ui.boxes.data.LayerUi
@@ -88,6 +89,8 @@ class BoxesViewModel(
 
     private var fillJob: Job? = null
 
+    val layersStateList = mutableStateMapOf<Int, MutableState<LayerUi>>()
+
     private val layerFlow = boxesRepository.getLayersFlow(projectId)
     val layerStateFlow =
         combine(layerState, layerFlow, selectedLayerStateFlow) { state, layers, selectedLayer ->
@@ -135,6 +138,11 @@ class BoxesViewModel(
                     visibilityEnabled = !(isOn && state?.count { it.value } == 1),
                     showControls = layers.size > 1
                 )
+            }.onEach {
+                val current = layersStateList.get(it.index)?.value
+                if (current != it) {
+                    layersStateList.getOrPut(it.index) { mutableStateOf(it) }.apply { this.value = it }
+                }
             }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(1000), emptyList())
 
@@ -201,7 +209,7 @@ class BoxesViewModel(
     fun export(
         project: Project,
         selections: Map<Long, Map<Point, ColorAndShape>>,
-        layers: List<LayerUi>,
+        layers: Collection<LayerUi>,
         imageSize: Int,
         isExport: Boolean
     ) {
@@ -209,7 +217,14 @@ class BoxesViewModel(
         exportJob = viewModelScope.launch(cc.io) {
             _loading.value = true
             try {
-                val path = boxesRepository.export(project, project.name, selections, layers, imageSize, true)
+                val path = boxesRepository.export(
+                    project,
+                    project.name,
+                    selections,
+                    layers,
+                    imageSize,
+                    true
+                )
                 path?.let { _exportedFlow.emit(Export(it, null, isExport)) }
             } catch (t: Throwable) {
                 _exportedFlow.emit(Export(null, t.message, isExport))
@@ -259,7 +274,7 @@ class BoxesViewModel(
         project: Project,
         boxes: List<Point>? = null,
         selections: Map<Long, Map<Point, ColorAndShape>>,
-        layers: List<LayerUi>
+        layers: Collection<LayerUi>
     ) {
         boxesRepository.save(project, boxes, selections, layers)
     }
