@@ -14,6 +14,7 @@ import com.jerry.boxes.ui.boxes.data.ColorAndShape
 import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.shapes.*
 import com.jerry.boxes.util.ImmutableList
+import timber.log.Timber
 import kotlin.math.roundToInt
 
 fun generateSelections(pixels: List<Pixel>): SnapshotStateMap<Long, SnapshotStateMap<Point, ColorAndShape>> {
@@ -106,6 +107,7 @@ fun DrawScope.drawShapes(
     boxes: Map<Point, RectF>
 ) {
     if (boxes.isEmpty() || selections.isNullOrEmpty()) return
+    Timber.d("DrawTest - drawing")
     selections.forEach {
         val position = boxes[it.key]
         position?.let { pos ->

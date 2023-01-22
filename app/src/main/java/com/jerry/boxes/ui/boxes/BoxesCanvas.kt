@@ -35,6 +35,7 @@ import com.jerry.boxes.ui.boxes.state.SelectionState
 import com.jerry.boxes.ui.common.LocalAppBarHeight
 import com.jerry.boxes.ui.common.pngBackground
 import com.jerry.boxes.util.ImmutableList
+import timber.log.Timber
 import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -229,25 +230,30 @@ fun SelectionsBoxes(
     size: Constraints,
     canvasState: CanvasState
 ) {
-    Canvas(
-        modifier = Modifier
-            .fillMaxSize()
-            .graphicsLayer {
-                transformOrigin = TransformOrigin(
-                    ((size.maxWidth / 2F) - offset.x) / size.maxWidth,
-                    ((size.maxHeight / 2F) - offset.y) / size.maxHeight
+    for (i in 0 until canvasState.layers.count()) {
+        Canvas(
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer {
+                    transformOrigin = TransformOrigin(
+                        ((size.maxWidth / 2F) - offset.x) / size.maxWidth,
+                        ((size.maxHeight / 2F) - offset.y) / size.maxHeight
+                    )
+                    scaleX = scale
+                    scaleY = scale
+                    translationX = offset.x
+                    translationY = offset.y
+                }
+        ) {
+            val layer = canvasState.layers.getOrNull((canvasState.layers.size - i) - 1)
+            layer?.takeIf { it.on }?.let {
+                drawShapes(
+                    it.id,
+                    canvasState.selections[it.id],
+                    canvasState.boxes
                 )
-                scaleX = scale
-                scaleY = scale
-                translationX = offset.x
-                translationY = offset.y
             }
-    ) {
-        drawShapes(
-            canvasState.layers,
-            canvasState.selections,
-            canvasState.boxes
-        )
+        }
     }
 }
 
