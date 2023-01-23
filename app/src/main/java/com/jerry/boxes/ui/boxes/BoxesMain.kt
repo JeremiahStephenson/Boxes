@@ -35,6 +35,7 @@ import com.jerry.boxes.ui.common.*
 import com.jerry.boxes.ui.destinations.CreateMainDestination
 import com.jerry.boxes.ui.destinations.LayersEditMainDestination
 import com.jerry.boxes.ui.shapes.Shape
+import com.jerry.boxes.util.ExportType
 import com.jerry.boxes.util.ImmutableList
 import com.jerry.boxes.util.openImage
 import com.jerry.boxes.util.openShareSheet
@@ -161,8 +162,8 @@ fun BoxesMain(
             LaunchedEffect(Unit) {
                 viewModel.exportedFlow.collectLatest {
                     when (it.error) {
-                        null -> when (it.isExport) {
-                            true -> it.filePath?.let { path ->
+                        null -> when (it.exportType) {
+                            ExportType.FILE -> it.filePath?.let { path ->
                                 snackBarHostState.showSnackbar(
                                     path,
                                     duration = SnackbarDuration.Indefinite
@@ -625,7 +626,7 @@ private fun handleAction(
                     canvasState.selections,
                     canvasState.layers,
                     action.size,
-                    action.isExport
+                    action.exportType
                 )
             }
         is Action.SelectTool -> buttonsState.toggleSelectTool()

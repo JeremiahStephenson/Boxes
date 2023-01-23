@@ -33,6 +33,7 @@ import com.jerry.boxes.ui.common.ShapeOption
 import com.jerry.boxes.ui.common.pngBackground
 import com.jerry.boxes.ui.common.unboundClickable
 import com.jerry.boxes.ui.shapes.Shape
+import com.jerry.boxes.util.ExportType
 import com.jerry.boxes.util.ImmutableList
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -259,8 +260,8 @@ fun ShapePickerDialog(
 
 @Composable
 fun ExportDialog(
-    export: Boolean,
-    onExport: (Int, Boolean) -> Unit,
+    export: ExportType,
+    onExport: (Int, ExportType) -> Unit,
     onDismiss: () -> Unit
 ) {
     Dialog(onDismissRequest = onDismiss) {
@@ -364,8 +365,8 @@ fun ExportDialog(
                 ) {
                     Text(
                         text = stringResource(
-                            when (!export) {
-                                true -> R.string.share
+                            when (export) {
+                                ExportType.SHARE -> R.string.share
                                 else -> R.string.export
                             }
                         )

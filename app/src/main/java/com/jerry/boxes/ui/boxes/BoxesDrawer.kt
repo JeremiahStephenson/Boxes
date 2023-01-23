@@ -20,7 +20,6 @@ import androidx.compose.ui.unit.dp
 import com.google.accompanist.flowlayout.FlowRow
 import com.jerry.boxes.R
 import com.jerry.boxes.cache.data.Project
-import com.jerry.boxes.ui.boxes.data.ExportState
 import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.boxes.state.ButtonsState
 import com.jerry.boxes.ui.boxes.state.CanvasState
@@ -29,6 +28,7 @@ import com.jerry.boxes.ui.common.IconMenuButton
 import com.jerry.boxes.ui.common.IconSelectableMenuButton
 import com.jerry.boxes.ui.common.SetNameDialog
 import com.jerry.boxes.util.ArrangementLastItem
+import com.jerry.boxes.util.ExportType
 
 @Composable
 fun DrawerMenu(
@@ -139,26 +139,23 @@ fun DrawerMenu(
                     contentDescription = stringResource(R.string.save_project)
                 )
                 var exportDialog by rememberSaveable {
-                    mutableStateOf(ExportState.NONE)
+                    mutableStateOf<ExportType?>(null)
                 }
-                if (exportDialog != ExportState.NONE) {
+                exportDialog?.let {
                     ExportDialog(
-                        when (exportDialog) {
-                            ExportState.SHARE -> false
-                            else -> true
-                        },
+                        it,
                         onExport = { size, isExport -> onAction(Action.Export(size, isExport)) }
                     ) {
-                        exportDialog = ExportState.NONE
+                        exportDialog = null
                     }
                 }
                 IconMenuButton(
-                    onClick = { exportDialog = ExportState.EXPORT },
+                    onClick = { exportDialog = ExportType.FILE },
                     drawableRes = R.drawable.ic_image_24,
                     contentDescription = stringResource(R.string.save_to_png)
                 )
                 IconMenuButton(
-                    onClick = { exportDialog = ExportState.SHARE },
+                    onClick = { exportDialog = ExportType.SHARE },
                     drawableRes = R.drawable.ic_share_24,
                     contentDescription = stringResource(R.string.share_with_people)
                 )

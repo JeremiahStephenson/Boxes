@@ -13,6 +13,7 @@ import com.jerry.boxes.ui.boxes.generateSelections
 import com.jerry.boxes.ui.shapes.Shape
 import com.jerry.boxes.util.CoroutineContextProvider
 import com.jerry.boxes.util.DataResource
+import com.jerry.boxes.util.ExportType
 import com.jerry.boxes.util.exportCanvas
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -32,8 +33,7 @@ class BoxesRepository(
 ) {
     fun getPixelsFlow(projectId: Long) = boxesDao.getProjectPixelsFlow(projectId)
         .map {
-            val test = generateSelections(it)
-            DataResource.done(test)
+            DataResource.done(generateSelections(it))
         }
         .flowOn(cc.io)
 
@@ -81,7 +81,7 @@ class BoxesRepository(
                     imageSize = 200,
                     layers = layers,
                     selections = selections,
-                    export = false
+                    exportType = ExportType.THUMBNAIL
                 )
             } catch (t: Throwable) {
                 // todo log this out
@@ -101,7 +101,7 @@ class BoxesRepository(
         selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
         layers: Collection<LayerUi>,
         imageSize: Int,
-        export: Boolean
+        exportType: ExportType
     ): String? {
         return application.exportCanvas(
             imageSize = imageSize,
@@ -110,7 +110,7 @@ class BoxesRepository(
             columns = project.columns,
             layers = layers,
             selections = selections,
-            export = export
+            exportType = exportType
         )
     }
 

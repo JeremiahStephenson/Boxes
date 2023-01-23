@@ -3,7 +3,6 @@ package com.jerry.boxes.ui.boxes
 import android.graphics.Canvas
 import android.graphics.Point
 import android.graphics.RectF
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size

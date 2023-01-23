@@ -215,7 +215,7 @@ class CanvasState(
 
     fun getCurrentSelection(point: Point): ColorAndShape? {
         val turnedOnLayers = layers.filter { it.on }.sortedBy { it.index }.reversed()
-        return turnedOnLayers.firstOrNull { _selections[it.id]?.get(point) != null }
+        return turnedOnLayers.firstOrNull { _selections[it.id]?.get(point.quadrant)?.get(point) != null }
             ?.let { getCurrentSelection(point, it.id) }
     }
 

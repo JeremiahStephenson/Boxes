@@ -6,11 +6,12 @@ import com.jerry.boxes.ui.boxes.history.UserHistory
 import com.jerry.boxes.ui.boxes.state.enums.Direction
 import com.jerry.boxes.ui.boxes.state.enums.TapType
 import com.jerry.boxes.ui.shapes.Shape
+import com.jerry.boxes.util.ExportType
 
 sealed class Action {
     object Clear : Action()
     object Eraser : Action()
-    object ResetZoom: Action()
+    object ResetZoom : Action()
     object ShowPngBackground : Action()
     object ShowGrid : Action()
     object SelectTool : Action()
@@ -23,7 +24,7 @@ sealed class Action {
     data class Move(val direction: Direction) : Action()
     data class Fill(val point: Point, val layerId: Long) : Action()
     data class SetTapType(val tapType: TapType) : Action()
-    data class Export(val size: Int, val isExport: Boolean) : Action()
+    data class Export(val size: Int, val exportType: ExportType) : Action()
     data class AddLayer(val name: String) : Action()
     data class SelectLayer(val layerId: Long) : Action()
     data class AddColorToUsedList(val color: ColorAndShape) : Action()

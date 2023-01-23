@@ -168,7 +168,7 @@ private fun RowScope.ProjectNumberPicker(
         )
         NumberPicker(
             value = value,
-            range = 1..100,
+            range = 1..200,
             onValueChange = {
                 onValueChange(it)
             },

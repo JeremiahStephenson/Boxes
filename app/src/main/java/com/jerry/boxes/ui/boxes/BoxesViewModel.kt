@@ -16,10 +16,7 @@ import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.boxes.history.UserHistory
 import com.jerry.boxes.ui.destinations.BoxesMainDestination
 import com.jerry.boxes.ui.shapes.Shape
-import com.jerry.boxes.util.CoroutineContextProvider
-import com.jerry.boxes.util.DataResource
-import com.jerry.boxes.util.ImmutableList
-import com.jerry.boxes.util.SavedHandle
+import com.jerry.boxes.util.*
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.*
@@ -217,7 +214,7 @@ class BoxesViewModel(
         selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
         layers: Collection<LayerUi>,
         imageSize: Int,
-        isExport: Boolean
+        exportType: ExportType
     ) {
         if (exportJob?.isActive == true) return
         exportJob = viewModelScope.launch(cc.io) {
@@ -229,11 +226,11 @@ class BoxesViewModel(
                     selections,
                     layers,
                     imageSize,
-                    true
+                    exportType
                 )
-                path?.let { _exportedFlow.emit(Export(it, null, isExport)) }
+                path?.let { _exportedFlow.emit(Export(it, null, exportType)) }
             } catch (t: Throwable) {
-                _exportedFlow.emit(Export(null, t.message, isExport))
+                _exportedFlow.emit(Export(null, t.message, exportType))
             }
             _loading.value = false
         }

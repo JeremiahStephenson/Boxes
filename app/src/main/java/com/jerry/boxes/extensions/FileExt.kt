@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Point
-import android.net.Uri
 import android.os.Environment
 import androidx.core.content.FileProvider
 import androidx.core.graphics.applyCanvas
@@ -22,7 +21,7 @@ import kotlin.math.min
 
 fun Context?.exportCanvas(
     name: String,
-    export: Boolean,
+    exportType: ExportType,
     rows: Int,
     columns: Int,
     imageSize: Int,
@@ -42,15 +41,15 @@ fun Context?.exportCanvas(
         drawShapes(layers, selections, newBoxes)
     }
 
-    return bitmap.storeImage(context, export, name)
+    return bitmap.storeImage(context, exportType, name)
 }
 
 fun Bitmap.storeImage(
     context: Context,
-    export: Boolean,
+    exportType: ExportType,
     name: String? = null
 ): String? {
-    val pictureFile = getOutputMediaFile(context, export, name)
+    val pictureFile = getOutputMediaFile(context, exportType, name)
         ?: throw (Throwable(context.getString(R.string.error_export)))
 
     val fos = FileOutputStream(pictureFile)
@@ -63,13 +62,14 @@ fun Bitmap.storeImage(
 /** Create a File for saving an image or video  */
 private fun getOutputMediaFile(
     context: Context,
-    export: Boolean,
+    exportType: ExportType,
     name: String? = null
 ): File? {
     // To be safe, you should check that the SDCard is mounted
     // using Environment.getExternalStorageState() before doing this.
-    val mediaStorageDir = when (export) {
-        true -> Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES + "/Pixels")
+    val mediaStorageDir = when (exportType) {
+        ExportType.FILE -> Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES + "/Pixels")
+        ExportType.SHARE -> File(context.cacheDir, "pixels")
         else -> File(context.filesDir, "pixels")
     }
 
@@ -86,7 +86,10 @@ private fun getOutputMediaFile(
     val timeStamp: String = SimpleDateFormat("ddMMyyyy_HHmm", Locale.getDefault()).format(Date())
     val mediaFile: File
     val mImageName =
-        if (export) "${if (name != null) name + "_" else ""}MI_$timeStamp.png" else (if (name != null) "$name.png" else "MI_$timeStamp.png")
+        when (exportType == ExportType.FILE) {
+            true -> "${if (name != null) name + "_" else ""}MI_$timeStamp.png"
+            else -> (if (name != null) "$name.png" else "MI_$timeStamp.png")
+        }
     mediaFile = File(mediaStorageDir.getPath() + File.separator.toString() + mImageName)
     return mediaFile
 }
