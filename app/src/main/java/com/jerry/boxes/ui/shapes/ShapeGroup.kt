@@ -1,5 +1,5 @@
 package com.jerry.boxes.ui.shapes
 
 enum class ShapeGroup {
-    BASIC, RECTANGLE, CORNER, CORNER_TRIANGLE, CORNER_ARC, ARC, LINE
+    BASIC, LEGO, RECTANGLE, CORNER, TRIANGLE, CORNER_TRIANGLE, CORNER_ARC, ARC, LINE
 }

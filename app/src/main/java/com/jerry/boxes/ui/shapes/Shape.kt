@@ -11,7 +11,6 @@ interface ShapersInterface {
         pos: RectF,
         color: ColorAndShape
     )
-
     fun draw(
         scope: Canvas,
         pos: RectF,
@@ -45,6 +44,42 @@ enum class Shape(val group: ShapeGroup) : ShapersInterface {
 
         override fun draw(scope: Canvas, pos: RectF, color: ColorAndShape) {
             scope.drawStar(pos, color)
+        }
+    },
+    TriangleLeft(ShapeGroup.TRIANGLE) {
+        override fun draw(scope: DrawScope, pos: RectF, color: ColorAndShape) {
+            scope.drawTriangleLeft(pos, color)
+        }
+
+        override fun draw(scope: Canvas, pos: RectF, color: ColorAndShape) {
+            scope.drawTriangleLeft(pos, color)
+        }
+    },
+    TriangleRight(ShapeGroup.TRIANGLE) {
+        override fun draw(scope: DrawScope, pos: RectF, color: ColorAndShape) {
+            scope.drawTriangleRight(pos, color)
+        }
+
+        override fun draw(scope: Canvas, pos: RectF, color: ColorAndShape) {
+            scope.drawTriangleRight(pos, color)
+        }
+    },
+    TriangleTop(ShapeGroup.TRIANGLE) {
+        override fun draw(scope: DrawScope, pos: RectF, color: ColorAndShape) {
+            scope.drawTriangleTop(pos, color)
+        }
+
+        override fun draw(scope: Canvas, pos: RectF, color: ColorAndShape) {
+            scope.drawTriangleTop(pos, color)
+        }
+    },
+    TriangleBottom(ShapeGroup.TRIANGLE) {
+        override fun draw(scope: DrawScope, pos: RectF, color: ColorAndShape) {
+            scope.drawTriangleBottom(pos, color)
+        }
+
+        override fun draw(scope: Canvas, pos: RectF, color: ColorAndShape) {
+            scope.drawTriangleBottom(pos, color)
         }
     },
     TriangleBottomLeft(ShapeGroup.CORNER_TRIANGLE) {
@@ -380,7 +415,7 @@ enum class Shape(val group: ShapeGroup) : ShapersInterface {
             scope.drawTriangleTopRightSmallest(pos, color)
         }
     },
-    Lego(ShapeGroup.BASIC) {
+    Lego(ShapeGroup.LEGO) {
         override fun draw(scope: DrawScope, pos: RectF, color: ColorAndShape) {
             scope.drawLegoSquare(pos, color)
         }
@@ -389,7 +424,7 @@ enum class Shape(val group: ShapeGroup) : ShapersInterface {
             scope.drawLegoSquare(pos, color)
         }
     },
-    LegoRound(ShapeGroup.BASIC) {
+    LegoRound(ShapeGroup.LEGO) {
         override fun draw(scope: DrawScope, pos: RectF, color: ColorAndShape) {
             scope.drawLegoRound(pos, color)
         }
@@ -399,3 +434,5 @@ enum class Shape(val group: ShapeGroup) : ShapersInterface {
         }
     }
 }
+
+const val LEGO_LIMIT = 2500

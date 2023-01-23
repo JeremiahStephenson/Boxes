@@ -241,7 +241,7 @@ fun SelectionsBoxes(
     quadrantYSize: Int,
     canvasState: CanvasState
 ) {
-    for (l in 0 until canvasState.layersOrder.count()) {
+    for (layerIndex in 0 until canvasState.layersOrder.count()) {
         for (x in 0 until quadrantXSize) {
             for (y in 0 until quadrantYSize) {
                 Canvas(
@@ -258,7 +258,7 @@ fun SelectionsBoxes(
                             translationY = offset.y
                         }
                 ) {
-                    val id = canvasState.layersOrder[l]
+                    val id = canvasState.layersOrder[layerIndex]
                     if (canvasState.layersVisibility[id]?.value == true) {
                         drawShapes(
                             id,

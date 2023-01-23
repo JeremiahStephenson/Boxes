@@ -381,6 +381,7 @@ private fun ButtonBar(
         if (shapePicker) {
             ShapePickerDialog(
                 color = getColor(),
+                numberOfBoxes = canvasState.boxes.size,
                 onShapeChosen = onShapeChosen
             ) {
                 shapePicker = false

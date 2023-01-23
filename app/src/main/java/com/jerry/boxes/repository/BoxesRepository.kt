@@ -188,5 +188,7 @@ class BoxesRepository(
 
     companion object {
         private const val MAX_HISTORY_PER_LAYER = 20
+
+        const val MAX_SIDE_SIZE = 200
     }
 }

@@ -32,7 +32,9 @@ import com.jerry.boxes.ui.boxes.data.ColorAndShape
 import com.jerry.boxes.ui.common.ShapeOption
 import com.jerry.boxes.ui.common.pngBackground
 import com.jerry.boxes.ui.common.unboundClickable
+import com.jerry.boxes.ui.shapes.LEGO_LIMIT
 import com.jerry.boxes.ui.shapes.Shape
+import com.jerry.boxes.ui.shapes.ShapeGroup
 import com.jerry.boxes.util.ExportType
 import com.jerry.boxes.util.ImmutableList
 
@@ -218,11 +220,14 @@ private fun ColorBox(
 @Composable
 fun ShapePickerDialog(
     color: ColorAndShape,
+    numberOfBoxes: Int,
     onShapeChosen: (Shape) -> Unit,
     onDismiss: () -> Unit
 ) {
     Dialog(onDismissRequest = onDismiss) {
-        val shapes = remember { Shape.values().groupBy { it.group }.flatMap { it.value } }
+        val shapes = remember { Shape.values().groupBy { it.group }.flatMap { it.value }.sortedBy { it.group.ordinal } }.filter {
+            (it.group == ShapeGroup.LEGO && numberOfBoxes <= LEGO_LIMIT) || it.group != ShapeGroup.LEGO
+        }
         LazyVerticalGrid(
             modifier = Modifier
                 .clip(MaterialTheme.shapes.large)
