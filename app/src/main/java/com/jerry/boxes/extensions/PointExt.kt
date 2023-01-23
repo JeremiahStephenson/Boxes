@@ -1,7 +1,9 @@
 package com.jerry.boxes.extensions
 
 import android.graphics.Point
+import com.jerry.boxes.ui.boxes.QUADRANT_SIZE
 import com.jerry.boxes.ui.boxes.state.enums.Direction
+import kotlin.math.floor
 
 fun Point.isNotOutside(columns: Int, rows: Int) =
     x >= 0 && x <= (columns - 1) && y >= 0 && y <= (rows - 1)
@@ -23,3 +25,22 @@ fun Point.adjustInPlace(direction: Direction): Point {
         Direction.DOWN -> apply { set(x, y + 1) }
     }
 }
+
+val Point.quadrant
+    get() = Point(
+        floor(x.toFloat() / QUADRANT_SIZE).toInt(),
+        floor(y.toFloat() / QUADRANT_SIZE).toInt()
+    )
+
+fun Point.quadrantName(layerId: Long): String {
+    val quadrant = quadrant
+    return "${layerId}_${quadrant.x}_${quadrant.y}"
+}
+
+val HashSet<Point>.groupByQuadrant
+    get() = groupBy {
+        Point(
+            floor(it.x.toFloat() / QUADRANT_SIZE).toInt(),
+            floor(it.y.toFloat() / QUADRANT_SIZE).toInt()
+        )
+    }

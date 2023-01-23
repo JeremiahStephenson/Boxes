@@ -8,7 +8,8 @@ import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Constraints
 import com.jerry.boxes.cache.data.HistoryItem
-import com.jerry.boxes.extensions.adjust
+import com.jerry.boxes.extensions.groupByQuadrant
+import com.jerry.boxes.extensions.quadrant
 import com.jerry.boxes.ui.boxes.data.ColorAndShape
 import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.boxes.generateBoxes
@@ -27,12 +28,12 @@ class CanvasState(
     private val layerOrderState: SnapshotStateList<Long>,
     private val loadingState: State<Boolean>,
     private val historyCountState: State<Int>,
-    private val snapShot: State<DataResource<SnapshotStateMap<Long, SnapshotStateMap<Point, ColorAndShape>>>>
+    private val snapShot: State<DataResource<SnapshotStateMap<Long, SnapshotStateMap<Point, SnapshotStateMap<Point, ColorAndShape>>>>>
 ) {
     private val _boxes = mutableStateMapOf<Point, RectF>()
 
     private val _selections get() = snapShot.value.data!!
-    val selections get() = snapShot.value.data as Map<Long, Map<Point, ColorAndShape>>
+    val selections get() = snapShot.value.data as Map<Long, Map<Point, Map<Point, ColorAndShape>>>
 
     val isLoading get() = snapShot.value.isLoading || loadingState.value
 
@@ -54,12 +55,17 @@ class CanvasState(
     fun clear() {
         val selectedLayer = layers.firstOrNull { it.selected }
         selectedLayer?.let {
-            _selections[it.id]?.clear()
+            _selections[it.id]?.forEach { (_, points) ->
+                points.clear()
+            }
         }
     }
 
-    fun getCurrentSelectedLayerSelections(layerId: Long) =
-        _selections[layerId]?.toMap() ?: emptyMap()
+    fun getCurrentSelectedLayerSelections(layerId: Long) = _selections[layerId]?.flatMap {
+        it.value.mapValues { entry ->
+            entry.key to entry.value
+        }.values
+    }?.toMap() ?: emptyMap()
 
     fun getTapHistoryItem(point: Point, layerId: Long) =
         UserHistory(layerId, mapOf(point to getCurrentSelection(point, layerId)))
@@ -87,15 +93,15 @@ class CanvasState(
         if (layerId == null) return
         val layer = _selections.getOrPut(layerId) { mutableStateMapOf() }
         historyItems.forEach { item ->
-            layer.apply {
-                this.remove(Point(item.x, item.y))
-                item.color?.let {
-                    this[Point(item.x, item.y)] = ColorAndShape(
-                        Color(item.color),
-                        item.shape ?: Shape.Box
-                    )
-                }
-            }
+//            layer.apply {
+//                this.remove(Point(item.x, item.y))
+//                item.color?.let {
+//                    this[Point(item.x, item.y)] = ColorAndShape(
+//                        Color(item.color),
+//                        item.shape ?: Shape.Box
+//                    )
+//                }
+//            }
         }
     }
 
@@ -106,16 +112,22 @@ class CanvasState(
         currentShape: Shape
     ): ColorAndShape? {
         val colorAndShape = currentColor.copy(shape = currentShape)
-        val selection = when (_selections[layerId]?.get(point) == colorAndShape) {
+        val quadrant = point.quadrant
+        val selection = when (_selections[layerId]?.get(quadrant)?.get(point) == colorAndShape) {
             true -> null
             else -> colorAndShape
         }
-        _selections.getOrPut(layerId) { mutableStateMapOf() }.apply {
-            when (selection) {
-                null -> remove(point)
-                else -> put(point, selection)
+        _selections
+            .getOrPut(layerId) {
+                mutableStateMapOf()
+            }.getOrPut(quadrant) {
+                mutableStateMapOf()
+            }.apply {
+                when (selection) {
+                    null -> remove(point)
+                    else -> put(point, selection)
+                }
             }
-        }
         return selection
     }
 
@@ -124,42 +136,48 @@ class CanvasState(
         layerId: Long,
         currentColor: ColorAndShape?
     ) {
-        _selections.getOrPut(layerId) { mutableStateMapOf() }.let { map ->
-            when (currentColor) {
-                null -> map.keys.removeAll(points.toSet())
-                else -> map.putAll(points.associateWith { currentColor })
-            }
+        val pts = points.groupByQuadrant
+        pts.forEach { (quad, list) ->
+            _selections
+                .getOrPut(layerId) { mutableStateMapOf() }
+                .getOrPut(quad) { mutableStateMapOf() }
+                .let { map ->
+                    when (currentColor) {
+                        null -> map.keys.removeAll(list.toSet())
+                        else -> map.putAll(list.associateWith { currentColor })
+                    }
+                }
         }
     }
 
     fun move(topLeft: Point?, bottomRight: Point?, direction: Direction): UserHistory? {
-        if (topLeft == null || bottomRight == null) return null
-        val points = HashSet<Point>()
-        for (c in min(topLeft.x, bottomRight.x)..max(topLeft.x, bottomRight.x)) {
-            for (r in min(topLeft.y, bottomRight.y)..max(topLeft.y, bottomRight.y)) {
-                points.add(Point(c, r))
-            }
-        }
-        val layer = _selections[selectedLayer.id]
-        val aggregatedPoints = layer?.filterKeys { points.contains(it) }
-
-        val adjusted = aggregatedPoints?.map { entry ->
-            entry.key.adjust(direction) to entry.value
-        }?.toMap() ?: emptyMap()
-        val merged = aggregatedPoints?.keys?.union(adjusted.keys)?.toSet() ?: emptySet()
-        val history = UserHistory(
-            selectedLayer.id,
-            getCurrentSelections(
-                merged,
-                selectedLayer.id,
-                filter = false
-            )
-        )
-        adjusted.takeIf { it.isNotEmpty() }?.let {
-            layer?.keys?.removeAll(merged)
-            layer?.putAll(adjusted)
-        }
-        return history
+//        if (topLeft == null || bottomRight == null) return null
+//        val points = HashSet<Point>()
+//        for (c in min(topLeft.x, bottomRight.x)..max(topLeft.x, bottomRight.x)) {
+//            for (r in min(topLeft.y, bottomRight.y)..max(topLeft.y, bottomRight.y)) {
+//                points.add(Point(c, r))
+//            }
+//        }
+//        val layer = _selections[selectedLayer.id.toString()]
+//        val aggregatedPoints = layer?.filterKeys { points.contains(it) }
+//
+//        val adjusted = aggregatedPoints?.map { entry ->
+//            entry.key.adjust(direction) to entry.value
+//        }?.toMap() ?: emptyMap()
+//        val merged = aggregatedPoints?.keys?.union(adjusted.keys)?.toSet() ?: emptySet()
+//        val history = UserHistory(
+//            selectedLayer.id,
+//            getCurrentSelections(
+//                merged,
+//                selectedLayer.id,
+//                filter = false
+//            )
+//        )
+//        adjusted.takeIf { it.isNotEmpty() }?.let {
+//            layer?.keys?.removeAll(merged)
+//            layer?.putAll(adjusted)
+//        }
+        return UserHistory(selectedLayer.id, emptyMap()) // history
     }
 
     fun fillInBoxes(
@@ -197,7 +215,7 @@ class CanvasState(
         point: Point,
         layerId: Long
     ): ColorAndShape? {
-        return _selections[layerId]?.get(point)
+        return ColorAndShape(Color.Green) // _selections[layerId]?.get(point)
     }
 
     fun getCurrentSelection(point: Point): ColorAndShape? {
@@ -212,11 +230,12 @@ class CanvasState(
         checkColor: ColorAndShape? = null,
         filter: Boolean = true
     ): Map<Point, ColorAndShape?> {
-        return points.associateWith { _selections[layerId]?.get(it) }.run {
-            when (filter) {
-                true -> filterNot { it.value == checkColor }
-                else -> this
-            }
-        }
+        return emptyMap()
+//        points.associateWith { _selections[layerId]?.get(it) }.run {
+//            when (filter) {
+//                true -> filterNot { it.value == checkColor }
+//                else -> this
+//            }
+//        }
     }
 }

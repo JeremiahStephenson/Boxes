@@ -35,9 +35,7 @@ import com.jerry.boxes.ui.boxes.state.SelectionState
 import com.jerry.boxes.ui.common.LocalAppBarHeight
 import com.jerry.boxes.ui.common.pngBackground
 import com.jerry.boxes.util.ImmutableList
-import kotlin.math.abs
-import kotlin.math.pow
-import kotlin.math.sqrt
+import kotlin.math.*
 
 @Composable
 fun BoxCanvas(
@@ -152,10 +150,22 @@ fun BoxCanvas(
                 lockRotationOnZoomPan = true
             )
     ) {
+        val quadrantXSize by remember {
+            derivedStateOf {
+                ceil(columnsState / QUADRANT_SIZE).toInt()
+            }
+        }
+        val quadrantYSize by remember {
+            derivedStateOf {
+                ceil(rowsState / QUADRANT_SIZE).toInt()
+            }
+        }
         SelectionsBoxes(
             scale = scale,
             offset = offset,
             size = size,
+            quadrantXSize = quadrantXSize,
+            quadrantYSize = quadrantYSize,
             canvasState = canvasState
         )
 
@@ -227,31 +237,36 @@ fun SelectionsBoxes(
     scale: Float,
     offset: Offset,
     size: Constraints,
+    quadrantXSize: Int,
+    quadrantYSize: Int,
     canvasState: CanvasState
 ) {
-    for (i in 0 until canvasState.layersOrder.count()) {
-        Canvas(
-            modifier = Modifier
-                .fillMaxSize()
-                .graphicsLayer {
-                    transformOrigin = TransformOrigin(
-                        ((size.maxWidth / 2F) - offset.x) / size.maxWidth,
-                        ((size.maxHeight / 2F) - offset.y) / size.maxHeight
-                    )
-                    scaleX = scale
-                    scaleY = scale
-                    translationX = offset.x
-                    translationY = offset.y
+    for (l in 0 until canvasState.layersOrder.count()) {
+        for (x in 0 until quadrantXSize) {
+            for (y in 0 until quadrantYSize) {
+                Canvas(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer {
+                            transformOrigin = TransformOrigin(
+                                ((size.maxWidth / 2F) - offset.x) / size.maxWidth,
+                                ((size.maxHeight / 2F) - offset.y) / size.maxHeight
+                            )
+                            scaleX = scale
+                            scaleY = scale
+                            translationX = offset.x
+                            translationY = offset.y
+                        }
+                ) {
+                    val id = canvasState.layersOrder[l]
+                    if (canvasState.layersVisibility[id]?.value == true) {
+                        drawShapes(
+                            id,
+                            canvasState.selections[id]?.get(Point(x, y)),
+                            canvasState.boxes
+                        )
+                    }
                 }
-        ) {
-            val id = canvasState.layersOrder[i]
-            val layerIsOn = canvasState.layersVisibility[id]?.value ?: false
-            if (layerIsOn) {
-                drawShapes(
-                    id,
-                    canvasState.selections[id],
-                    canvasState.boxes
-                )
             }
         }
     }

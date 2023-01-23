@@ -32,7 +32,8 @@ class BoxesRepository(
 ) {
     fun getPixelsFlow(projectId: Long) = boxesDao.getProjectPixelsFlow(projectId)
         .map {
-            DataResource.done(generateSelections(it))
+            val test = generateSelections(it)
+            DataResource.done(test)
         }
         .flowOn(cc.io)
 
@@ -68,7 +69,7 @@ class BoxesRepository(
     fun save(
         project: Project,
         boxes: List<Point>? = null,
-        selections: Map<Long, Map<Point, ColorAndShape>>,
+        selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
         layers: Collection<LayerUi>
     ) {
         if (saveJob?.isActive == true) return
@@ -97,7 +98,7 @@ class BoxesRepository(
     fun export(
         project: Project,
         fileName: String,
-        selections: Map<Long, Map<Point, ColorAndShape>>,
+        selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
         layers: Collection<LayerUi>,
         imageSize: Int,
         export: Boolean
@@ -117,7 +118,7 @@ class BoxesRepository(
         projectId: Long,
         name: String,
         index: Int,
-        selections: Map<Long, Map<Point, ColorAndShape?>?>
+        selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>
     ): Long {
         return boxesDatabase.withTransaction {
             saveProject(projectId, selections = selections)
@@ -163,25 +164,25 @@ class BoxesRepository(
     private suspend fun saveProject(
         projectId: Long,
         boxes: List<Point>? = null,
-        selections: Map<Long, Map<Point, ColorAndShape?>?>
+        selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>
     ) {
-        val now = Instant.now().toEpochMilli()
-
-        val list = selections.flatMap { layer ->
-            layer.value?.filterKeys { boxes?.contains(it) ?: true }?.map {
-                Pixel(
-                    layer.key,
-                    it.key.x,
-                    it.key.y,
-                    it.value!!.color.toArgb(),
-                    it.value!!.shape,
-                    now
-                )
-            } ?: emptyList()
-        }
-        boxesDao.updateProjectTimestamp(projectId)
-        boxesDao.insertAllPixels(list)
-        boxesDao.deletePixelsFromProject(projectId, now)
+//        val now = Instant.now().toEpochMilli()
+//
+//        val list = selections.flatMap { layer ->
+//            layer.value?.filterKeys { boxes?.contains(it) ?: true }?.map {
+//                Pixel(
+//                    layer.key.split("_").first().toLong(),
+//                    it.key.x,
+//                    it.key.y,
+//                    it.value!!.color.toArgb(),
+//                    it.value!!.shape,
+//                    now
+//                )
+//            } ?: emptyList()
+//        }
+//        boxesDao.updateProjectTimestamp(projectId)
+//        boxesDao.insertAllPixels(list)
+//        boxesDao.deletePixelsFromProject(projectId, now)
     }
 
     companion object {

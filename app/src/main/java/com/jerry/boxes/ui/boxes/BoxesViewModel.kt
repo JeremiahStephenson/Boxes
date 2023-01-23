@@ -146,7 +146,7 @@ class BoxesViewModel(
                         .apply { this.value = it.on }
                 }
             }.also {
-                val order = it.sortedBy { it.index }.map { it.id }
+                val order = it.sortedBy { layer -> layer.index }.map { layer -> layer.id }
                 if (order != layersOrderStateList) {
                     layersOrderStateList.clear()
                     layersOrderStateList.addAll(order)
@@ -216,7 +216,7 @@ class BoxesViewModel(
     private var exportJob: Job? = null
     fun export(
         project: Project,
-        selections: Map<Long, Map<Point, ColorAndShape>>,
+        selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
         layers: Collection<LayerUi>,
         imageSize: Int,
         isExport: Boolean
@@ -248,7 +248,7 @@ class BoxesViewModel(
     fun addLayer(
         name: String,
         index: Int,
-        selections: Map<Long, Map<Point, ColorAndShape?>?>
+        selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>
     ) {
         viewModelScope.launch {
             selectLayer(boxesRepository.addLayer(projectId, name, index, selections))
@@ -281,7 +281,7 @@ class BoxesViewModel(
     fun saveProject(
         project: Project,
         boxes: List<Point>? = null,
-        selections: Map<Long, Map<Point, ColorAndShape>>,
+        selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
         layers: Collection<LayerUi>
     ) {
         boxesRepository.save(project, boxes, selections, layers)
@@ -295,35 +295,35 @@ class BoxesViewModel(
         columns: Int,
         rows: Int
     ) {
-        val fillMap = HashSet<Point>()
-        val iterator = LinkedList<Point>().apply { add(point) }
-        val newColor = color.copy(shape = shape)
-        val currentColor = pixelsFlow.value.data?.get(layerId)?.get(point)
-        if (currentColor == newColor) return
-        while (iterator.isNotEmpty()) {
-            iterator.peek()?.let { p ->
-                if (p.isNotOutside(columns, rows) &&
-                    !fillMap.contains(p) && pixelsFlow.value.data?.get(layerId)
-                        ?.get(p) == currentColor
-                ) {
-                    fillMap.add(p)
-                    iterator.add(Point(p.x - 1, p.y))
-                    iterator.add(Point(p.x + 1, p.y))
-                    iterator.add(Point(p.x, p.y - 1))
-                    iterator.add(Point(p.x, p.y + 1))
-                }
-            }
-            iterator.pop()
-        }
-        val layer = pixelsFlow.value.data?.getOrPut(layerId) { SnapshotStateMap() }
-        val currentSelection = layer?.let { l -> fillMap.associateWith { l[it] } } ?: emptyMap()
-        val history = HashMap<Point, ColorAndShape?>()
-        history.putAll(currentSelection)
-        layer?.keys?.removeAll(fillMap)
-        layer?.putAll(fillMap.map { it to newColor })
-        if (history.isNotEmpty()) {
-            addToHistory(UserHistory(layerId, history))
-        }
+//        val fillMap = HashSet<Point>()
+//        val iterator = LinkedList<Point>().apply { add(point) }
+//        val newColor = color.copy(shape = shape)
+//        val currentColor = pixelsFlow.value.data?.get(layerId.toString())?.get(point)
+//        if (currentColor == newColor) return
+//        while (iterator.isNotEmpty()) {
+//            iterator.peek()?.let { p ->
+//                if (p.isNotOutside(columns, rows) &&
+//                    !fillMap.contains(p) && pixelsFlow.value.data?.get(layerId.toString())
+//                        ?.get(p) == currentColor
+//                ) {
+//                    fillMap.add(p)
+//                    iterator.add(Point(p.x - 1, p.y))
+//                    iterator.add(Point(p.x + 1, p.y))
+//                    iterator.add(Point(p.x, p.y - 1))
+//                    iterator.add(Point(p.x, p.y + 1))
+//                }
+//            }
+//            iterator.pop()
+//        }
+//        val layer = pixelsFlow.value.data?.getOrPut(layerId.toString()) { SnapshotStateMap() }
+//        val currentSelection = layer?.let { l -> fillMap.associateWith { l[it] } } ?: emptyMap()
+//        val history = HashMap<Point, ColorAndShape?>()
+//        history.putAll(currentSelection)
+//        layer?.keys?.removeAll(fillMap)
+//        layer?.putAll(fillMap.map { it to newColor })
+//        if (history.isNotEmpty()) {
+//            addToHistory(UserHistory(layerId, history))
+//        }
     }
 
     companion object {

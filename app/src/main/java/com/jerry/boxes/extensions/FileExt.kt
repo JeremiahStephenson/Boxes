@@ -27,7 +27,7 @@ fun Context?.exportCanvas(
     columns: Int,
     imageSize: Int,
     layers: Collection<LayerUi>,
-    selections: Map<Long, Map<Point, ColorAndShape>>
+    selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>
 ): String? {
     val context = this ?: return null
     val boxSize = ceil(min(imageSize / columns.toFloat(), imageSize / rows.toFloat())).toInt()

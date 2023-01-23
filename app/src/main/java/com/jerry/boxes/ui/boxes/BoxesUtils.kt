@@ -3,6 +3,7 @@ package com.jerry.boxes.ui.boxes
 import android.graphics.Canvas
 import android.graphics.Point
 import android.graphics.RectF
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -13,17 +14,31 @@ import com.jerry.boxes.cache.data.Pixel
 import com.jerry.boxes.ui.boxes.data.ColorAndShape
 import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.shapes.*
-import com.jerry.boxes.util.ImmutableList
 import timber.log.Timber
+import kotlin.math.floor
 import kotlin.math.roundToInt
 
-fun generateSelections(pixels: List<Pixel>): SnapshotStateMap<Long, SnapshotStateMap<Point, ColorAndShape>> {
-    return SnapshotStateMap<Long, SnapshotStateMap<Point, ColorAndShape>>().apply {
+fun generateSelections(
+    pixels: List<Pixel>
+): SnapshotStateMap<Long, SnapshotStateMap<Point, SnapshotStateMap<Point, ColorAndShape>>> {
+    return SnapshotStateMap<Long, SnapshotStateMap<Point, SnapshotStateMap<Point, ColorAndShape>>>().apply {
         putAll(
-            pixels.groupBy { it.layerId }
+            pixels
+                .groupBy { it.layerId }
                 .mapValues {
-                    it.value.associateTo(SnapshotStateMap()) {
-                        Point(it.x, it.y) to it.asColorAndShape
+                    SnapshotStateMap<Point, SnapshotStateMap<Point, ColorAndShape>>().apply {
+                        putAll(
+                            it.value.groupBy {
+                                Point(
+                                    floor(it.x.toFloat() / QUADRANT_SIZE).toInt(),
+                                    floor(it.y.toFloat() / QUADRANT_SIZE).toInt()
+                                )
+                            }.mapValues {
+                                it.value.associateTo(SnapshotStateMap()) {
+                                    Point(it.x, it.y) to it.asColorAndShape
+                                }
+                            }
+                        )
                     }
                 }
         )
@@ -69,18 +84,19 @@ fun generateBoxes(
 
 fun Canvas.drawShapes(
     layers: Collection<LayerUi>,
-    selections: Map<Long, Map<Point, ColorAndShape>>,
+    selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
     boxes: Map<Point, RectF>
 ) {
     if (boxes.isEmpty()) return
     val layerIds = layers.filter { it.on }.sortedBy { it.index }.map { it.id }
     layerIds.forEach { layerId ->
-        selections[layerId]?.forEach {
-            val position = boxes[it.key]
-            position?.let { pos ->
-                drawCustomShape(pos, it.value)
-            }
-        }
+        // todo fix this
+//        selections[layerId.toString()]?.forEach {
+//            val position = boxes[it.key]
+//            position?.let { pos ->
+//                drawCustomShape(pos, it.value)
+//            }
+//        }
     }
 }
 
@@ -154,4 +170,5 @@ fun Canvas.drawCustomShape(
     (color.shape as ShapersInterface).draw(this, pos, color)
 }
 
+const val QUADRANT_SIZE = 50F
 private const val GRID_ODD_ALPHA = 0.5F
