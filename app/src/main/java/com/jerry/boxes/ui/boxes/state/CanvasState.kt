@@ -8,8 +8,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Constraints
 import com.jerry.boxes.cache.data.HistoryItem
-import com.jerry.boxes.extensions.groupByQuadrant
-import com.jerry.boxes.extensions.quadrant
+import com.jerry.boxes.extensions.*
 import com.jerry.boxes.ui.boxes.data.ColorAndShape
 import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.boxes.generateBoxes
@@ -92,16 +91,16 @@ class CanvasState(
     fun onUndo(layerId: Long?, historyItems: List<HistoryItem>) {
         if (layerId == null) return
         val layer = _selections.getOrPut(layerId) { mutableStateMapOf() }
-        historyItems.forEach { item ->
-//            layer.apply {
-//                this.remove(Point(item.x, item.y))
-//                item.color?.let {
-//                    this[Point(item.x, item.y)] = ColorAndShape(
-//                        Color(item.color),
-//                        item.shape ?: Shape.Box
-//                    )
-//                }
-//            }
+        val quads = historyItems.quadrants
+        quads.forEach {
+            val quad = layer.getOrPut(it.key) { mutableStateMapOf() }
+            val map = it.value.associate { historyItem ->
+                Point(historyItem.x, historyItem.y) to historyItem.color?.let { color ->
+                    ColorAndShape(Color(color), historyItem.shape ?: Shape.Box)
+                }
+            }
+            quad.keys.removeAll(map.keys)
+            quad.putAll(map.filterNotNullValues())
         }
     }
 
@@ -151,33 +150,29 @@ class CanvasState(
     }
 
     fun move(topLeft: Point?, bottomRight: Point?, direction: Direction): UserHistory? {
-//        if (topLeft == null || bottomRight == null) return null
-//        val points = HashSet<Point>()
-//        for (c in min(topLeft.x, bottomRight.x)..max(topLeft.x, bottomRight.x)) {
-//            for (r in min(topLeft.y, bottomRight.y)..max(topLeft.y, bottomRight.y)) {
-//                points.add(Point(c, r))
-//            }
-//        }
-//        val layer = _selections[selectedLayer.id.toString()]
-//        val aggregatedPoints = layer?.filterKeys { points.contains(it) }
-//
-//        val adjusted = aggregatedPoints?.map { entry ->
-//            entry.key.adjust(direction) to entry.value
-//        }?.toMap() ?: emptyMap()
-//        val merged = aggregatedPoints?.keys?.union(adjusted.keys)?.toSet() ?: emptySet()
-//        val history = UserHistory(
-//            selectedLayer.id,
-//            getCurrentSelections(
-//                merged,
-//                selectedLayer.id,
-//                filter = false
-//            )
-//        )
-//        adjusted.takeIf { it.isNotEmpty() }?.let {
-//            layer?.keys?.removeAll(merged)
-//            layer?.putAll(adjusted)
-//        }
-        return UserHistory(selectedLayer.id, emptyMap()) // history
+        if (topLeft == null || bottomRight == null) return null
+        val points = HashSet<Point>()
+        for (c in min(topLeft.x, bottomRight.x)..max(topLeft.x, bottomRight.x)) {
+            for (r in min(topLeft.y, bottomRight.y)..max(topLeft.y, bottomRight.y)) {
+                points.add(Point(c, r))
+            }
+        }
+        val layer = _selections[selectedLayer.id]
+        val quads = points.groupByQuadrant
+        val history = mutableMapOf<Point, ColorAndShape?>()
+        quads.forEach { (quad, pnts) ->
+            val aggregatedPoints = layer?.get(quad)?.filterKeys { pnts.contains(it) }
+            val adjusted = aggregatedPoints?.map { entry ->
+                entry.key.adjust(direction) to entry.value
+            }?.toMap() ?: emptyMap()
+            val merged = aggregatedPoints?.keys?.union(adjusted.keys)?.toSet() ?: emptySet()
+            history.putAll(getCurrentSelections(merged, selectedLayer.id, filter = false))
+            adjusted.takeIf { it.isNotEmpty() }?.let {
+                layer?.get(quad)?.keys?.removeAll(merged)
+                layer?.get(quad)?.putAll(adjusted)
+            }
+        }
+        return UserHistory(selectedLayer.id, history)
     }
 
     fun fillInBoxes(
@@ -215,7 +210,7 @@ class CanvasState(
         point: Point,
         layerId: Long
     ): ColorAndShape? {
-        return ColorAndShape(Color.Green) // _selections[layerId]?.get(point)
+        return _selections[layerId]?.get(point.quadrant)?.get(point)
     }
 
     fun getCurrentSelection(point: Point): ColorAndShape? {
@@ -230,12 +225,11 @@ class CanvasState(
         checkColor: ColorAndShape? = null,
         filter: Boolean = true
     ): Map<Point, ColorAndShape?> {
-        return emptyMap()
-//        points.associateWith { _selections[layerId]?.get(it) }.run {
-//            when (filter) {
-//                true -> filterNot { it.value == checkColor }
-//                else -> this
-//            }
-//        }
+        return points.associateWith { _selections[layerId]?.get(it.quadrant)?.get(it) }.run {
+            when (filter) {
+                true -> filterNot { it.value == checkColor }
+                else -> this
+            }
+        }
     }
 }

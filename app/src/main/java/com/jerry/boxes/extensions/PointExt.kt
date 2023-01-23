@@ -1,6 +1,7 @@
 package com.jerry.boxes.extensions
 
 import android.graphics.Point
+import com.jerry.boxes.cache.data.HistoryItem
 import com.jerry.boxes.ui.boxes.QUADRANT_SIZE
 import com.jerry.boxes.ui.boxes.state.enums.Direction
 import kotlin.math.floor
@@ -32,12 +33,21 @@ val Point.quadrant
         floor(y.toFloat() / QUADRANT_SIZE).toInt()
     )
 
+val HistoryItem.quadrant
+    get() = Point(
+        floor(x.toFloat() / QUADRANT_SIZE).toInt(),
+        floor(y.toFloat() / QUADRANT_SIZE).toInt()
+    )
+
+val List<HistoryItem>.quadrants
+    get() = groupBy { it.quadrant }
+
 fun Point.quadrantName(layerId: Long): String {
     val quadrant = quadrant
     return "${layerId}_${quadrant.x}_${quadrant.y}"
 }
 
-val HashSet<Point>.groupByQuadrant
+val Set<Point>.groupByQuadrant
     get() = groupBy {
         Point(
             floor(it.x.toFloat() / QUADRANT_SIZE).toInt(),

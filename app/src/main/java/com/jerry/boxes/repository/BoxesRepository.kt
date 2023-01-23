@@ -166,23 +166,24 @@ class BoxesRepository(
         boxes: List<Point>? = null,
         selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>
     ) {
-//        val now = Instant.now().toEpochMilli()
-//
-//        val list = selections.flatMap { layer ->
-//            layer.value?.filterKeys { boxes?.contains(it) ?: true }?.map {
-//                Pixel(
-//                    layer.key.split("_").first().toLong(),
-//                    it.key.x,
-//                    it.key.y,
-//                    it.value!!.color.toArgb(),
-//                    it.value!!.shape,
-//                    now
-//                )
-//            } ?: emptyList()
-//        }
-//        boxesDao.updateProjectTimestamp(projectId)
-//        boxesDao.insertAllPixels(list)
-//        boxesDao.deletePixelsFromProject(projectId, now)
+        val now = Instant.now().toEpochMilli()
+        val list = selections.flatMap { (layer, quad) ->
+            quad.flatMap { q ->
+                q.value.filterKeys { boxes?.contains(it) ?: true }.map {
+                    Pixel(
+                        layer,
+                        it.key.x,
+                        it.key.y,
+                        it.value.color.toArgb(),
+                        it.value.shape,
+                        now
+                    )
+                }
+            }
+        }
+        boxesDao.updateProjectTimestamp(projectId)
+        boxesDao.insertAllPixels(list)
+        boxesDao.deletePixelsFromProject(projectId, now)
     }
 
     companion object {

@@ -8,9 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jerry.boxes.cache.data.HistoryItem
 import com.jerry.boxes.cache.data.Project
-import com.jerry.boxes.extensions.addIfNotFound
-import com.jerry.boxes.extensions.isNotOutside
-import com.jerry.boxes.extensions.safeLet
+import com.jerry.boxes.extensions.*
 import com.jerry.boxes.repository.BoxesRepository
 import com.jerry.boxes.ui.boxes.data.ColorAndShape
 import com.jerry.boxes.ui.boxes.data.Export
@@ -295,35 +293,39 @@ class BoxesViewModel(
         columns: Int,
         rows: Int
     ) {
-//        val fillMap = HashSet<Point>()
-//        val iterator = LinkedList<Point>().apply { add(point) }
-//        val newColor = color.copy(shape = shape)
-//        val currentColor = pixelsFlow.value.data?.get(layerId.toString())?.get(point)
-//        if (currentColor == newColor) return
-//        while (iterator.isNotEmpty()) {
-//            iterator.peek()?.let { p ->
-//                if (p.isNotOutside(columns, rows) &&
-//                    !fillMap.contains(p) && pixelsFlow.value.data?.get(layerId.toString())
-//                        ?.get(p) == currentColor
-//                ) {
-//                    fillMap.add(p)
-//                    iterator.add(Point(p.x - 1, p.y))
-//                    iterator.add(Point(p.x + 1, p.y))
-//                    iterator.add(Point(p.x, p.y - 1))
-//                    iterator.add(Point(p.x, p.y + 1))
-//                }
-//            }
-//            iterator.pop()
-//        }
-//        val layer = pixelsFlow.value.data?.getOrPut(layerId.toString()) { SnapshotStateMap() }
-//        val currentSelection = layer?.let { l -> fillMap.associateWith { l[it] } } ?: emptyMap()
-//        val history = HashMap<Point, ColorAndShape?>()
-//        history.putAll(currentSelection)
-//        layer?.keys?.removeAll(fillMap)
-//        layer?.putAll(fillMap.map { it to newColor })
-//        if (history.isNotEmpty()) {
-//            addToHistory(UserHistory(layerId, history))
-//        }
+        val fillMap = HashSet<Point>()
+        val iterator = LinkedList<Point>().apply { add(point) }
+        val newColor = color.copy(shape = shape)
+        val currentColor = pixelsFlow.value.data?.get(layerId)?.get(point.quadrant)?.get(point)
+        if (currentColor == newColor) return
+        while (iterator.isNotEmpty()) {
+            iterator.peek()?.let { p ->
+                if (p.isNotOutside(columns, rows) &&
+                    !fillMap.contains(p) && pixelsFlow.value.data?.get(layerId)?.get(p.quadrant)
+                        ?.get(p) == currentColor
+                ) {
+                    fillMap.add(p)
+                    iterator.add(Point(p.x - 1, p.y))
+                    iterator.add(Point(p.x + 1, p.y))
+                    iterator.add(Point(p.x, p.y - 1))
+                    iterator.add(Point(p.x, p.y + 1))
+                }
+            }
+            iterator.pop()
+        }
+        val layer = pixelsFlow.value.data?.getOrPut(layerId) { SnapshotStateMap() }
+        val currentSelection =
+            layer?.let { l -> fillMap.associateWith { l[it.quadrant]?.get(it) } } ?: emptyMap()
+        val history = HashMap<Point, ColorAndShape?>()
+        history.putAll(currentSelection)
+        val quadrants = fillMap.groupByQuadrant
+        quadrants.forEach { (quad, list) ->
+            layer?.get(quad)?.keys?.removeAll(list.toSet())
+            layer?.getOrPut(quad) { mutableStateMapOf() }?.putAll(list.map { it to newColor })
+        }
+        if (history.isNotEmpty()) {
+            addToHistory(UserHistory(layerId, history))
+        }
     }
 
     companion object {

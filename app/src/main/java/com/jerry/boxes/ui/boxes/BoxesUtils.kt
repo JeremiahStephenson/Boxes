@@ -90,13 +90,14 @@ fun Canvas.drawShapes(
     if (boxes.isEmpty()) return
     val layerIds = layers.filter { it.on }.sortedBy { it.index }.map { it.id }
     layerIds.forEach { layerId ->
-        // todo fix this
-//        selections[layerId.toString()]?.forEach {
-//            val position = boxes[it.key]
-//            position?.let { pos ->
-//                drawCustomShape(pos, it.value)
-//            }
-//        }
+        selections[layerId]?.forEach { (_, list) ->
+            list.forEach { (point, color) ->
+                val position = boxes[point]
+                position?.let { pos ->
+                    drawCustomShape(pos, color)
+                }
+            }
+        }
     }
 }
 
