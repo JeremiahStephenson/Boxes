@@ -1,16 +1,21 @@
 package com.jerry.boxes.ui.layers
 
+import android.graphics.Bitmap
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.room.withTransaction
 import com.jerry.boxes.cache.BoxesDao
 import com.jerry.boxes.cache.BoxesDatabase
-import com.jerry.boxes.cache.data.Layer
 import com.jerry.boxes.extensions.safeLet
+import com.jerry.boxes.ui.boxes.generateBitmap
+import com.jerry.boxes.ui.boxes.generateSelections
 import com.jerry.boxes.ui.destinations.BoxesMainDestination
 import com.jerry.boxes.util.CoroutineContextProvider
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class LayersEditViewModel(
@@ -20,11 +25,34 @@ class LayersEditViewModel(
     private val cc: CoroutineContextProvider
 ) : ViewModel() {
 
+    private val cachedBitmaps = HashMap<Long, Bitmap>()
+
     private val projectId = BoxesMainDestination.argsFrom(handle).projectId
 
     val projectFlow = boxesDao.getFullProjectFlowById(projectId)
         .filterNotNull()
-        .map { it.copy(layers = it.layers.sortedByDescending { layer -> layer.layer.index }) }
+        .map {
+            val layers = it.layers.sortedByDescending { layer -> layer.layer.index }.map { layer ->
+                LayerEditUi(
+                    layer.layer.id,
+                    layer.layer.index,
+                    layer.layer.name,
+                    cachedBitmaps.getOrPut(
+                        layer.layer.id
+                    ) {
+                        generateBitmap(
+                            it.project.rows,
+                            it.project.columns,
+                            200,
+                            layer.layer.id,
+                            generateSelections(layer.pixels)
+                        )
+                    }
+                )
+            }
+            ProjectUi(it.project.id, it.project.name, layers)
+            // it.copy(layers = it.layers.sortedByDescending { layer -> layer.layer.index })
+        }
         .stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(),
@@ -32,7 +60,7 @@ class LayersEditViewModel(
         )
 
     fun changeLayerIndex(
-        layers: List<Layer>,
+        layers: List<LayerEditUi>,
         layerId: Long,
         index: Int
     ) {
@@ -49,7 +77,7 @@ class LayersEditViewModel(
     }
 
     fun deleteLayer(
-        layers: List<Layer>,
+        layers: List<LayerEditUi>,
         layerId: Long
     ) {
         viewModelScope.launch(cc.io) {

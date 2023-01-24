@@ -1,5 +1,6 @@
 package com.jerry.boxes.ui.boxes
 
+import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Point
 import android.graphics.RectF
@@ -8,13 +9,17 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.core.graphics.applyCanvas
 import com.jerry.boxes.cache.data.LayerAndPixel
 import com.jerry.boxes.cache.data.Pixel
+import com.jerry.boxes.extensions.asList
 import com.jerry.boxes.ui.boxes.data.ColorAndShape
 import com.jerry.boxes.ui.boxes.data.LayerUi
 import com.jerry.boxes.ui.shapes.*
 import timber.log.Timber
+import kotlin.math.ceil
 import kotlin.math.floor
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 fun generateSelections(
@@ -132,6 +137,21 @@ fun DrawScope.drawShapes(
     }
 }
 
+fun Canvas.drawShapes(
+    layerId: Long,
+    selections: Map<Point, ColorAndShape>?,
+    boxes: Map<Point, RectF>
+) {
+    if (boxes.isEmpty() || selections.isNullOrEmpty()) return
+    Timber.d("DrawTest - drawing: ${selections.size}")
+    selections.forEach {
+        val position = boxes[it.key]
+        position?.let { pos ->
+            drawCustomShape(pos, it.value)
+        }
+    }
+}
+
 fun DrawScope.pngBackground(size: Float) {
     val columns = (this.size.width / size).roundToInt()
     val rows = (this.size.height / size).roundToInt()
@@ -168,6 +188,51 @@ fun Canvas.drawCustomShape(
     color: ColorAndShape
 ) {
     (color.shape as ShapersInterface).draw(this, pos, color)
+}
+
+fun generateBitmap(
+    rows: Int,
+    columns: Int,
+    imageSize: Int,
+    layers: Collection<LayerUi>,
+    selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>
+): Bitmap {
+    val boxSize = ceil(min(imageSize / columns.toFloat(), imageSize / rows.toFloat())).toInt()
+    val newBoxes = generateBoxes(columns, rows, boxSize.toFloat(), 0F, 0F)
+    val bitmap = Bitmap.createBitmap(
+        columns * boxSize,
+        rows * boxSize,
+        Bitmap.Config.ARGB_8888
+    )
+
+    return bitmap.applyCanvas {
+        drawShapes(layers, selections, newBoxes)
+    }
+}
+
+fun generateBitmap(
+    rows: Int,
+    columns: Int,
+    imageSize: Int,
+    layerId: Long,
+    selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>
+): Bitmap {
+    return generateBitmap(
+        rows,
+        columns,
+        imageSize,
+        LayerUi(
+            layerId,
+            0L,
+            1,
+            "",
+            on = true,
+            selected = true,
+            visibilityEnabled = true,
+            showControls = true
+        ).asList,
+        selections
+    )
 }
 
 const val QUADRANT_SIZE = 50F

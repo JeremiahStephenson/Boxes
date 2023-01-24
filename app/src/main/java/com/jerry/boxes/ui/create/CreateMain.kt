@@ -96,6 +96,8 @@ private fun CreateForm(
         var columnValue by remember(project) { mutableStateOf(project?.columns ?: 16) }
         var rowValue by remember(project) { mutableStateOf(project?.rows ?: 16) }
         var nameError by remember { mutableStateOf(false) }
+        var columnError by remember { mutableStateOf(false) }
+        var rowError by remember { mutableStateOf(false) }
 
         val sizes = remember {
             listOf(16 to 16, 10 to 10, 25 to 25, 32 to 32, 64 to 64, 10 to 20, 20 to 10)
@@ -162,12 +164,16 @@ private fun CreateForm(
                         modifier = Modifier.padding(end = 8.dp),
                         title = stringResource(R.string.columns),
                         value = columnValue,
+                        error = columnError,
+                        onError = { columnError = it },
                         onValueChange = { columnValue = it }
                     )
                     ProjectNumberPicker(
                         modifier = Modifier.padding(start = 8.dp),
                         title = stringResource(R.string.rows),
                         value = rowValue,
+                        error = rowError,
+                        onError = { rowError = it },
                         onValueChange = { rowValue = it }
                     )
                 }
@@ -256,6 +262,8 @@ private fun RowScope.ProjectNumberPicker(
     modifier: Modifier = Modifier,
     title: String,
     value: Int,
+    error: Boolean,
+    onError: (Boolean) -> Unit,
     onValueChange: (Int) -> Unit
 ) {
     Column(modifier = modifier.weight(1F)) {
@@ -267,21 +275,20 @@ private fun RowScope.ProjectNumberPicker(
             },
             style = MaterialTheme.typography.titleLarge
         )
-        var valueError by remember { mutableStateOf(false) }
         OutlinedTextField(
             modifier = Modifier
                 .padding(top = 16.dp)
                 .fillMaxWidth(),
             value = value.toString(),
-            isError = valueError,
+            isError = error,
             onValueChange = {
                 val num = it.toIntOrNull() ?: 0
-                valueError = num < 1 || num > BoxesRepository.MAX_SIDE_SIZE
+                onError(num < 1 || num > BoxesRepository.MAX_SIDE_SIZE)
                 onValueChange(num)
             },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
         )
-        FadeAnimatedVisibility(visible = valueError) {
+        FadeAnimatedVisibility(visible = error) {
             Text(
                 text = stringResource(
                     when (value > 200) {

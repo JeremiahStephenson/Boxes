@@ -16,10 +16,8 @@ import com.jerry.boxes.ui.boxes.history.UserHistory
 import com.jerry.boxes.ui.boxes.state.enums.Direction
 import com.jerry.boxes.ui.shapes.Shape
 import com.jerry.boxes.util.DataResource
-import timber.log.Timber
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.roundToInt
 
 @Stable
 class CanvasState(
@@ -163,7 +161,7 @@ class CanvasState(
 
         val list = layer?.flatMap { it.value.keys }?.filter { points.contains(it) }
         val adjusted = list?.map { entry ->
-            entry.adjust(direction) to layer[entry.quadrant]!![entry]!!
+            entry.adjust(direction) to layer[entry.quadrant]?.get(entry)
         }?.toMap() ?: emptyMap()
         val merged = list?.union(adjusted.keys)?.toSet() ?: emptySet()
         history.putAll(getCurrentSelections(merged, selectedLayer.id, filter = false))
@@ -199,9 +197,9 @@ class CanvasState(
             generateBoxes(
                 columns,
                 rows,
-                min.roundToInt().toFloat(),
-                xOffSet.roundToInt().toFloat(),
-                (offset + yOffSet).roundToInt().toFloat()
+                min,
+                xOffSet,
+                (offset + yOffSet)
             )
         )
     }

@@ -19,14 +19,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import coil.annotation.ExperimentalCoilApi
 import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
 import coil.request.ImageRequest
 import com.jerry.boxes.R
 
-@OptIn(ExperimentalCoilApi::class)
 @Composable
 fun ProjectImage(
     imageRequest: ImageRequest,
@@ -120,7 +118,6 @@ private fun NonLoadedContainer(
     )
 }
 
-@OptIn(ExperimentalCoilApi::class)
 @Composable
 fun ProjectImage(
     imagePath: String?,

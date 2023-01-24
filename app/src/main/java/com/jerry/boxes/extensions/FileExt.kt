@@ -6,18 +6,14 @@ import android.graphics.Bitmap
 import android.graphics.Point
 import android.os.Environment
 import androidx.core.content.FileProvider
-import androidx.core.graphics.applyCanvas
 import com.jerry.boxes.R
 import com.jerry.boxes.ui.boxes.data.ColorAndShape
 import com.jerry.boxes.ui.boxes.data.LayerUi
-import com.jerry.boxes.ui.boxes.drawShapes
-import com.jerry.boxes.ui.boxes.generateBoxes
+import com.jerry.boxes.ui.boxes.generateBitmap
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.math.ceil
-import kotlin.math.min
 
 fun Context?.exportCanvas(
     name: String,
@@ -29,18 +25,7 @@ fun Context?.exportCanvas(
     selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>
 ): String? {
     val context = this ?: return null
-    val boxSize = ceil(min(imageSize / columns.toFloat(), imageSize / rows.toFloat())).toInt()
-    val newBoxes = generateBoxes(columns, rows, boxSize.toFloat(), 0F, 0F)
-    val bitmap = Bitmap.createBitmap(
-        columns * boxSize,
-        rows * boxSize,
-        Bitmap.Config.ARGB_8888
-    )
-
-    bitmap.applyCanvas {
-        drawShapes(layers, selections, newBoxes)
-    }
-
+    val bitmap = generateBitmap(rows, columns, imageSize, layers, selections)
     return bitmap.storeImage(context, exportType, name)
 }
 

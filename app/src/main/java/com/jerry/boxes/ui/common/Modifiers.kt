@@ -1,7 +1,6 @@
 package com.jerry.boxes.ui.common
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material.ripple.rememberRipple
@@ -10,11 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
 import com.jerry.boxes.ui.boxes.pngBackground
-import kotlin.math.roundToInt
 
 @OptIn(ExperimentalFoundationApi::class)
 fun Modifier.unboundClickable(
