@@ -22,7 +22,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.compose.AsyncImage
 import com.jerry.boxes.R
 import com.jerry.boxes.cache.data.Project
 import com.jerry.boxes.ui.common.AreYouSureDialog

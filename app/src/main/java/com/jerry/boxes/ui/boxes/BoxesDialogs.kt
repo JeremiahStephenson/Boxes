@@ -295,8 +295,12 @@ fun ExportDialog(
                     value = quality.toString(),
                     onValueChange = {
                         val value = it.toIntOrNull() ?: 0
-                        qualityError = value < LOWEST_QUALITY || value > HIGHEST_QUALITY
-                        quality = value
+                        val newValue = when (quality == 0 && value > 0) {
+                            true -> it.trimEnd('0').toIntOrNull() ?: 0
+                            else -> value
+                        }
+                        qualityError = newValue < LOWEST_QUALITY || newValue > HIGHEST_QUALITY
+                        quality = newValue
                     },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )

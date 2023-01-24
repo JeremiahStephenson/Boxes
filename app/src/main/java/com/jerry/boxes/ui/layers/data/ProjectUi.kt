@@ -1,4 +1,4 @@
-package com.jerry.boxes.ui.layers
+package com.jerry.boxes.ui.layers.data
 
 data class ProjectUi(
     val id: Long,

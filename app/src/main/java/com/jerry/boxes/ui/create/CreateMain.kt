@@ -5,7 +5,10 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.*
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -32,6 +35,7 @@ import com.jerry.boxes.ui.common.DefaultContainer
 import com.jerry.boxes.ui.common.FadeAnimatedVisibility
 import com.jerry.boxes.ui.destinations.BoxesMainDestination
 import com.jerry.boxes.ui.destinations.CreateMainDestination
+import com.jerry.boxes.util.ImmutableList
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.flow.collectLatest
@@ -100,63 +104,40 @@ private fun CreateForm(
         var rowError by remember { mutableStateOf(false) }
 
         val sizes = remember {
-            listOf(16 to 16, 10 to 10, 25 to 25, 32 to 32, 64 to 64, 10 to 20, 20 to 10)
+            ImmutableList(
+                listOf(
+                    16 to 16,
+                    10 to 10,
+                    25 to 25,
+                    32 to 32,
+                    64 to 64,
+                    10 to 20,
+                    20 to 10
+                )
+            )
         }
 
         val scope = rememberCoroutineScope()
-        val scrollState = rememberLazyGridState()
-        LazyVerticalGrid(
+        val scrollState = rememberLazyListState()
+        LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            columns = GridCells.Adaptive(150.dp),
             contentPadding = PaddingValues(bottom = 86.dp),
             state = scrollState
         ) {
-            item(
-                span = {
-                    GridItemSpan(this.maxLineSpan)
-                }
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 16.dp)
-                ) {
-                    Text(
-                        modifier = Modifier.padding(bottom = 16.dp),
-                        text = buildAnnotatedString {
-                            append(stringResource(R.string.name))
-                            append(":")
-                        },
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                    OutlinedTextField(
-                        modifier = Modifier.fillMaxWidth(),
-                        value = text,
-                        isError = nameError,
-                        onValueChange = {
-                            if (it.isNotEmpty()) {
-                                nameError = false
-                            }
-                            if (it.length <= 50) {
-                                text = it
-                            }
-                        }
-                    )
-                    FadeAnimatedVisibility(visible = nameError) {
-                        Text(
-                            text = stringResource(R.string.name_required),
-                            color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.titleSmall
-                        )
+            item {
+                NameItem(
+                    text = text,
+                    nameError = nameError,
+                    onTextChange = {
+                        text = it
+                    },
+                    onNameError = {
+                        nameError = true
                     }
-                }
+                )
             }
 
-            item(
-                span = {
-                    GridItemSpan(this.maxLineSpan)
-                }
-            ) {
+            item {
                 Row(
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -179,58 +160,16 @@ private fun CreateForm(
                 }
             }
 
-            items(sizes) { value ->
-                val color = MaterialTheme.colorScheme.onSurface
-                val density = LocalDensity.current
-                val strokeWidth = with(density) { 0.5.dp.toPx() }
-                val (columns, rows) = value
-                val matchesState by remember(columnValue, rowValue) { derivedStateOf { columnValue == columns && rowValue == rows } }
-                Column(
-                    modifier = Modifier
-                        .padding(top = 32.dp)
-                        .fillMaxWidth()
-                        .clip(MaterialTheme.shapes.large)
-                        .background(
-                            when (matchesState) {
-                                true -> MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.4F)
-                                else -> Color.Transparent
-                            }
-                        )
-                        .clickable {
-                            rowValue = rows
-                            columnValue = columns
-                        }
-                        .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Canvas(
-                        modifier = Modifier.size(200.dp)
-                    ) {
-                        val boxSize = min(size.width / columns, size.height / rows)
-                        val offsetY = (size.height - (boxSize * rows)) / 2
-                        val offsetX = (size.width - (boxSize * columns)) / 2
-                        for (i in 0..rows) {
-                            drawLine(
-                                strokeWidth = strokeWidth,
-                                color = color,
-                                start = Offset(offsetX, offsetY + (i * boxSize)),
-                                end = Offset(size.width - offsetX, offsetY + (i * boxSize))
-                            )
-                        }
-                        for (i in 0..columns) {
-                            drawLine(
-                                strokeWidth = strokeWidth,
-                                color = color,
-                                start = Offset(offsetX + (i * boxSize), offsetY),
-                                end = Offset(offsetX + (i * boxSize), size.height - offsetY)
-                            )
-                        }
+            items(sizes.items) { value ->
+                LayerItem(
+                    value = value,
+                    columnValue = columnValue,
+                    rowValue = rowValue,
+                    onSizeChange = { columns, rows ->
+                        columnValue = columns
+                        rowValue = rows
                     }
-                    Text(
-                        modifier = Modifier.padding(top = 8.dp),
-                        text = "$columns x $rows"
-                    )
-                }
+                )
             }
         }
 
@@ -258,6 +197,111 @@ private fun CreateForm(
 }
 
 @Composable
+private fun LayerItem(
+    value: Pair<Int, Int>,
+    columnValue: Int,
+    rowValue: Int,
+    onSizeChange: (Int, Int) -> Unit
+) {
+    val color = MaterialTheme.colorScheme.onSurface
+    val density = LocalDensity.current
+    val strokeWidth = with(density) { 0.5.dp.toPx() }
+    val (columns, rows) = value
+    val matchesState by remember(
+        columnValue,
+        rowValue
+    ) { derivedStateOf { columnValue == columns && rowValue == rows } }
+    Column(
+        modifier = Modifier
+            .padding(top = 32.dp)
+            .fillMaxWidth()
+            .clip(MaterialTheme.shapes.large)
+            .background(
+                when (matchesState) {
+                    true -> MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.4F)
+                    else -> Color.Transparent
+                }
+            )
+            .clickable {
+                onSizeChange(columns, rows)
+            }
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Canvas(
+            modifier = Modifier.size(200.dp)
+        ) {
+            val boxSize = min(size.width / columns, size.height / rows)
+            val offsetY = (size.height - (boxSize * rows)) / 2
+            val offsetX = (size.width - (boxSize * columns)) / 2
+            for (i in 0..rows) {
+                drawLine(
+                    strokeWidth = strokeWidth,
+                    color = color,
+                    start = Offset(offsetX, offsetY + (i * boxSize)),
+                    end = Offset(size.width - offsetX, offsetY + (i * boxSize))
+                )
+            }
+            for (i in 0..columns) {
+                drawLine(
+                    strokeWidth = strokeWidth,
+                    color = color,
+                    start = Offset(offsetX + (i * boxSize), offsetY),
+                    end = Offset(offsetX + (i * boxSize), size.height - offsetY)
+                )
+            }
+        }
+        Text(
+            modifier = Modifier.padding(top = 8.dp),
+            text = "$columns x $rows"
+        )
+    }
+}
+
+@Composable
+private fun NameItem(
+    text: String,
+    nameError: Boolean,
+    onTextChange: (String) -> Unit,
+    onNameError: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 16.dp)
+    ) {
+        Text(
+            modifier = Modifier.padding(bottom = 16.dp),
+            text = buildAnnotatedString {
+                append(stringResource(R.string.name))
+                append(":")
+            },
+            style = MaterialTheme.typography.titleLarge
+        )
+        OutlinedTextField(
+            modifier = Modifier.fillMaxWidth(),
+            value = text,
+            isError = nameError,
+            onValueChange = {
+                if (it.isNotEmpty()) {
+                    onNameError()
+                }
+                if (it.length <= 50) {
+                    onTextChange(it)
+                }
+            }
+        )
+        FadeAnimatedVisibility(visible = nameError) {
+            Text(
+                text = stringResource(R.string.name_required),
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.titleSmall
+            )
+        }
+    }
+}
+
+@Composable
 private fun RowScope.ProjectNumberPicker(
     modifier: Modifier = Modifier,
     title: String,
@@ -275,6 +319,10 @@ private fun RowScope.ProjectNumberPicker(
             },
             style = MaterialTheme.typography.titleLarge
         )
+        Text(
+            text = stringResource(R.string.project_range, 1, BoxesRepository.MAX_SIDE_SIZE),
+            style = MaterialTheme.typography.bodySmall
+        )
         OutlinedTextField(
             modifier = Modifier
                 .padding(top = 16.dp)
@@ -283,8 +331,12 @@ private fun RowScope.ProjectNumberPicker(
             isError = error,
             onValueChange = {
                 val num = it.toIntOrNull() ?: 0
-                onError(num < 1 || num > BoxesRepository.MAX_SIDE_SIZE)
-                onValueChange(num)
+                val newValue = when (value == 0 && num > 0) {
+                    true -> it.trimEnd('0').toIntOrNull() ?: 0
+                    else -> num
+                }
+                onError(newValue < 1 || newValue > BoxesRepository.MAX_SIDE_SIZE)
+                onValueChange(newValue)
             },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
         )

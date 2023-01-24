@@ -21,6 +21,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.jerry.boxes.R
 import com.jerry.boxes.ui.common.*
+import com.jerry.boxes.ui.layers.data.LayerEditUi
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import org.burnoutcrew.reorderable.*

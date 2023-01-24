@@ -7,10 +7,11 @@ import androidx.lifecycle.viewModelScope
 import androidx.room.withTransaction
 import com.jerry.boxes.cache.BoxesDao
 import com.jerry.boxes.cache.BoxesDatabase
-import com.jerry.boxes.extensions.safeLet
 import com.jerry.boxes.ui.boxes.generateBitmap
 import com.jerry.boxes.ui.boxes.generateSelections
 import com.jerry.boxes.ui.destinations.BoxesMainDestination
+import com.jerry.boxes.ui.layers.data.LayerEditUi
+import com.jerry.boxes.ui.layers.data.ProjectUi
 import com.jerry.boxes.util.CoroutineContextProvider
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.filterNotNull
