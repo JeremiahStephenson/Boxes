@@ -59,19 +59,14 @@ class LayersEditViewModel(
             null
         )
 
-    fun changeLayerIndex(
-        layers: List<LayerEditUi>,
-        layerId: Long,
-        index: Int
+    fun setLayerIndicies(
+        indicies: List<Pair<Long, Int>>
     ) {
         viewModelScope.launch(cc.io) {
             boxesDatabase.withTransaction {
-                val movedLayer = layers.firstOrNull { it.id == layerId }
-                val neighborLayer = layers.firstOrNull { it.index == index }
-                safeLet(movedLayer, neighborLayer) { moved, neighbor ->
-                    boxesDao.setLayerIndex(neighbor.id, moved.index)
+                indicies.forEach {
+                    boxesDao.setLayerIndex(it.first, it.second)
                 }
-                boxesDao.setLayerIndex(layerId, index)
             }
         }
     }

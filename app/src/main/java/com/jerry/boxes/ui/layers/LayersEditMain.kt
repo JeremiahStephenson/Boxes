@@ -14,7 +14,6 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -24,6 +23,7 @@ import com.jerry.boxes.R
 import com.jerry.boxes.ui.common.*
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import org.burnoutcrew.reorderable.*
 import org.koin.androidx.compose.koinViewModel
 
 @Destination
@@ -33,47 +33,74 @@ fun LayersEditMain(
     navController: DestinationsNavigator,
     viewModel: LayersEditViewModel = koinViewModel()
 ) {
-    DefaultContainer(title = stringResource(R.string.edit)) {
+    var showOpacity by rememberSaveable { mutableStateOf(false) }
+    DefaultContainer(
+        title = stringResource(R.string.edit),
+        appBarActions = {
+            IconSelectableMenuButton(
+                onClick = { showOpacity = !showOpacity },
+                isSelected = { showOpacity },
+                contentDescription = stringResource(R.string.toggle_opacity_bg),
+                drawableResOn = R.drawable.ic_opacity_off_24,
+                drawableResOff = R.drawable.ic_opacity_on_24,
+                tint = LocalContentColor.current
+            )
+        }
+    ) {
         val projectState by viewModel.projectFlow.collectAsStateWithLifecycle()
+        val list by rememberUpdatedState(
+            remember(projectState) {
+                mutableStateListOf(
+                    *((projectState?.layers ?: emptyList()).toTypedArray())
+                )
+            }
+        )
+        val state = rememberReorderableLazyListState(
+            onMove = { from, to ->
+                val item = list[from.index]
+                list.remove(item)
+                list.add(to.index, item)
+            },
+            onDragEnd = { _, _ ->
+                viewModel.setLayerIndicies(list.map { it.id to ((list.size - 1) - list.indexOf(it)) })
+            }
+        )
         LazyColumn(
-            modifier = Modifier.fillMaxSize()
+            state = state.listState,
+            modifier = Modifier
+                .reorderable(state)
+                .detectReorderAfterLongPress(state)
+                .fillMaxSize()
         ) {
             itemsIndexed(
-                items = projectState?.layers ?: emptyList(),
+                items = list,
                 key = { _, layer -> layer.id }
             ) { index, layer ->
-                LayerItem(
-                    layer = layer,
-                    showDownArrow = {
-                        layer.index > 0
-                    },
-                    showUpArrow = {
-                        val max = projectState?.layers?.maxBy { it.index }?.index ?: 0
-                        layer.index < max
-                    },
-                    showDivider = {
-                        index > 0
-                    },
-                    onMoveItem = { lyr, position ->
-                        viewModel.changeLayerIndex(
-                            projectState!!.layers,
-                            lyr,
-                            position
-                        )
-                    },
-                    onDeleteItem = {
-                        viewModel.deleteLayer(
-                            projectState!!.layers,
-                            layer.id
-                        )
-                    },
-                    showDeleteBtn = {
-                        projectState!!.layers.size > 1
-                    },
-                    onLayerName = {
-                        viewModel.setLayerName(layer.id, it)
-                    }
-                )
+                ReorderableItem(state, key = layer.id) { isDragging ->
+                    LayerItem(
+                        state = state,
+                        layer = layer,
+                        showOpacity = { showOpacity },
+                        showDivider = {
+                            index > 0
+                        },
+                        onDeleteItem = {
+                            viewModel.deleteLayer(
+                                projectState!!.layers,
+                                layer.id
+                            )
+                        },
+                        showDeleteBtn = {
+                            projectState!!.layers.size > 1
+                        },
+                        onLayerName = {
+                            viewModel.setLayerName(layer.id, it)
+                        },
+                        showReorderBtn = {
+                            list.size > 1
+                        }
+                    )
+                }
             }
         }
         val projectNotNull by remember { derivedStateOf { projectState != null } }
@@ -92,13 +119,13 @@ fun LayersEditMain(
 @Composable
 private fun LazyItemScope.LayerItem(
     layer: LayerEditUi,
-    showUpArrow: () -> Boolean,
-    showDownArrow: () -> Boolean,
+    state: ReorderableLazyListState,
+    showOpacity: () -> Boolean,
+    showReorderBtn: () -> Boolean,
     showDivider: () -> Boolean,
     showDeleteBtn: () -> Boolean,
     onDeleteItem: () -> Unit,
-    onLayerName: (String) -> Unit,
-    onMoveItem: (Long, Int) -> Unit
+    onLayerName: (String) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -108,14 +135,28 @@ private fun LazyItemScope.LayerItem(
         if (showDivider()) {
             Divider()
         }
-        Text(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            text = layer.name,
-            style = MaterialTheme.typography.titleLarge,
-            color = LocalContentColor.current
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                modifier = Modifier
+                    .weight(1F)
+                    .padding(16.dp),
+                text = layer.name,
+                style = MaterialTheme.typography.titleLarge,
+                color = LocalContentColor.current
+            )
+            if (showReorderBtn()) {
+                IconMenuButton(
+                    modifier = Modifier
+                        .detectReorder(state),
+                    onClick = { /* no op */ },
+                    contentDescription = stringResource(R.string.drag_layer),
+                    drawableRes = R.drawable.ic_drag_indicator_24
+                )
+            }
+        }
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -126,7 +167,7 @@ private fun LazyItemScope.LayerItem(
                     .padding(horizontal = 16.dp)
                     .size(CANVAS_SIZE)
                     .pngBackground(
-                        visible = true,
+                        visible = showOpacity(),
                         size = with(LocalDensity.current) { 10.dp.toPx() }
                     ),
                 model = layer.image,
@@ -153,23 +194,6 @@ private fun LazyItemScope.LayerItem(
                     existingName = layer.name,
                     dismiss = { showNameDialog = false },
                     onName = onLayerName
-                )
-            }
-            Column(
-                modifier = Modifier.height(CANVAS_SIZE)
-            ) {
-                IconMenuButton(
-                    modifier = Modifier.alpha(if (showUpArrow()) 1F else 0F),
-                    onClick = { onMoveItem(layer.id, layer.index + 1) },
-                    drawableRes = R.drawable.ic_arrow_upward_24,
-                    contentDescription = stringResource(R.string.move_layer_up)
-                )
-                Spacer(modifier = Modifier.weight(1F))
-                IconMenuButton(
-                    modifier = Modifier.alpha(if (showDownArrow()) 1F else 0F),
-                    onClick = { onMoveItem(layer.id, layer.index - 1) },
-                    drawableRes = R.drawable.ic_arrow_downward_24,
-                    contentDescription = stringResource(R.string.move_layer_down)
                 )
             }
         }
