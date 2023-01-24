@@ -15,7 +15,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
-import com.jerry.shapes.R
 import com.jerry.shapes.ui.NavGraphs
 import com.jerry.shapes.ui.appCurrentDestinationAsState
 import com.jerry.shapes.ui.common.*

@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "10234457574",
+    "project_id": "shape-up-28e8a",
+    "storage_bucket": "shape-up-28e8a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:10234457574:android:a17457b541a7a4a38efa27",
+        "android_client_info": {
+          "package_name": "com.jerry.shapes"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "10234457574-tsrj40k894tlus4mcd3qbq0pu84p0qua.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBxmOtdKpWgunLPMwNT9Kr8QJRZfCgaxqY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "10234457574-tsrj40k894tlus4mcd3qbq0pu84p0qua.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
