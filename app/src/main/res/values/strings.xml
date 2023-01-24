@@ -52,6 +52,8 @@
     <string name="value_too_high">The value is too large</string>
     <string name="value_too_low">The value is too small</string>
 
+    <string name="empty_list_title">You don\'t have any projects yet.\nClick on the plus button below to start your first project!</string>
+
     <string name="edit_layer_options">Edit Layer Options</string>
     <string name="save_project">Save Project</string>
     <string name="edit_project">Edit Project Details</string>

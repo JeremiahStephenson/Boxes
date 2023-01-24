@@ -1,6 +1,7 @@
 package com.jerry.boxes.ui.home
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
@@ -18,8 +19,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
 import com.jerry.boxes.R
 import com.jerry.boxes.cache.data.Project
 import com.jerry.boxes.ui.common.AreYouSureDialog
@@ -32,6 +35,7 @@ import com.jerry.boxes.util.thumbnailLocation
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootNavGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import kotlinx.coroutines.flow.collectLatest
 import org.koin.androidx.compose.koinViewModel
 import java.io.File
 
@@ -43,7 +47,7 @@ fun HomeMain(
     navController: DestinationsNavigator,
     viewModel: HomeViewModel = koinViewModel()
 ) {
-    val items by viewModel.projectsFlow.collectAsStateWithLifecycle(emptyList())
+    val items by viewModel.projectsFlow.collectAsStateWithLifecycle(null)
     var editMode by rememberSaveable { mutableStateOf(false) }
     DefaultContainer(
         title = stringResource(R.string.app_name),
@@ -51,7 +55,7 @@ fun HomeMain(
             navController.navigate(CreateMainDestination())
         },
         appBarActions = {
-            val emptyList by remember { derivedStateOf { items.isEmpty() } }
+            val emptyList by remember { derivedStateOf { items?.isEmpty() ?: true } }
             if (!emptyList) {
                 EditMenu(editMode) {
                     editMode = !editMode
@@ -59,6 +63,17 @@ fun HomeMain(
             }
         }
     ) {
+        // If the user is launching for the first time then go
+        // ahead and send to the create project screen
+        LaunchedEffect(Unit) {
+            viewModel.hasLaunchedBefore.collectLatest {
+                if (it == null || it == false) {
+                    navController.navigate(CreateMainDestination())
+                    viewModel.setHasLaunched()
+                }
+            }
+        }
+
         LazyVerticalStaggeredGrid(
             modifier = Modifier.fillMaxSize(),
             columns = StaggeredGridCells.Adaptive(125.dp),
@@ -71,7 +86,7 @@ fun HomeMain(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            itemsIndexed(items) { _, item ->
+            itemsIndexed(items ?: emptyList()) { _, item ->
                 ProjectItem(
                     item = item,
                     editMode = editMode,
@@ -84,6 +99,28 @@ fun HomeMain(
                     onDeleteProject = {
                         viewModel.deleteProject(it)
                     }
+                )
+            }
+        }
+
+        val areItemsEmpty by remember { derivedStateOf { items != null && items!!.isEmpty() } }
+        if (areItemsEmpty) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    modifier = Modifier
+                        .padding(32.dp),
+                    text = stringResource(R.string.empty_list_title),
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.titleLarge
+                )
+                Image(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    painter = painterResource(R.drawable.puppy),
+                    contentDescription = null
                 )
             }
         }

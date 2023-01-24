@@ -1,5 +1,7 @@
 package com.jerry.boxes.inject
 
+import androidx.datastore.preferences.preferencesDataStore
+import com.jerry.boxes.datastore.AppDataStore
 import com.jerry.boxes.repository.BoxesRepository
 import com.jerry.boxes.ui.boxes.BoxesViewModel
 import com.jerry.boxes.ui.create.CreateViewModel
@@ -13,7 +15,7 @@ import org.koin.dsl.module
 
 val appModule = module {
     viewModel { BoxesViewModel(get(), get(), get()) }
-    viewModel { HomeViewModel(get()) }
+    viewModel { HomeViewModel(get(), get()) }
     viewModel { CreateViewModel(get(), get()) }
     viewModel { LayersEditViewModel(get(), get(), get(), get()) }
 
@@ -22,4 +24,6 @@ val appModule = module {
     single { CoroutineScope(SupervisorJob() + get<CoroutineContextProvider>().commonPool) }
 
     single<CoroutineContextProvider> { CoroutineContextProvider.MainCoroutineContext }
+
+    single { AppDataStore(get(), preferencesDataStore(name = "settings")) }
 }
