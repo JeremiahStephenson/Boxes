@@ -54,3 +54,11 @@ val Set<Point>.groupByQuadrant
             floor(it.y.toFloat() / QUADRANT_SIZE).toInt()
         )
     }
+
+val Set<Point>.quadrants
+    get() = map {
+        Point(
+            floor(it.x.toFloat() / QUADRANT_SIZE).toInt(),
+            floor(it.y.toFloat() / QUADRANT_SIZE).toInt()
+        )
+    }.distinct()

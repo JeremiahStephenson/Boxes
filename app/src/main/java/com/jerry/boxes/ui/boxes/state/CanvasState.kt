@@ -158,18 +158,21 @@ class CanvasState(
             }
         }
         val layer = _selections[selectedLayer.id]
-        val quads = points.groupByQuadrant
+        val quads = points.quadrants
         val history = mutableMapOf<Point, ColorAndShape?>()
-        quads.forEach { (quad, pnts) ->
-            val aggregatedPoints = layer?.get(quad)?.filterKeys { pnts.contains(it) }
-            val adjusted = aggregatedPoints?.map { entry ->
-                entry.key.adjust(direction) to entry.value
-            }?.toMap() ?: emptyMap()
-            val merged = aggregatedPoints?.keys?.union(adjusted.keys)?.toSet() ?: emptySet()
-            history.putAll(getCurrentSelections(merged, selectedLayer.id, filter = false))
-            adjusted.takeIf { it.isNotEmpty() }?.let {
-                layer?.get(quad)?.keys?.removeAll(merged)
-                layer?.get(quad)?.putAll(adjusted)
+
+        val list = layer?.flatMap { it.value.keys }?.filter { points.contains(it) }
+        val adjusted = list?.map { entry ->
+            entry.adjust(direction) to layer[entry.quadrant]!![entry]!!
+        }?.toMap() ?: emptyMap()
+        val merged = list?.union(adjusted.keys)?.toSet() ?: emptySet()
+        history.putAll(getCurrentSelections(merged, selectedLayer.id, filter = false))
+        quads.forEach { quad ->
+            layer?.get(quad)?.keys?.removeAll(merged)
+        }
+        adjusted.takeIf { it.isNotEmpty() }?.let {
+            it.forEach { (point, color) ->
+                layer?.get(point.quadrant)?.put(point, color)
             }
         }
         return UserHistory(selectedLayer.id, history)
@@ -215,7 +218,9 @@ class CanvasState(
 
     fun getCurrentSelection(point: Point): ColorAndShape? {
         val turnedOnLayers = layers.filter { it.on }.sortedBy { it.index }.reversed()
-        return turnedOnLayers.firstOrNull { _selections[it.id]?.get(point.quadrant)?.get(point) != null }
+        return turnedOnLayers.firstOrNull {
+            _selections[it.id]?.get(point.quadrant)?.get(point) != null
+        }
             ?.let { getCurrentSelection(point, it.id) }
     }
 
