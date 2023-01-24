@@ -19,11 +19,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jerry.shapes.R
 import com.jerry.shapes.cache.data.Project
+import com.jerry.shapes.extensions.readableDateAndTime
 import com.jerry.shapes.ui.common.AreYouSureDialog
 import com.jerry.shapes.ui.common.DefaultContainer
 import com.jerry.shapes.ui.common.ProjectImage
@@ -37,6 +39,7 @@ import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.flow.collectLatest
 import org.koin.androidx.compose.koinViewModel
 import java.io.File
+import java.time.Instant
 
 @OptIn(ExperimentalFoundationApi::class)
 @RootNavGraph(start = true)
@@ -165,9 +168,19 @@ private fun ProjectItem(
             Text(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 24.dp),
+                    .padding(horizontal = 16.dp).padding(top = 24.dp),
                 style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
                 text = item.name
+            )
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 16.dp),
+                text = stringResource(R.string.last_edited, Instant.ofEpochMilli(item.timestamp).readableDateAndTime),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             if (showConfirmationDialog) {
                 AreYouSureDialog(
