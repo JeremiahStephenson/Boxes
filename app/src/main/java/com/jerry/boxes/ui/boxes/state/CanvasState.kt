@@ -16,6 +16,7 @@ import com.jerry.boxes.ui.boxes.history.UserHistory
 import com.jerry.boxes.ui.boxes.state.enums.Direction
 import com.jerry.boxes.ui.shapes.Shape
 import com.jerry.boxes.util.DataResource
+import timber.log.Timber
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -158,7 +159,6 @@ class CanvasState(
             }
         }
         val layer = _selections[selectedLayer.id]
-        val quads = points.quadrants
         val history = mutableMapOf<Point, ColorAndShape?>()
 
         val list = layer?.flatMap { it.value.keys }?.filter { points.contains(it) }
@@ -167,13 +167,10 @@ class CanvasState(
         }?.toMap() ?: emptyMap()
         val merged = list?.union(adjusted.keys)?.toSet() ?: emptySet()
         history.putAll(getCurrentSelections(merged, selectedLayer.id, filter = false))
-        quads.forEach { quad ->
-            layer?.get(quad)?.keys?.removeAll(merged)
-        }
-        adjusted.takeIf { it.isNotEmpty() }?.let {
-            it.forEach { (point, color) ->
-                layer?.get(point.quadrant)?.put(point, color)
-            }
+
+        adjusted.keys.groupByQuadrant.forEach { (t, u) ->
+            layer?.get(t)?.keys?.removeAll(merged)
+            u.associateWith { adjusted[it] }.filterNotNullValues().let { layer?.get(t)?.putAll(it) }
         }
         return UserHistory(selectedLayer.id, history)
     }
