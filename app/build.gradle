@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace 'com.jerry.boxes'
+    namespace 'com.jerry.shapes'
     compileSdk 33
 
     defaultConfig {
-        applicationId "com.jerry.boxes"
+        applicationId "com.jerry.shapes"
         minSdk 23
         targetSdk 33
         versionCode 1
