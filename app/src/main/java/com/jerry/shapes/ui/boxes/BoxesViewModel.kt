@@ -10,11 +10,11 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.analytics.FirebaseAnalytics
+import com.jerry.shapes.cache.data.ColorAndShape
 import com.jerry.shapes.cache.data.HistoryItem
 import com.jerry.shapes.cache.data.Project
 import com.jerry.shapes.extensions.*
 import com.jerry.shapes.repository.BoxesRepository
-import com.jerry.shapes.cache.data.ColorAndShape
 import com.jerry.shapes.ui.boxes.data.LayerUi
 import com.jerry.shapes.ui.boxes.data.UiEvent
 import com.jerry.shapes.ui.boxes.history.UserHistory

@@ -122,7 +122,8 @@ private fun CreateForm(
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(bottom = 86.dp),
-            state = scrollState
+            state = scrollState,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             item {
                 NameItem(
@@ -139,7 +140,7 @@ private fun CreateForm(
 
             item {
                 Row(
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.padding(bottom = 16.dp).fillMaxWidth()
                 ) {
                     ProjectNumberPicker(
                         modifier = Modifier.padding(end = 8.dp),
@@ -213,8 +214,7 @@ private fun LayerItem(
     ) { derivedStateOf { columnValue == columns && rowValue == rows } }
     Column(
         modifier = Modifier
-            .padding(top = 32.dp)
-            .fillMaxWidth()
+            .padding(16.dp)
             .clip(MaterialTheme.shapes.large)
             .background(
                 when (matchesState) {
