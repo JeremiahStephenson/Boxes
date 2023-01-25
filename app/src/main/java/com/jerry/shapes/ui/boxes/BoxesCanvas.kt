@@ -27,15 +27,15 @@ import com.jerry.shapes.cache.data.Project
 import com.jerry.shapes.extensions.findBox
 import com.jerry.shapes.extensions.findBoxes
 import com.jerry.shapes.extensions.safeLet
-import com.jerry.shapes.cache.data.ColorAndShape
-import com.jerry.shapes.ui.boxes.data.LayerUi
 import com.jerry.shapes.ui.boxes.state.ButtonsState
 import com.jerry.shapes.ui.boxes.state.CanvasState
 import com.jerry.shapes.ui.boxes.state.SelectionState
 import com.jerry.shapes.ui.common.LocalAppBarHeight
 import com.jerry.shapes.ui.common.pngBackground
-import com.jerry.shapes.util.ImmutableList
-import kotlin.math.*
+import kotlin.math.abs
+import kotlin.math.ceil
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 @Composable
 fun BoxCanvas(

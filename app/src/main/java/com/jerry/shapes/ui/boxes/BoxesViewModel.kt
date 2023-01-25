@@ -15,8 +15,8 @@ import com.jerry.shapes.cache.data.Project
 import com.jerry.shapes.extensions.*
 import com.jerry.shapes.repository.BoxesRepository
 import com.jerry.shapes.cache.data.ColorAndShape
-import com.jerry.shapes.ui.boxes.data.Export
 import com.jerry.shapes.ui.boxes.data.LayerUi
+import com.jerry.shapes.ui.boxes.data.UiEvent
 import com.jerry.shapes.ui.boxes.history.UserHistory
 import com.jerry.shapes.ui.destinations.BoxesMainDestination
 import com.jerry.shapes.ui.shapes.Shape
@@ -84,11 +84,8 @@ class BoxesViewModel(
     private val _loading = MutableStateFlow(false)
     val loadingState = _loading.asStateFlow()
 
-    private val _errorFlow = MutableSharedFlow<String?>(0, 1, BufferOverflow.DROP_OLDEST)
-    val errorFlow = _errorFlow.asSharedFlow()
-
-    private val _exportedFlow = MutableSharedFlow<Export>(0, 1, BufferOverflow.DROP_OLDEST)
-    val exportedFlow = _exportedFlow.asSharedFlow()
+    private val _uiEventFlow = MutableSharedFlow<UiEvent>(0, 1, BufferOverflow.DROP_OLDEST)
+    val uiEventFlow = _uiEventFlow.asSharedFlow()
 
     private var fillJob: Job? = null
 
@@ -236,9 +233,11 @@ class BoxesViewModel(
                     imageSize,
                     exportType
                 )
-                path?.let { _exportedFlow.emit(Export(it, null, exportType)) }
+                path?.let {
+                    _uiEventFlow.emit(UiEvent.Export(it, exportType))
+                }
             } catch (t: Throwable) {
-                _exportedFlow.emit(Export(null, t.message, exportType))
+                _uiEventFlow.emit(UiEvent.Error(t.message))
                 analytics.logError(t)
             }
             _loading.value = false
@@ -275,7 +274,7 @@ class BoxesViewModel(
                     fillInArea(point, layerId, currentColor, currentShape, columns, rows)
                     _loading.value = false
                 } catch (t: Throwable) {
-                    _errorFlow.emit(t.message)
+                    _uiEventFlow.emit(UiEvent.Error(t.message))
                     _loading.value = false
                 }
             }
@@ -292,7 +291,7 @@ class BoxesViewModel(
             boxesRepository.save(project, boxes, selections, layers)
         } catch (t: Throwable) {
             analytics.logError(t)
-            _errorFlow.tryEmit(t.message)
+            _uiEventFlow.tryEmit(UiEvent.Error(t.message))
         }
     }
 

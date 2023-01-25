@@ -21,10 +21,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jerry.shapes.R
+import com.jerry.shapes.cache.data.ColorAndShape
 import com.jerry.shapes.cache.data.Project
 import com.jerry.shapes.extensions.safeLet
-import com.jerry.shapes.cache.data.ColorAndShape
 import com.jerry.shapes.ui.boxes.data.Action
+import com.jerry.shapes.ui.boxes.data.UiEvent
 import com.jerry.shapes.ui.boxes.history.UserHistory
 import com.jerry.shapes.ui.boxes.state.ButtonsState
 import com.jerry.shapes.ui.boxes.state.CanvasState
@@ -71,12 +72,6 @@ fun BoxesMain(
     val genericError = stringResource(R.string.generic_error)
     val canvasState = rememberCanvasState(viewModel) {
         Toast.makeText(context, it ?: genericError, Toast.LENGTH_LONG).show()
-    }
-
-    LaunchedEffect(Unit) {
-        viewModel.errorFlow.collectLatest {
-            Toast.makeText(context, it ?: genericError, Toast.LENGTH_LONG).show()
-        }
     }
 
     val buttonsState = rememberSaveable {
@@ -171,9 +166,12 @@ fun BoxesMain(
             val snackBarHostState = remember { SnackbarHostState() }
             SnackBarImageLocator(snackBarHostState = snackBarHostState)
             LaunchedEffect(Unit) {
-                viewModel.exportedFlow.collectLatest {
-                    when (it.error) {
-                        null -> when (it.exportType) {
+                viewModel.uiEventFlow.collectLatest {
+                    when (it) {
+                        is UiEvent.Error ->
+                            Toast.makeText(context, it.error ?: genericError, Toast.LENGTH_LONG)
+                                .show()
+                        is UiEvent.Export -> when (it.exportType) {
                             ExportType.FILE -> it.filePath?.let { path ->
                                 snackBarHostState.showSnackbar(
                                     path,
@@ -184,11 +182,6 @@ fun BoxesMain(
                                 it.filePath?.let { context.openShareSheet(it) }
                             }
                         }
-                        else -> Toast.makeText(
-                            context,
-                            context.getString(R.string.error_message, it.error),
-                            Toast.LENGTH_LONG
-                        ).show()
                     }
                 }
             }
@@ -645,7 +638,10 @@ private fun handleAction(
         is Action.ClearSelect -> selectionState.clear()
         is Action.Move -> {
             scope.launch {
-                safeLet(selectionState.topLeftState, selectionState.bottomRightState) { tl, br ->
+                safeLet(
+                    selectionState.topLeftState,
+                    selectionState.bottomRightState
+                ) { tl, br ->
                     canvasState.move(
                         tl,
                         br,
