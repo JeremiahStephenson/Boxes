@@ -140,7 +140,7 @@ private fun CreateForm(
 
             item {
                 Row(
-                    modifier = Modifier.padding(bottom = 16.dp).fillMaxWidth()
+                    modifier = Modifier.padding(bottom = 32.dp).fillMaxWidth()
                 ) {
                     ProjectNumberPicker(
                         modifier = Modifier.padding(end = 8.dp),
@@ -214,7 +214,6 @@ private fun LayerItem(
     ) { derivedStateOf { columnValue == columns && rowValue == rows } }
     Column(
         modifier = Modifier
-            .padding(16.dp)
             .clip(MaterialTheme.shapes.large)
             .background(
                 when (matchesState) {
@@ -225,7 +224,7 @@ private fun LayerItem(
             .clickable {
                 onSizeChange(columns, rows)
             }
-            .padding(16.dp),
+            .padding(top = 32.dp, bottom = 24.dp).padding(horizontal = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Canvas(
