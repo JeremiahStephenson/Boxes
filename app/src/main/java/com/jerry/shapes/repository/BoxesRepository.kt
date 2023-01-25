@@ -9,7 +9,6 @@ import com.jerry.shapes.cache.BoxesDao
 import com.jerry.shapes.cache.BoxesDatabase
 import com.jerry.shapes.cache.data.*
 import com.jerry.shapes.extensions.logError
-import com.jerry.shapes.cache.data.ColorAndShape
 import com.jerry.shapes.ui.boxes.data.LayerUi
 import com.jerry.shapes.ui.boxes.generateSelections
 import com.jerry.shapes.ui.shapes.Shape
@@ -25,6 +24,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.time.Instant
+import kotlin.math.max
 
 class BoxesRepository(
     private val boxesDatabase: BoxesDatabase,
@@ -132,7 +132,9 @@ class BoxesRepository(
     suspend fun updateHistory(layerId: Long, points: Map<Point, ColorAndShape?>) {
         boxesDatabase.withTransaction {
             val index = boxesDao.findMaxIndexForHistory(layerId)
-            val historyId = boxesDao.insertHistory(History(layerId, index + 1))
+            val historyId = boxesDao.insertHistory(
+                History(layerId, index + 1, Instant.now().toEpochMilli())
+            )
             points.forEach { (point, color) ->
                 boxesDao.insertHistoryItem(
                     HistoryItem(
@@ -145,9 +147,9 @@ class BoxesRepository(
                 )
             }
             if (index >= MAX_HISTORY_PER_LAYER) {
-                val min = boxesDao.findMinIndexForHistory(layerId)
-                boxesDao.cleanHistory(min, layerId)
-                boxesDao.updateIndicies(layerId)
+                val diff = max(index - MAX_HISTORY_PER_LAYER, 1)
+                boxesDao.cleanHistory(diff, layerId)
+                boxesDao.updateIndicies(layerId, diff)
             }
         }
     }
@@ -162,6 +164,10 @@ class BoxesRepository(
             ).also {
             history?.let { boxesDao.deleteHistory(it.id) }
         }
+    }
+
+    suspend fun deleteInvalidHistoryItems() {
+        boxesDao.cleanInvalidHistory()
     }
 
     private suspend fun saveProject(
@@ -195,4 +201,3 @@ class BoxesRepository(
         const val MAX_SIDE_SIZE = 200
     }
 }
-

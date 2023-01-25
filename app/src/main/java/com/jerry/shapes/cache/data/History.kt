@@ -21,7 +21,8 @@ import androidx.room.PrimaryKey
 )
 data class History(
     val layerId: Long,
-    val index: Int
+    val index: Int,
+    val timestamp: Long
 ) {
     @PrimaryKey(autoGenerate = true)
     var id: Long = 0L

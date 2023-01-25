@@ -68,8 +68,8 @@ interface BoxesDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAllPixels(pixelList: List<Pixel>)
 
-    @Query("DELETE FROM pixel WHERE pixel.layerId IN (SELECT layer.id FROM layer JOIN project ON project.id == layer.projectId AND project.id = :projectId) AND pixel.timeStamp < :timeStamp")
-    suspend fun deletePixelsFromProject(projectId: Long, timeStamp: Long)
+    @Query("DELETE FROM pixel WHERE pixel.layerId IN (SELECT layer.id FROM layer JOIN project ON project.id == layer.projectId AND project.id = :projectId) AND pixel.timestamp < :timestamp")
+    suspend fun deletePixelsFromProject(projectId: Long, timestamp: Long)
 
     @Query("DELETE FROM project WHERE id = :id")
     suspend fun deleteProject(id: Long)
@@ -89,11 +89,14 @@ interface BoxesDao {
     @Query("DELETE FROM history WHERE `index` <= :index AND layerId = :layerId")
     suspend fun cleanHistory(index: Int, layerId: Long)
 
+    @Query("DELETE FROM history WHERE history.layerId IN (SELECT layer.id FROM layer JOIN project ON project.id == layer.projectId AND history.timestamp > project.timestamp)")
+    suspend fun cleanInvalidHistory()
+
     @Query("DELETE FROM history WHERE id = :id")
     suspend fun deleteHistory(id: Long)
 
-    @Query("UPDATE history SET `index` = `index` - 1 WHERE layerId = :layerId")
-    suspend fun updateIndicies(layerId: Long)
+    @Query("UPDATE history SET `index` = `index` - :amount WHERE layerId = :layerId")
+    suspend fun updateIndicies(layerId: Long, amount: Int)
 
     @Query("SELECT * FROM history WHERE layerId = :layerId AND `index` = :index")
     suspend fun findMaxHistory(layerId: Long, index: Int): History?
@@ -104,4 +107,3 @@ interface BoxesDao {
     @Query("SELECT Count(*) FROM history JOIN layer ON layer.id == history.layerId AND layer.id == :layerId")
     fun layerHistoryCount(layerId: Long): Flow<Int>
 }
-

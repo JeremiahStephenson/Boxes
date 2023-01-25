@@ -2,6 +2,7 @@ package com.jerry.shapes.inject
 
 import androidx.datastore.preferences.preferencesDataStore
 import com.google.firebase.analytics.FirebaseAnalytics
+import com.jerry.shapes.LaunchViewModel
 import com.jerry.shapes.datastore.AppDataStore
 import com.jerry.shapes.repository.BoxesRepository
 import com.jerry.shapes.ui.boxes.BoxesViewModel
@@ -19,6 +20,7 @@ val appModule = module {
     viewModel { HomeViewModel(get(), get()) }
     viewModel { CreateViewModel(get(), get()) }
     viewModel { LayersEditViewModel(get(), get(), get(), get()) }
+    viewModel { LaunchViewModel(get()) }
 
     single { BoxesRepository(get(), get(), get(), get(), get(), get()) }
 
