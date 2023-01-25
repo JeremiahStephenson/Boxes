@@ -331,6 +331,8 @@ class BoxesViewModel(
         val quadrants = fillMap.groupByQuadrant
         quadrants.forEach { (quad, list) ->
             layer?.get(quad)?.keys?.removeAll(list.toSet())
+        }
+        quadrants.forEach { (quad, list) ->
             layer?.getOrPut(quad) { mutableStateMapOf() }?.putAll(list.map { it to newColor })
         }
         if (history.isNotEmpty()) {
