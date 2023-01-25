@@ -8,12 +8,16 @@ import androidx.room.PrimaryKey
 @Entity(
     tableName = Layer.TABLE_NAME,
     indices = [(Index(value = ["id", "projectId"], unique = true)), Index("projectId")],
-    foreignKeys = [(ForeignKey(
-        entity = Project::class,
-        parentColumns = ["id"],
-        childColumns = ["projectId"],
-        onDelete = ForeignKey.CASCADE
-    ))]
+    foreignKeys = [
+        (
+            ForeignKey(
+                entity = Project::class,
+                parentColumns = ["id"],
+                childColumns = ["projectId"],
+                onDelete = ForeignKey.CASCADE
+            )
+            )
+    ]
 )
 data class Layer(
     val projectId: Long,

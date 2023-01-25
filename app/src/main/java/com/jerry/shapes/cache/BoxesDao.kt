@@ -104,3 +104,4 @@ interface BoxesDao {
     @Query("SELECT Count(*) FROM history JOIN layer ON layer.id == history.layerId AND layer.id == :layerId")
     fun layerHistoryCount(layerId: Long): Flow<Int>
 }
+

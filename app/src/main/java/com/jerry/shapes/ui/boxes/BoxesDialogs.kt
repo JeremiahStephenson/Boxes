@@ -28,7 +28,7 @@ import com.godaddy.android.colorpicker.ClassicColorPicker
 import com.godaddy.android.colorpicker.HsvColor
 import com.jerry.shapes.R
 import com.jerry.shapes.extensions.asColorAndShape
-import com.jerry.shapes.ui.boxes.data.ColorAndShape
+import com.jerry.shapes.cache.data.ColorAndShape
 import com.jerry.shapes.ui.common.ShapeOption
 import com.jerry.shapes.ui.common.pngBackground
 import com.jerry.shapes.ui.common.unboundClickable

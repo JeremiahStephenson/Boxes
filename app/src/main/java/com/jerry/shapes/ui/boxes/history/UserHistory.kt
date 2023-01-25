@@ -2,7 +2,7 @@ package com.jerry.shapes.ui.boxes.history
 
 import android.graphics.Point
 import android.os.Parcelable
-import com.jerry.shapes.ui.boxes.data.ColorAndShape
+import com.jerry.shapes.cache.data.ColorAndShape
 import kotlinx.parcelize.Parcelize
 
 @Parcelize

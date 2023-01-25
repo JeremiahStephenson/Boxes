@@ -5,7 +5,6 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.jerry.shapes.ui.boxes.data.ColorAndShape
 import com.jerry.shapes.ui.shapes.Shape
 import java.io.Serializable
 

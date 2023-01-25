@@ -1,16 +1,20 @@
 package com.jerry.shapes.ui.boxes
 
 import android.graphics.Point
-import androidx.compose.runtime.*
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.analytics.FirebaseAnalytics
 import com.jerry.shapes.cache.data.HistoryItem
 import com.jerry.shapes.cache.data.Project
 import com.jerry.shapes.extensions.*
 import com.jerry.shapes.repository.BoxesRepository
-import com.jerry.shapes.ui.boxes.data.ColorAndShape
+import com.jerry.shapes.cache.data.ColorAndShape
 import com.jerry.shapes.ui.boxes.data.Export
 import com.jerry.shapes.ui.boxes.data.LayerUi
 import com.jerry.shapes.ui.boxes.history.UserHistory
@@ -29,7 +33,8 @@ import java.util.*
 class BoxesViewModel(
     private val handle: SavedStateHandle,
     private val boxesRepository: BoxesRepository,
-    private val cc: CoroutineContextProvider
+    private val cc: CoroutineContextProvider,
+    private val analytics: FirebaseAnalytics
 ) : ViewModel() {
 
     private var layerStateHandle by SavedHandle<MutableMap<Long, Boolean>?>(
@@ -73,11 +78,14 @@ class BoxesViewModel(
         .stateIn(
             viewModelScope,
             SharingStarted.Eagerly,
-            DataResource.loading(SnapshotStateMap())
+            Resource.loading(SnapshotStateMap())
         )
 
     private val _loading = MutableStateFlow(false)
     val loadingState = _loading.asStateFlow()
+
+    private val _errorFlow = MutableSharedFlow<String?>(0, 1, BufferOverflow.DROP_OLDEST)
+    val errorFlow = _errorFlow.asSharedFlow()
 
     private val _exportedFlow = MutableSharedFlow<Export>(0, 1, BufferOverflow.DROP_OLDEST)
     val exportedFlow = _exportedFlow.asSharedFlow()
@@ -231,6 +239,7 @@ class BoxesViewModel(
                 path?.let { _exportedFlow.emit(Export(it, null, exportType)) }
             } catch (t: Throwable) {
                 _exportedFlow.emit(Export(null, t.message, exportType))
+                analytics.logError(t)
             }
             _loading.value = false
         }
@@ -266,7 +275,7 @@ class BoxesViewModel(
                     fillInArea(point, layerId, currentColor, currentShape, columns, rows)
                     _loading.value = false
                 } catch (t: Throwable) {
-                    // todo handle this
+                    _errorFlow.emit(t.message)
                     _loading.value = false
                 }
             }
@@ -279,7 +288,12 @@ class BoxesViewModel(
         selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
         layers: Collection<LayerUi>
     ) {
-        boxesRepository.save(project, boxes, selections, layers)
+        try {
+            boxesRepository.save(project, boxes, selections, layers)
+        } catch (t: Throwable) {
+            analytics.logError(t)
+            _errorFlow.tryEmit(t.message)
+        }
     }
 
     private suspend fun fillInArea(

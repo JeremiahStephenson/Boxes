@@ -13,7 +13,7 @@ import androidx.core.graphics.applyCanvas
 import com.jerry.shapes.cache.data.LayerAndPixel
 import com.jerry.shapes.cache.data.Pixel
 import com.jerry.shapes.extensions.asList
-import com.jerry.shapes.ui.boxes.data.ColorAndShape
+import com.jerry.shapes.cache.data.ColorAndShape
 import com.jerry.shapes.ui.boxes.data.LayerUi
 import com.jerry.shapes.ui.shapes.*
 import timber.log.Timber

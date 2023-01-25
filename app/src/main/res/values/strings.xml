@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Shape Up</string>
+    <string name="app_name">Shape Out</string>
 
     <string name="back">Back</string>
 
@@ -41,6 +41,7 @@
 
     <string name="error_message">Error! %1$s</string>
     <string name="error_export">Error creating media file, check storage permissions</string>
+    <string name="generic_error">Something went wrong, please try again.</string>
 
     <string name="project">Project</string>
     <string name="tools">Tools</string>

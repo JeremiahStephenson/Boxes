@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import com.google.accompanist.flowlayout.FlowRow
 import com.jerry.shapes.R
 import com.jerry.shapes.cache.data.Project
+import com.jerry.shapes.ui.boxes.data.Action
 import com.jerry.shapes.ui.boxes.data.LayerUi
 import com.jerry.shapes.ui.boxes.state.ButtonsState
 import com.jerry.shapes.ui.boxes.state.CanvasState

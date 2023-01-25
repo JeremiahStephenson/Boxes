@@ -27,7 +27,7 @@ import com.jerry.shapes.cache.data.Project
 import com.jerry.shapes.extensions.findBox
 import com.jerry.shapes.extensions.findBoxes
 import com.jerry.shapes.extensions.safeLet
-import com.jerry.shapes.ui.boxes.data.ColorAndShape
+import com.jerry.shapes.cache.data.ColorAndShape
 import com.jerry.shapes.ui.boxes.data.LayerUi
 import com.jerry.shapes.ui.boxes.state.ButtonsState
 import com.jerry.shapes.ui.boxes.state.CanvasState
@@ -58,7 +58,7 @@ fun BoxCanvas(
     val scaleState by rememberUpdatedState(scale)
     val offsetState by rememberUpdatedState(offset)
     val sizeState by rememberUpdatedState(size)
-    val pngBoxSize = with(LocalDensity.current) { 10.dp.toPx() }
+    val pngBoxSize = with(LocalDensity.current) { 20.dp.toPx() }
     val columnsState by rememberUpdatedState(project.columns)
     val rowsState by rememberUpdatedState(project.rows)
 
@@ -203,32 +203,6 @@ fun BoxCanvas(
                 selectionState = selectionState
             )
         }
-    }
-}
-
-@Composable
-fun SelectionsBoxes(
-    scale: Float,
-    offset: Offset,
-    layers: ImmutableList<LayerUi>,
-    boxes: Map<Point, RectF>,
-    selections: Map<Long, Map<Point, ColorAndShape>>
-) {
-    Canvas(
-        modifier = Modifier
-            .fillMaxSize()
-            .graphicsLayer(
-                scaleX = scale,
-                scaleY = scale,
-                translationX = offset.x,
-                translationY = offset.y
-            )
-    ) {
-        drawShapes(
-            layers.items,
-            selections,
-            boxes
-        )
     }
 }
 

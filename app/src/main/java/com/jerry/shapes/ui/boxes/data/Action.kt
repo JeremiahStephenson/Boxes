@@ -1,7 +1,7 @@
-package com.jerry.shapes.ui.boxes
+package com.jerry.shapes.ui.boxes.data
 
 import android.graphics.Point
-import com.jerry.shapes.ui.boxes.data.ColorAndShape
+import com.jerry.shapes.cache.data.ColorAndShape
 import com.jerry.shapes.ui.boxes.history.UserHistory
 import com.jerry.shapes.ui.boxes.state.enums.Direction
 import com.jerry.shapes.ui.boxes.state.enums.TapType

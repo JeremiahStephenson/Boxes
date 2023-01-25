@@ -8,12 +8,16 @@ import androidx.room.PrimaryKey
 @Entity(
     tableName = History.TABLE_NAME,
     indices = [(Index(value = ["id", "layerId", "index"], unique = true)), Index("layerId")],
-    foreignKeys = [(ForeignKey(
-        entity = Layer::class,
-        parentColumns = ["id"],
-        childColumns = ["layerId"],
-        onDelete = ForeignKey.CASCADE
-    ))]
+    foreignKeys = [
+        (
+            ForeignKey(
+                entity = Layer::class,
+                parentColumns = ["id"],
+                childColumns = ["layerId"],
+                onDelete = ForeignKey.CASCADE
+            )
+            )
+    ]
 )
 data class History(
     val layerId: Long,

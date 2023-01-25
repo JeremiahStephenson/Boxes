@@ -23,7 +23,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jerry.shapes.R
 import com.jerry.shapes.cache.data.Project
 import com.jerry.shapes.extensions.safeLet
-import com.jerry.shapes.ui.boxes.data.ColorAndShape
+import com.jerry.shapes.cache.data.ColorAndShape
+import com.jerry.shapes.ui.boxes.data.Action
 import com.jerry.shapes.ui.boxes.history.UserHistory
 import com.jerry.shapes.ui.boxes.state.ButtonsState
 import com.jerry.shapes.ui.boxes.state.CanvasState
@@ -65,8 +66,19 @@ fun BoxesMain(
     }
 
     val projectNotNull by remember { derivedStateOf { project != null } }
+    val context = LocalContext.current
 
-    val canvasState = rememberCanvasState(viewModel)
+    val genericError = stringResource(R.string.generic_error)
+    val canvasState = rememberCanvasState(viewModel) {
+        Toast.makeText(context, it ?: genericError, Toast.LENGTH_LONG).show()
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.errorFlow.collectLatest {
+            Toast.makeText(context, it ?: genericError, Toast.LENGTH_LONG).show()
+        }
+    }
+
     val buttonsState = rememberSaveable {
         ButtonsState(
             eraserSelected = false,
@@ -105,7 +117,6 @@ fun BoxesMain(
         }
     ) {
         val transformerState = remember { TransformerState() }
-        val context = LocalContext.current
         val handleAction: (Action) -> Unit = remember {
             {
                 handleAction(
@@ -664,7 +675,10 @@ private fun saveProject(
 }
 
 @Composable
-private fun rememberCanvasState(viewModel: BoxesViewModel): CanvasState {
+private fun rememberCanvasState(
+    viewModel: BoxesViewModel,
+    onError: (String?) -> Unit
+): CanvasState {
     val layerState = viewModel.layerStateFlow.collectAsStateWithLifecycle(emptyList())
     val pixelsState = viewModel.pixelsFlow.collectAsStateWithLifecycle()
     val loadingState = viewModel.loadingState.collectAsStateWithLifecycle()
@@ -676,7 +690,8 @@ private fun rememberCanvasState(viewModel: BoxesViewModel): CanvasState {
             viewModel.layersOrderStateList,
             loadingState,
             historyCountState,
-            pixelsState
+            pixelsState,
+            onError
         )
     }
 }

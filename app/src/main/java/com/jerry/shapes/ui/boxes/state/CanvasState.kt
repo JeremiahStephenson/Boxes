@@ -9,13 +9,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Constraints
 import com.jerry.shapes.cache.data.HistoryItem
 import com.jerry.shapes.extensions.*
-import com.jerry.shapes.ui.boxes.data.ColorAndShape
+import com.jerry.shapes.cache.data.ColorAndShape
 import com.jerry.shapes.ui.boxes.data.LayerUi
 import com.jerry.shapes.ui.boxes.generateBoxes
 import com.jerry.shapes.ui.boxes.history.UserHistory
 import com.jerry.shapes.ui.boxes.state.enums.Direction
 import com.jerry.shapes.ui.shapes.Shape
-import com.jerry.shapes.util.DataResource
+import com.jerry.shapes.util.Resource
 import kotlin.math.max
 import kotlin.math.min
 
@@ -26,7 +26,8 @@ class CanvasState(
     private val layerOrderState: SnapshotStateList<Long>,
     private val loadingState: State<Boolean>,
     private val historyCountState: State<Int>,
-    private val snapShot: State<DataResource<SnapshotStateMap<Long, SnapshotStateMap<Point, SnapshotStateMap<Point, ColorAndShape>>>>>
+    private val snapShot: State<Resource<SnapshotStateMap<Long, SnapshotStateMap<Point, SnapshotStateMap<Point, ColorAndShape>>>>>,
+    private val onError: (String?) -> Unit = {}
 ) {
     private val _boxes = mutableStateMapOf<Point, RectF>()
 
@@ -149,28 +150,34 @@ class CanvasState(
     }
 
     fun move(topLeft: Point?, bottomRight: Point?, direction: Direction): UserHistory? {
-        if (topLeft == null || bottomRight == null) return null
-        val points = HashSet<Point>()
-        for (c in min(topLeft.x, bottomRight.x)..max(topLeft.x, bottomRight.x)) {
-            for (r in min(topLeft.y, bottomRight.y)..max(topLeft.y, bottomRight.y)) {
-                points.add(Point(c, r))
+        return try {
+            if (topLeft == null || bottomRight == null) return null
+            val points = HashSet<Point>()
+            for (c in min(topLeft.x, bottomRight.x)..max(topLeft.x, bottomRight.x)) {
+                for (r in min(topLeft.y, bottomRight.y)..max(topLeft.y, bottomRight.y)) {
+                    points.add(Point(c, r))
+                }
             }
-        }
-        val layer = _selections[selectedLayer.id]
-        val history = mutableMapOf<Point, ColorAndShape?>()
+            val layer = _selections[selectedLayer.id]
+            val history = mutableMapOf<Point, ColorAndShape?>()
 
-        val list = layer?.flatMap { it.value.keys }?.filter { points.contains(it) }
-        val adjusted = list?.map { entry ->
-            entry.adjust(direction) to layer[entry.quadrant]?.get(entry)
-        }?.toMap() ?: emptyMap()
-        val merged = list?.union(adjusted.keys)?.toSet() ?: emptySet()
-        history.putAll(getCurrentSelections(merged, selectedLayer.id, filter = false))
+            val list = layer?.flatMap { it.value.keys }?.filter { points.contains(it) }
+            val adjusted = list?.map { entry ->
+                entry.adjust(direction) to layer[entry.quadrant]?.get(entry)
+            }?.toMap() ?: emptyMap()
+            val merged = list?.union(adjusted.keys)?.toSet() ?: emptySet()
+            history.putAll(getCurrentSelections(merged, selectedLayer.id, filter = false))
 
-        adjusted.keys.groupByQuadrant.forEach { (t, u) ->
-            layer?.get(t)?.keys?.removeAll(merged)
-            u.associateWith { adjusted[it] }.filterNotNullValues().let { layer?.get(t)?.putAll(it) }
+            adjusted.keys.groupByQuadrant.forEach { (t, u) ->
+                layer?.get(t)?.keys?.removeAll(merged)
+                u.associateWith { adjusted[it] }.filterNotNullValues()
+                    .let { layer?.get(t)?.putAll(it) }
+            }
+            UserHistory(selectedLayer.id, history)
+        } catch (t: Throwable) {
+            onError(null)
+            null
         }
-        return UserHistory(selectedLayer.id, history)
     }
 
     fun fillInBoxes(
