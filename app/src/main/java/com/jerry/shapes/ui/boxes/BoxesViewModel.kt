@@ -36,6 +36,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeout
 import java.util.*
+import kotlin.collections.HashMap
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.min
@@ -342,27 +343,32 @@ class BoxesViewModel(
                         columns to newRows.toInt()
                     }
                     rows < columns -> {
-                        val test = rows.toFloat() / bitmap.height.toFloat()
-                        val newCols = ceil((test) * bitmap.width.toFloat())
+                        val newCols = ceil((rows.toFloat() / bitmap.height.toFloat()) * bitmap.width.toFloat())
                         newCols.toInt() to rows
                     }
                     else -> {
-                        columns to rows
+                        when (bitmap.height <= bitmap.width) {
+                            true -> {
+                                val newRows = ceil((columns.toFloat() / bitmap.width.toFloat()) * bitmap.height.toFloat())
+                                columns to newRows.toInt()
+                            }
+                            else -> {
+                                val newCols = ceil((rows.toFloat() / bitmap.height.toFloat()) * bitmap.width.toFloat())
+                                newCols.toInt() to rows
+                            }
+                        }
                     }
                 }
-                val boxSize = floor(
-                    min(
-                        bitmap.width / dimens.first.toFloat(),
-                        bitmap.height / dimens.second.toFloat()
-                    )
-                ).toInt()
-                val boxes = generateBoxes(dimens.first, dimens.second, boxSize.toFloat(), 0F, 0F)
+                val boxSize = min(
+                    bitmap.width.toFloat() / dimens.first.toFloat(),
+                    bitmap.height.toFloat() / dimens.second.toFloat()
+                )
+                val boxes = generateBoxes(dimens.first, dimens.second, boxSize, 0F, 0F)
                 val points = HashMap<Point, ColorAndShape>()
                 boxes.forEach {
                     val region = it.value
                     val point = it.key
-                    val test2 = colorTest(bitmap, region)
-                    test2.let { color ->
+                    bitmap.findDominateColor(region).let { color ->
                         points[point] = ColorAndShape(Color(color))
                     }
                 }
@@ -380,56 +386,6 @@ class BoxesViewModel(
             }
             _loading.value = false
         }
-    }
-
-    private fun colorTest(bitmap: Bitmap, region: RectF): Int {
-        val pixels = IntArray(region.width().toInt() * region.height().toInt())
-
-        bitmap.getPixels(pixels, 0, region.width().toInt(), region.left.toInt(), region.top.toInt(), region.width().toInt(), region.height().toInt())
-
-        val colorMap: MutableList<HashMap<Int, Int>> =
-            ArrayList()
-        colorMap.add(HashMap())
-        colorMap.add(HashMap())
-        colorMap.add(HashMap())
-
-        var color = 0
-        var r = 0
-        var g = 0
-        var b = 0
-        var rC: Int?
-        var gC: Int?
-        var bC: Int?
-        for (i in 0 until pixels.size) {
-            color = pixels.get(i)
-            r = android.graphics.Color.red(color)
-            g = android.graphics.Color.green(color)
-            b = android.graphics.Color.blue(color)
-            rC = colorMap[0][r]
-            if (rC == null) rC = 0
-            colorMap[0][r] = ++rC
-            gC = colorMap[1][g]
-            if (gC == null) gC = 0
-            colorMap[1][g] = ++gC
-            bC = colorMap[2][b]
-            if (bC == null) bC = 0
-            colorMap[2][b] = ++bC
-        }
-
-        val rgb = IntArray(3)
-        for (i in 0..2) {
-            var max = 0
-            var `val` = 0
-            for ((key, value) in colorMap[i]) {
-                if (value > max) {
-                    max = value
-                    `val` = key
-                }
-            }
-            rgb[i] = `val`
-        }
-
-        return android.graphics.Color.rgb(rgb[0], rgb[1], rgb[2])
     }
 
     private suspend fun fillInArea(

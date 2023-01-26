@@ -129,24 +129,6 @@ fun DrawerMenu(
                     drawableResOn = R.drawable.ic_select_all_24,
                     contentDescription = stringResource(R.string.select_and_move)
                 )
-                val context = LocalContext.current
-                val launcher =
-                    rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-                        uri?.let {
-                            context.contentResolver.takePersistableUriPermission(
-                                uri,
-                                Intent.FLAG_GRANT_READ_URI_PERMISSION
-                            )
-                            onAction(Action.ImageImport(it, canvasState.selectedLayer.id))
-                        }
-                    }
-                IconMenuButton(
-                    onClick = {
-                        launcher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                    },
-                    drawableRes = R.drawable.ic_file_open_24,
-                    contentDescription = ""
-                )
             }
         }
 
@@ -182,6 +164,29 @@ fun DrawerMenu(
                     onClick = { exportDialog = ExportType.SHARE },
                     drawableRes = R.drawable.ic_share_24,
                     contentDescription = stringResource(R.string.share_with_people)
+                )
+            }
+        }
+
+        item {
+            ButtonSection(R.string.experimental) {
+                val context = LocalContext.current
+                val launcher =
+                    rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+                        uri?.let {
+                            context.contentResolver.takePersistableUriPermission(
+                                uri,
+                                Intent.FLAG_GRANT_READ_URI_PERMISSION
+                            )
+                            onAction(Action.ImageImport(it, canvasState.selectedLayer.id))
+                        }
+                    }
+                IconMenuButton(
+                    onClick = {
+                        launcher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                    },
+                    drawableRes = R.drawable.ic_upload_file_24,
+                    contentDescription = ""
                 )
             }
         }
