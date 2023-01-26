@@ -1,6 +1,7 @@
 package com.jerry.shapes.ui.boxes.data
 
 import android.graphics.Point
+import android.net.Uri
 import com.jerry.shapes.cache.data.ColorAndShape
 import com.jerry.shapes.ui.boxes.history.UserHistory
 import com.jerry.shapes.ui.boxes.state.enums.Direction
@@ -19,6 +20,7 @@ sealed class Action {
     object Undo : Action()
     object GoToLayerEdit : Action()
     object ClearSelect : Action()
+    data class ImageImport(val uri: Uri, val layerId: Long) : Action()
     data class SetColor(val color: ColorAndShape) : Action()
     data class SetShape(val shape: Shape) : Action()
     data class Move(val direction: Direction) : Action()

@@ -1,8 +1,11 @@
 package com.jerry.shapes.ui.boxes
 
 import android.content.Context
+import android.content.Intent
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -656,6 +659,9 @@ private fun handleAction(
                     }
                 }
             }
+        }
+        is Action.ImageImport -> {
+            viewModel.importImage(context, action.layerId, project?.columns, project?.rows, action.uri)
         }
     }
 }

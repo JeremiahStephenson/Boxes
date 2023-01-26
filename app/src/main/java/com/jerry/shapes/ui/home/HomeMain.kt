@@ -82,8 +82,8 @@ fun HomeMain(
             contentPadding = PaddingValues(
                 bottom = 84.dp,
                 top = 16.dp,
-                start = 8.dp,
-                end = 8.dp
+                start = 10.dp,
+                end = 10.dp
             ),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)

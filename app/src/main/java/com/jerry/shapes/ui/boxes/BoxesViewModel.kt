@@ -1,11 +1,19 @@
 package com.jerry.shapes.ui.boxes
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.ImageDecoder
 import android.graphics.Point
+import android.graphics.RectF
+import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -29,6 +37,9 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeout
 import java.util.*
+import kotlin.math.ceil
+import kotlin.math.floor
+import kotlin.math.min
 
 class BoxesViewModel(
     private val handle: SavedStateHandle,
@@ -293,6 +304,116 @@ class BoxesViewModel(
             analytics.logError(t)
             _uiEventFlow.tryEmit(UiEvent.Error(t.message))
         }
+    }
+
+    fun importImage(context: Context, layerId: Long, columns: Int?, rows: Int?, uri: Uri) {
+        if (uri.path.isNullOrEmpty() || columns == null || rows == null) return
+        viewModelScope.launch(cc.io) {
+            _loading.value = true
+            try {
+                val bitmap = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+                    MediaStore.Images.Media.getBitmap(
+                        context.contentResolver,
+                        uri
+                    )
+                } else {
+                    val source = ImageDecoder.createSource(context.contentResolver, uri)
+                    ImageDecoder.decodeBitmap(source).copy(Bitmap.Config.ARGB_8888, true)
+                }
+
+                val dimens = when {
+                    columns < rows -> {
+                        val newRows = ceil((columns / bitmap.width) * bitmap.height.toFloat())
+                        columns to newRows.toInt()
+                    }
+                    rows < columns -> {
+                        val newCols = ceil((rows / bitmap.height) * bitmap.width.toFloat())
+                        newCols.toInt() to rows
+                    }
+                    else -> {
+                        columns to rows
+                    }
+                }
+                val boxSize = floor(
+                    min(
+                        bitmap.width / dimens.first.toFloat(),
+                        bitmap.height / dimens.second.toFloat()
+                    )
+                ).toInt()
+                val boxes = generateBoxes(dimens.first, dimens.second, boxSize.toFloat(), 0F, 0F)
+                val points = HashMap<Point, ColorAndShape>()
+                boxes.forEach {
+                    val region = it.value
+                    val point = it.key
+                    val test2 = colorTest(bitmap, region)
+                    test2.let { color ->
+                        points[point] = ColorAndShape(Color(color))
+                    }
+                }
+                val layer = pixelsFlow.value.data?.getOrPut(layerId) { mutableStateMapOf() }
+                layer?.let { l ->
+                    val quads = points.keys.groupByQuadrant
+                    quads.forEach { (quad, list) ->
+                        l.getOrPut(quad) { mutableStateMapOf() }.keys.removeAll(list.toSet())
+                        list.associateWith { points[it] }.filterNotNullValues()
+                            .let { l.getOrPut(quad) { mutableStateMapOf() }.putAll(it) }
+                    }
+                }
+            } catch (t: Throwable) {
+                _uiEventFlow.emit(UiEvent.Error(t.message))
+            }
+            _loading.value = false
+        }
+    }
+
+    private fun colorTest(bitmap: Bitmap, region: RectF): Int {
+        val pixels = IntArray(region.width().toInt() * region.height().toInt())
+
+        bitmap.getPixels(pixels, 0, region.width().toInt(), region.left.toInt(), region.top.toInt(), region.width().toInt(), region.height().toInt())
+
+        val colorMap: MutableList<HashMap<Int, Int>> =
+            ArrayList()
+        colorMap.add(HashMap())
+        colorMap.add(HashMap())
+        colorMap.add(HashMap())
+
+        var color = 0
+        var r = 0
+        var g = 0
+        var b = 0
+        var rC: Int?
+        var gC: Int?
+        var bC: Int?
+        for (i in 0 until pixels.size) {
+            color = pixels.get(i)
+            r = android.graphics.Color.red(color)
+            g = android.graphics.Color.green(color)
+            b = android.graphics.Color.blue(color)
+            rC = colorMap[0][r]
+            if (rC == null) rC = 0
+            colorMap[0][r] = ++rC
+            gC = colorMap[1][g]
+            if (gC == null) gC = 0
+            colorMap[1][g] = ++gC
+            bC = colorMap[2][b]
+            if (bC == null) bC = 0
+            colorMap[2][b] = ++bC
+        }
+
+        val rgb = IntArray(3)
+        for (i in 0..2) {
+            var max = 0
+            var `val` = 0
+            for ((key, value) in colorMap[i]) {
+                if (value > max) {
+                    max = value
+                    `val` = key
+                }
+            }
+            rgb[i] = `val`
+        }
+
+        return android.graphics.Color.rgb(rgb[0], rgb[1], rgb[2])
     }
 
     private suspend fun fillInArea(
