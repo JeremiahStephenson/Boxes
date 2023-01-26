@@ -369,3 +369,62 @@ fun Canvas.drawOctagon(
         Paint().apply { this.color = color.color.toArgb() }
     )
 }
+
+fun DrawScope.drawHeart(
+    pos: RectF,
+    color: ColorAndShape
+) {
+    drawPath(
+        path = Path().apply {
+            moveTo(pos.left + (pos.width() / 2), pos.bottom)
+            cubicTo(
+                pos.left - (pos.width() * 0.45F),
+                pos.top + (pos.height() * 0.4F),
+                pos.left + (pos.width() * 0.2F),
+                pos.top - (pos.height() * 0.33F),
+                pos.left + (pos.width() / 2),
+                pos.top + (pos.height() * 0.17F)
+            )
+            moveTo(pos.left + (pos.width() / 2), pos.bottom)
+            cubicTo(
+                pos.right + (pos.width() * 0.45F),
+                pos.top + (pos.height() * 0.4F),
+                pos.right - (pos.width() * 0.2F),
+                pos.top - (pos.height() * 0.33F),
+                pos.right - (pos.width() / 2),
+                pos.top + (pos.height() * 0.17F)
+            )
+            close()
+        },
+        color = color.color
+    )
+}
+
+fun Canvas.drawHeart(
+    pos: RectF,
+    color: ColorAndShape
+) {
+    drawPath(
+        android.graphics.Path().apply {
+            moveTo(pos.left + (pos.width() / 2), pos.bottom)
+            cubicTo(
+                pos.left - (pos.width() * 0.45F),
+                pos.top + (pos.height() * 0.4F),
+                pos.left + (pos.width() * 0.2F),
+                pos.top - (pos.height() * 0.33F),
+                pos.left + (pos.width() / 2),
+                pos.top + (pos.height() * 0.17F)
+            )
+            moveTo(pos.left + (pos.width() / 2), pos.bottom)
+            cubicTo(
+                pos.right + (pos.width() * 0.45F),
+                pos.top + (pos.height() * 0.4F),
+                pos.right - (pos.width() * 0.2F),
+                pos.top - (pos.height() * 0.33F),
+                pos.right - (pos.width() / 2),
+                pos.top + (pos.height() * 0.17F)
+            )
+        },
+        Paint().apply { this.color = color.color.toArgb() }
+    )
+}

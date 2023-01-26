@@ -2,6 +2,7 @@ package com.jerry.shapes.ui.shapes
 
 import android.graphics.Canvas
 import android.graphics.RectF
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.jerry.shapes.cache.data.ColorAndShape
 
@@ -11,6 +12,7 @@ interface ShapersInterface {
         pos: RectF,
         color: ColorAndShape
     )
+
     fun draw(
         scope: Canvas,
         pos: RectF,
@@ -449,6 +451,15 @@ enum class Shape(val group: ShapeGroup) : ShapersInterface {
 
         override fun draw(scope: Canvas, pos: RectF, color: ColorAndShape) {
             scope.drawOctagon(pos, color)
+        }
+    },
+    Heart(ShapeGroup.BASIC) {
+        override fun draw(scope: DrawScope, pos: RectF, color: ColorAndShape) {
+            scope.drawHeart(pos, color)
+        }
+
+        override fun draw(scope: Canvas, pos: RectF, color: ColorAndShape) {
+            scope.drawHeart(pos, color)
         }
     }
 }
