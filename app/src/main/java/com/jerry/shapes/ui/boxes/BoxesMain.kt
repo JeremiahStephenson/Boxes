@@ -598,10 +598,7 @@ private fun handleAction(
         }
         is Action.Undo -> scope.launch {
             buttonsState.turnOffSelectionTool()
-            canvasState.onUndo(
-                canvasState.selectedLayer.id,
-                viewModel.getLastHistoryItem(canvasState.selectedLayer.id)
-            )
+            viewModel.onUndo(canvasState.selectedLayer.id)
         }
         is Action.AddToHistory -> scope.launch {
             viewModel.addToHistory(action.historyItem)
