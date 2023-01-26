@@ -3,6 +3,7 @@ package com.jerry.shapes.ui.shapes
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.*
@@ -29,6 +30,26 @@ fun Canvas.drawBox(
     color: ColorAndShape
 ) {
     drawRect(pos, Paint().apply { this.color = color.color.toArgb() })
+}
+
+fun DrawScope.drawRoundedBox(
+    pos: RectF,
+    color: ColorAndShape
+) {
+    drawRoundRect(
+        style = Fill,
+        topLeft = Offset(pos.left, pos.top),
+        size = Size(pos.width(), pos.height()),
+        color = color.color,
+        cornerRadius = CornerRadius(pos.width() * 0.3F, pos.width() * 0.3F)
+    )
+}
+
+fun Canvas.drawRoundedBox(
+    pos: RectF,
+    color: ColorAndShape
+) {
+    drawRoundRect(pos, pos.width() * 0.3F, pos.width() * 0.3F, Paint().apply { this.color = color.color.toArgb() })
 }
 
 fun DrawScope.drawLegoSquare(
@@ -301,6 +322,48 @@ fun Canvas.drawDiamond(
             lineTo(pos.left + pos.width(), pos.top + (pos.height() / 2))
             lineTo(pos.left + (pos.width() / 2), pos.top + pos.height())
             lineTo(pos.left, pos.top + (pos.height() / 2))
+            close()
+        },
+        Paint().apply { this.color = color.color.toArgb() }
+    )
+}
+
+fun DrawScope.drawOctagon(
+    pos: RectF,
+    color: ColorAndShape
+) {
+    val sides = (pos.width() - (pos.width() * 0.414F)) / 2F
+    drawPath(
+        path = Path().apply {
+            moveTo(pos.left + sides, pos.top)
+            lineTo(pos.right - sides, pos.top)
+            lineTo(pos.right, pos.top + sides)
+            lineTo(pos.right, pos.bottom - sides)
+            lineTo(pos.right - sides, pos.bottom)
+            lineTo(pos.left + sides, pos.bottom)
+            lineTo(pos.left, pos.bottom - sides)
+            lineTo(pos.left, pos.top + sides)
+            close()
+        },
+        color = color.color
+    )
+}
+
+fun Canvas.drawOctagon(
+    pos: RectF,
+    color: ColorAndShape
+) {
+    val sides = (pos.width() - (pos.width() * 0.414F)) / 2F
+    drawPath(
+        android.graphics.Path().apply {
+            moveTo(pos.left + sides, pos.top)
+            lineTo(pos.right - sides, pos.top)
+            lineTo(pos.right, pos.top + sides)
+            lineTo(pos.right, pos.bottom - sides)
+            lineTo(pos.right - sides, pos.bottom)
+            lineTo(pos.left + sides, pos.bottom)
+            lineTo(pos.left, pos.bottom - sides)
+            lineTo(pos.left, pos.top + sides)
             close()
         },
         Paint().apply { this.color = color.color.toArgb() }

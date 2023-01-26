@@ -432,6 +432,24 @@ enum class Shape(val group: ShapeGroup) : ShapersInterface {
         override fun draw(scope: Canvas, pos: RectF, color: ColorAndShape) {
             scope.drawLegoRound(pos, color)
         }
+    },
+    RoundedBox(ShapeGroup.BASIC) {
+        override fun draw(scope: DrawScope, pos: RectF, color: ColorAndShape) {
+            scope.drawRoundedBox(pos, color)
+        }
+
+        override fun draw(scope: Canvas, pos: RectF, color: ColorAndShape) {
+            scope.drawRoundedBox(pos, color)
+        }
+    },
+    Octagon(ShapeGroup.BASIC) {
+        override fun draw(scope: DrawScope, pos: RectF, color: ColorAndShape) {
+            scope.drawOctagon(pos, color)
+        }
+
+        override fun draw(scope: Canvas, pos: RectF, color: ColorAndShape) {
+            scope.drawOctagon(pos, color)
+        }
     }
 }
 
