@@ -32,26 +32,6 @@ fun Canvas.drawBox(
     drawRect(pos, Paint().apply { this.color = color.color.toArgb() })
 }
 
-fun DrawScope.drawRoundedBox(
-    pos: RectF,
-    color: ColorAndShape
-) {
-    drawRoundRect(
-        style = Fill,
-        topLeft = Offset(pos.left, pos.top),
-        size = Size(pos.width(), pos.height()),
-        color = color.color,
-        cornerRadius = CornerRadius(pos.width() * 0.3F, pos.width() * 0.3F)
-    )
-}
-
-fun Canvas.drawRoundedBox(
-    pos: RectF,
-    color: ColorAndShape
-) {
-    drawRoundRect(pos, pos.width() * 0.3F, pos.width() * 0.3F, Paint().apply { this.color = color.color.toArgb() })
-}
-
 fun DrawScope.drawLegoSquare(
     pos: RectF,
     color: ColorAndShape
@@ -326,6 +306,26 @@ fun Canvas.drawDiamond(
         },
         Paint().apply { this.color = color.color.toArgb() }
     )
+}
+
+fun DrawScope.drawRoundedBox(
+    pos: RectF,
+    color: ColorAndShape
+) {
+    drawRoundRect(
+        style = Fill,
+        topLeft = Offset(pos.left, pos.top),
+        size = Size(pos.width(), pos.height()),
+        color = color.color,
+        cornerRadius = CornerRadius(pos.width() * 0.3F, pos.width() * 0.3F)
+    )
+}
+
+fun Canvas.drawRoundedBox(
+    pos: RectF,
+    color: ColorAndShape
+) {
+    drawRoundRect(pos, pos.width() * 0.3F, pos.width() * 0.3F, Paint().apply { this.color = color.color.toArgb() })
 }
 
 fun DrawScope.drawOctagon(
