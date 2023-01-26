@@ -107,6 +107,12 @@ fun DrawerMenu(
                     contentDescription = stringResource(R.string.toggle_eraser)
                 )
                 IconSelectableMenuButton(
+                    onClick = { onAction(Action.SelectTool) },
+                    isSelected = { buttonsState.selectToolSelectedState },
+                    drawableResOn = R.drawable.ic_select_all_24,
+                    contentDescription = stringResource(R.string.select_and_move)
+                )
+                IconSelectableMenuButton(
                     onClick = { onAction(Action.ShowGrid) },
                     isSelected = { getProject().showGrid },
                     drawableResOn = R.drawable.ic_grid_on_24,
@@ -117,12 +123,6 @@ fun DrawerMenu(
                     isSelected = { getProject().showPngBg },
                     drawableResOn = R.drawable.ic_opacity_on_24,
                     contentDescription = stringResource(R.string.toggle_opacity_bg)
-                )
-                IconSelectableMenuButton(
-                    onClick = { onAction(Action.SelectTool) },
-                    isSelected = { buttonsState.selectToolSelectedState },
-                    drawableResOn = R.drawable.ic_select_all_24,
-                    contentDescription = stringResource(R.string.select_and_move)
                 )
             }
         }
