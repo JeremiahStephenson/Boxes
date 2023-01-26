@@ -323,11 +323,12 @@ class BoxesViewModel(
 
                 val dimens = when {
                     columns < rows -> {
-                        val newRows = ceil((columns / bitmap.width) * bitmap.height.toFloat())
+                        val newRows = ceil((columns.toFloat() / bitmap.width.toFloat()) * bitmap.height.toFloat())
                         columns to newRows.toInt()
                     }
                     rows < columns -> {
-                        val newCols = ceil((rows / bitmap.height) * bitmap.width.toFloat())
+                        val test = rows.toFloat() / bitmap.height.toFloat()
+                        val newCols = ceil((test) * bitmap.width.toFloat())
                         newCols.toInt() to rows
                     }
                     else -> {
