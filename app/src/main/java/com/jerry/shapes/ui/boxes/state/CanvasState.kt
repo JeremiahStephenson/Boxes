@@ -5,11 +5,12 @@ import android.graphics.RectF
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.snapshots.SnapshotStateMap
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Constraints
-import com.jerry.shapes.cache.data.HistoryItem
-import com.jerry.shapes.extensions.*
 import com.jerry.shapes.cache.data.ColorAndShape
+import com.jerry.shapes.extensions.adjust
+import com.jerry.shapes.extensions.filterNotNullValues
+import com.jerry.shapes.extensions.groupByQuadrant
+import com.jerry.shapes.extensions.quadrant
 import com.jerry.shapes.ui.boxes.data.LayerUi
 import com.jerry.shapes.ui.boxes.generateBoxes
 import com.jerry.shapes.ui.boxes.history.UserHistory
@@ -85,22 +86,6 @@ class CanvasState(
             if (!currentDragHistory.keys.contains(it)) {
                 currentDragHistory[it] = currentSelection[it]
             }
-        }
-    }
-
-    fun onUndo(layerId: Long?, historyItems: List<HistoryItem>) {
-        if (layerId == null) return
-        val layer = _selections.getOrPut(layerId) { mutableStateMapOf() }
-        val quads = historyItems.quadrants
-        quads.forEach {
-            val quad = layer.getOrPut(it.key) { mutableStateMapOf() }
-            val map = it.value.associate { historyItem ->
-                Point(historyItem.x, historyItem.y) to historyItem.color?.let { color ->
-                    ColorAndShape(Color(color), historyItem.shape ?: Shape.Box)
-                }
-            }
-            quad.keys.removeAll(map.keys)
-            quad.putAll(map.filterNotNullValues())
         }
     }
 

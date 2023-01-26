@@ -19,7 +19,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.jerry.shapes.cache.data.ColorAndShape
-import com.jerry.shapes.cache.data.HistoryItem
 import com.jerry.shapes.cache.data.Project
 import com.jerry.shapes.extensions.*
 import com.jerry.shapes.repository.BoxesRepository
@@ -211,15 +210,31 @@ class BoxesViewModel(
         }
     }
 
-    suspend fun getLastHistoryItem(layerId: Long): List<HistoryItem> {
-        return boxesRepository.getLastHistoryItem(layerId)
-    }
-
     suspend fun addUsedColor(color: ColorAndShape) {
         colorsMutex.withLock {
             usedColorsHandle?.addIfNotFound(color)
             if ((usedColorsHandle?.size ?: 0) > 10) {
                 usedColorsHandle?.removeFirst()
+            }
+        }
+    }
+
+    private var undoJob: Job? = null
+    fun onUndo(layerId: Long?) {
+        if (undoJob?.isActive == true) return
+        undoJob = viewModelScope.launch(cc.io) {
+            if (layerId == null) return@launch
+            val layer = pixelsFlow.value.data?.getOrPut(layerId) { mutableStateMapOf() }
+            val quads = boxesRepository.getLastHistoryItem(layerId).quadrants
+            quads.forEach {
+                val quad = layer?.getOrPut(it.key) { mutableStateMapOf() }
+                val map = it.value.associate { historyItem ->
+                    Point(historyItem.x, historyItem.y) to historyItem.color?.let { color ->
+                        ColorAndShape(Color(color), historyItem.shape ?: Shape.Box)
+                    }
+                }
+                quad?.keys?.removeAll(map.keys)
+                quad?.putAll(map.filterNotNullValues())
             }
         }
     }
