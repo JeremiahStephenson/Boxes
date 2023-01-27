@@ -14,11 +14,14 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.jerry.shapes.R
 import com.jerry.shapes.ui.common.*
 import com.jerry.shapes.ui.layers.data.LayerEditUi
@@ -163,7 +166,12 @@ private fun LazyItemScope.LayerItem(
                 .fillMaxWidth()
                 .padding(bottom = 24.dp)
         ) {
-            AsyncImage(
+            val context = LocalContext.current
+            val request = ImageRequest.Builder(context)
+                .data(layer.image)
+                .crossfade(true)
+                .build()
+            ProjectImage(
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
                     .size(CANVAS_SIZE)
@@ -171,8 +179,8 @@ private fun LazyItemScope.LayerItem(
                         visible = showOpacity(),
                         size = with(LocalDensity.current) { 10.dp.toPx() }
                     ),
-                model = layer.image,
-                contentDescription = null
+                imageRequest = request,
+                contentScale = ContentScale.Fit
             )
             var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
             var showNameDialog by rememberSaveable { mutableStateOf(false) }

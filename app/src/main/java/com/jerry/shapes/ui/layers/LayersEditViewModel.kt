@@ -27,32 +27,43 @@ class LayersEditViewModel(
 ) : ViewModel() {
 
     private val cachedBitmaps = HashMap<Long, Bitmap>()
+    private var lastProjectTimestamp: Long? = null
 
     private val projectId = BoxesMainDestination.argsFrom(handle).projectId
 
     val projectFlow = boxesDao.getFullProjectFlowById(projectId)
         .filterNotNull()
         .map {
+            val projectHasChanged = lastProjectTimestamp != null && lastProjectTimestamp != it.project.timestamp
+            lastProjectTimestamp = it.project.timestamp
             val layers = it.layers.sortedByDescending { layer -> layer.layer.index }.map { layer ->
                 LayerEditUi(
                     layer.layer.id,
                     layer.layer.index,
                     layer.layer.name,
-                    cachedBitmaps.getOrPut(
-                        layer.layer.id
-                    ) {
-                        generateBitmap(
+                    when (projectHasChanged) {
+                        true -> generateBitmap(
                             it.project.rows,
                             it.project.columns,
                             200,
                             layer.layer.id,
                             generateSelections(layer.pixels)
-                        )
+                        ).also { bitmap -> cachedBitmaps.put(layer.layer.id, bitmap) }
+                        else -> cachedBitmaps.getOrPut(
+                            layer.layer.id
+                        ) {
+                            generateBitmap(
+                                it.project.rows,
+                                it.project.columns,
+                                200,
+                                layer.layer.id,
+                                generateSelections(layer.pixels)
+                            )
+                        }
                     }
                 )
             }
             ProjectUi(it.project.id, it.project.name, layers)
-            // it.copy(layers = it.layers.sortedByDescending { layer -> layer.layer.index })
         }
         .stateIn(
             viewModelScope,

@@ -4,7 +4,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.graphics.Point
-import android.graphics.RectF
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
@@ -37,9 +36,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeout
 import java.util.*
-import kotlin.collections.HashMap
 import kotlin.math.ceil
-import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
 
@@ -240,8 +237,8 @@ class BoxesViewModel(
                     quad?.keys?.removeAll(map.keys)
                     quad?.putAll(map.filterNotNullValues())
                 }
-            } catch (t : Throwable) {
-                // todo
+            } catch (t: Throwable) {
+                _uiEventFlow.emit(UiEvent.Error(t.message))
             }
             _loading.value = false
         }
