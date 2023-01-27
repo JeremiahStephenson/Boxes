@@ -53,6 +53,7 @@ class CanvasState(
     private var currentDragHistory: MutableMap<Point, ColorAndShape?> = mutableMapOf()
 
     fun clear() {
+        if (isLoading) return
         val selectedLayer = layers.firstOrNull { it.selected }
         selectedLayer?.let {
             _selections[it.id]?.forEach { (_, points) ->
@@ -131,37 +132,6 @@ class CanvasState(
                         else -> map.putAll(list.associateWith { currentColor })
                     }
                 }
-        }
-    }
-
-    fun move(topLeft: Point?, bottomRight: Point?, direction: Direction): UserHistory? {
-        return try {
-            if (topLeft == null || bottomRight == null) return null
-            val points = HashSet<Point>()
-            for (c in min(topLeft.x, bottomRight.x)..max(topLeft.x, bottomRight.x)) {
-                for (r in min(topLeft.y, bottomRight.y)..max(topLeft.y, bottomRight.y)) {
-                    points.add(Point(c, r))
-                }
-            }
-            val layer = _selections[selectedLayer.id]
-            val history = mutableMapOf<Point, ColorAndShape?>()
-
-            val list = layer?.flatMap { it.value.keys }?.filter { points.contains(it) }
-            val adjusted = list?.map { entry ->
-                entry.adjust(direction) to layer[entry.quadrant]?.get(entry)
-            }?.toMap() ?: emptyMap()
-            val merged = list?.union(adjusted.keys)?.toSet() ?: emptySet()
-            history.putAll(getCurrentSelections(merged, selectedLayer.id, filter = false))
-
-            adjusted.keys.groupByQuadrant.forEach { (t, u) ->
-                layer?.get(t)?.keys?.removeAll(merged)
-                u.associateWith { adjusted[it] }.filterNotNullValues()
-                    .let { layer?.get(t)?.putAll(it) }
-            }
-            UserHistory(selectedLayer.id, history)
-        } catch (t: Throwable) {
-            onError(null)
-            null
         }
     }
 

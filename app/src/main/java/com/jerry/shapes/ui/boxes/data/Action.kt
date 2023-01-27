@@ -23,7 +23,7 @@ sealed class Action {
     data class ImageImport(val uri: Uri, val layerId: Long) : Action()
     data class SetColor(val color: ColorAndShape) : Action()
     data class SetShape(val shape: Shape) : Action()
-    data class Move(val direction: Direction) : Action()
+    data class Move(val layerId: Long, val direction: Direction) : Action()
     data class Fill(val point: Point, val layerId: Long) : Action()
     data class SetTapType(val tapType: TapType) : Action()
     data class Export(val size: Int, val exportType: ExportType) : Action()

@@ -161,9 +161,7 @@ class BoxesRepository(
             history?.let {
                 boxesDao.findAllHistoryItems(history.id)
             } ?: emptyList()
-            ).also {
-            history?.let { boxesDao.deleteHistory(it.id) }
-        }
+            ).also { history?.let { boxesDao.deleteHistory(it.id) } }
     }
 
     suspend fun deleteInvalidHistoryItems() {

@@ -25,6 +25,7 @@ import com.jerry.shapes.repository.BoxesRepository
 import com.jerry.shapes.ui.boxes.data.LayerUi
 import com.jerry.shapes.ui.boxes.data.UiEvent
 import com.jerry.shapes.ui.boxes.history.UserHistory
+import com.jerry.shapes.ui.boxes.state.enums.Direction
 import com.jerry.shapes.ui.destinations.BoxesMainDestination
 import com.jerry.shapes.ui.shapes.Shape
 import com.jerry.shapes.util.*
@@ -39,6 +40,7 @@ import java.util.*
 import kotlin.collections.HashMap
 import kotlin.math.ceil
 import kotlin.math.floor
+import kotlin.math.max
 import kotlin.math.min
 
 class BoxesViewModel(
@@ -222,21 +224,26 @@ class BoxesViewModel(
 
     private var undoJob: Job? = null
     fun onUndo(layerId: Long?) {
-        if (undoJob?.isActive == true) return
+        if (undoJob?.isActive == true || layerId == null || _loading.value) return
         undoJob = viewModelScope.launch(cc.io) {
-            if (layerId == null) return@launch
-            val layer = pixelsFlow.value.data?.getOrPut(layerId) { mutableStateMapOf() }
-            val quads = boxesRepository.getLastHistoryItem(layerId).quadrants
-            quads.forEach {
-                val quad = layer?.getOrPut(it.key) { mutableStateMapOf() }
-                val map = it.value.associate { historyItem ->
-                    Point(historyItem.x, historyItem.y) to historyItem.color?.let { color ->
-                        ColorAndShape(Color(color), historyItem.shape ?: Shape.Box)
+            _loading.value = true
+            try {
+                val layer = pixelsFlow.value.data?.getOrPut(layerId) { mutableStateMapOf() }
+                val quads = boxesRepository.getLastHistoryItem(layerId).quadrants
+                quads.forEach {
+                    val quad = layer?.getOrPut(it.key) { mutableStateMapOf() }
+                    val map = it.value.associate { historyItem ->
+                        Point(historyItem.x, historyItem.y) to historyItem.color?.let { color ->
+                            ColorAndShape(Color(color), historyItem.shape ?: Shape.Box)
+                        }
                     }
+                    quad?.keys?.removeAll(map.keys)
+                    quad?.putAll(map.filterNotNullValues())
                 }
-                quad?.keys?.removeAll(map.keys)
-                quad?.putAll(map.filterNotNullValues())
+            } catch (t : Throwable) {
+                // todo
             }
+            _loading.value = false
         }
     }
 
@@ -381,6 +388,44 @@ class BoxesViewModel(
                             .let { l.getOrPut(quad) { mutableStateMapOf() }.putAll(it) }
                     }
                 }
+            } catch (t: Throwable) {
+                _uiEventFlow.emit(UiEvent.Error(t.message))
+            }
+            _loading.value = false
+        }
+    }
+
+    private var moveJob: Job? = null
+    fun move(layerId: Long, topLeft: Point?, bottomRight: Point?, direction: Direction) {
+        if (moveJob?.isActive == true || _loading.value || topLeft == null || bottomRight == null) return
+        moveJob = viewModelScope.launch(cc.io) {
+            _loading.value = true
+            try {
+                val points = HashSet<Point>()
+                for (c in min(topLeft.x, bottomRight.x)..max(topLeft.x, bottomRight.x)) {
+                    for (r in min(topLeft.y, bottomRight.y)..max(topLeft.y, bottomRight.y)) {
+                        points.add(Point(c, r))
+                    }
+                }
+                val layer = pixelsFlow.value.data?.get(layerId)
+                val history = mutableMapOf<Point, ColorAndShape?>()
+
+                val list = layer?.flatMap { it.value.keys }?.filter { points.contains(it) }
+                val adjusted = list?.map { entry ->
+                    entry.adjust(direction) to layer[entry.quadrant]?.get(entry)
+                }?.toMap() ?: emptyMap()
+                val merged = list?.union(adjusted.keys)?.toSet() ?: emptySet()
+                val currentSelection =
+                    layer?.let { l -> merged.associateWith { l[it.quadrant]?.get(it) } } ?: emptyMap()
+                history.putAll(currentSelection)
+
+                adjusted.keys.groupByQuadrant.forEach { (t, u) ->
+                    layer?.get(t)?.keys?.removeAll(merged)
+                    u.associateWith { adjusted[it] }.filterNotNullValues()
+                        .let { layer?.get(t)?.putAll(it) }
+                }
+                addToHistory(UserHistory(layerId, history))
+                _uiEventFlow.emit(UiEvent.MoveSelection(direction))
             } catch (t: Throwable) {
                 _uiEventFlow.emit(UiEvent.Error(t.message))
             }

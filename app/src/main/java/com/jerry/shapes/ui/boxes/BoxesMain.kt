@@ -1,11 +1,8 @@
 package com.jerry.shapes.ui.boxes
 
 import android.content.Context
-import android.content.Intent
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -18,8 +15,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalWindowInfo
-import androidx.compose.ui.platform.WindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -28,7 +23,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jerry.shapes.R
 import com.jerry.shapes.cache.data.ColorAndShape
 import com.jerry.shapes.cache.data.Project
-import com.jerry.shapes.extensions.safeLet
 import com.jerry.shapes.ui.boxes.data.Action
 import com.jerry.shapes.ui.boxes.data.UiEvent
 import com.jerry.shapes.ui.boxes.history.UserHistory
@@ -163,12 +157,12 @@ fun BoxesMain(
                     )
                 }
             }
-            if (canvasState.isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center)
-                )
+            FadeAnimatedVisibility(
+                modifier = Modifier.align(Alignment.Center),
+                visible = canvasState.isLoading
+            ) {
+                CircularProgressIndicator()
             }
-
             val snackBarHostState = remember { SnackbarHostState() }
             SnackBarImageLocator(snackBarHostState = snackBarHostState)
             LaunchedEffect(Unit) {
@@ -187,6 +181,9 @@ fun BoxesMain(
                             else -> {
                                 it.filePath?.let { context.openShareSheet(it) }
                             }
+                        }
+                        is UiEvent.MoveSelection -> {
+                            selectionState.move(it.direction)
                         }
                     }
                 }
@@ -285,24 +282,26 @@ private fun MainCanvas(
                                 onAction(Action.SetColor(it))
                             }
                             TapType.TAP -> {
-                                onAction(
-                                    Action.AddToHistory(
-                                        canvasState.getTapHistoryItem(point, currentLayer)
+                                if (!canvasState.isLoading) {
+                                    onAction(
+                                        Action.AddToHistory(
+                                            canvasState.getTapHistoryItem(point, currentLayer)
+                                        )
                                     )
-                                )
-                                canvasState.onTap(
-                                    point,
-                                    currentLayer,
-                                    projectState.colorAndShape,
-                                    projectState.currentShape
-                                )
+                                    canvasState.onTap(
+                                        point,
+                                        currentLayer,
+                                        projectState.colorAndShape,
+                                        projectState.currentShape
+                                    )
+                                }
                             }
                             TapType.FILL -> onAction(Action.Fill(point, currentLayer))
                         }
                     }
                 },
                 onDrag = {
-                    if (canvasState.hasLayersTurnedOn) {
+                    if (canvasState.hasLayersTurnedOn && !canvasState.isLoading) {
                         val color = projectState.colorAndShape
                             .copy(shape = projectState.currentShape)
                         canvasState.addToDragHistory(
@@ -319,7 +318,7 @@ private fun MainCanvas(
                 },
                 onDragStart = {},
                 onDragEnd = {
-                    if (canvasState.hasLayersTurnedOn) {
+                    if (canvasState.hasLayersTurnedOn && !canvasState.isLoading) {
                         onAction(
                             Action.AddToHistory(
                                 canvasState.closeDragHistory(currentLayer)
@@ -350,6 +349,7 @@ private fun MainCanvas(
         )
 
         AdditionalButtonBar(
+            canvasState = canvasState,
             buttonsState = buttonsState,
             selectionState = selectionState,
             columns = project.columns,
@@ -454,6 +454,7 @@ private fun ButtonBar(
 
 @Composable
 private fun AdditionalButtonBar(
+    canvasState: CanvasState,
     buttonsState: ButtonsState,
     selectionState: SelectionState,
     columns: Int,
@@ -498,7 +499,14 @@ private fun AdditionalButtonBar(
             ) {
                 IconMenuButton(
                     enabled = !isAtLeftEdge && enabled,
-                    onClick = { onAction(Action.Move(Direction.LEFT)) },
+                    onClick = {
+                        onAction(
+                            Action.Move(
+                                canvasState.selectedLayer.id,
+                                Direction.LEFT
+                            )
+                        )
+                    },
                     drawableRes = R.drawable.ic_arrow_back_24,
                     contentDescription = stringResource(R.string.move_left)
                 )
@@ -511,7 +519,14 @@ private fun AdditionalButtonBar(
                     }
                     IconMenuButton(
                         enabled = !isAtTopEdge && enabled,
-                        onClick = { onAction(Action.Move(Direction.UP)) },
+                        onClick = {
+                            onAction(
+                                Action.Move(
+                                    canvasState.selectedLayer.id,
+                                    Direction.UP
+                                )
+                            )
+                        },
                         drawableRes = R.drawable.ic_arrow_upward_24,
                         contentDescription = stringResource(R.string.move_up)
                     )
@@ -523,7 +538,14 @@ private fun AdditionalButtonBar(
                     }
                     IconMenuButton(
                         enabled = !isAtBottomEdge && enabled,
-                        onClick = { onAction(Action.Move(Direction.DOWN)) },
+                        onClick = {
+                            onAction(
+                                Action.Move(
+                                    canvasState.selectedLayer.id,
+                                    Direction.DOWN
+                                )
+                            )
+                        },
                         drawableRes = R.drawable.ic_arrow_downward_24,
                         contentDescription = stringResource(R.string.move_down)
                     )
@@ -536,7 +558,14 @@ private fun AdditionalButtonBar(
                 }
                 IconMenuButton(
                     enabled = !isAtRightEdge && enabled,
-                    onClick = { onAction(Action.Move(Direction.RIGHT)) },
+                    onClick = {
+                        onAction(
+                            Action.Move(
+                                canvasState.selectedLayer.id,
+                                Direction.RIGHT
+                            )
+                        )
+                    },
                     drawableRes = R.drawable.ic_arrow_forward_24,
                     contentDescription = stringResource(R.string.move_right)
                 )
@@ -641,25 +670,21 @@ private fun handleAction(
         is Action.SelectTool -> buttonsState.toggleSelectTool()
         is Action.ClearSelect -> selectionState.clear()
         is Action.Move -> {
-            scope.launch {
-                safeLet(
-                    selectionState.topLeftState,
-                    selectionState.bottomRightState
-                ) { tl, br ->
-                    canvasState.move(
-                        tl,
-                        br,
-                        action.direction
-                    )?.let {
-                        viewModel.addToHistory(it)
-                        selectionState.move(action.direction)
-                    }
-                }
-            }
+            viewModel.move(
+                action.layerId,
+                selectionState.topLeftState,
+                selectionState.bottomRightState,
+                action.direction
+            )
         }
-        is Action.ImageImport -> {
-            viewModel.importImage(context, action.layerId, project?.columns, project?.rows, action.uri)
-        }
+        is Action.ImageImport ->
+            viewModel.importImage(
+                context,
+                action.layerId,
+                project?.columns,
+                project?.rows,
+                action.uri
+            )
     }
 }
 
