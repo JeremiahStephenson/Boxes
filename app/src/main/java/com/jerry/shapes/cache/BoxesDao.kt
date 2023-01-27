@@ -80,6 +80,9 @@ interface BoxesDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertHistoryItem(historyItem: HistoryItem)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertHistoryItems(historyItems: List<HistoryItem>)
+
     @Query("SELECT MAX(`index`) FROM history WHERE layerId = :layerId")
     suspend fun findMaxIndexForHistory(layerId: Long): Int
 

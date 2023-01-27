@@ -135,8 +135,8 @@ class BoxesRepository(
             val historyId = boxesDao.insertHistory(
                 History(layerId, index + 1, Instant.now().toEpochMilli())
             )
-            points.forEach { (point, color) ->
-                boxesDao.insertHistoryItem(
+            boxesDao.insertHistoryItems(
+                points.map { (point, color) ->
                     HistoryItem(
                         historyId,
                         point.x,
@@ -144,8 +144,8 @@ class BoxesRepository(
                         color?.color?.toArgb(),
                         color?.shape
                     )
-                )
-            }
+                }
+            )
             if (index >= MAX_HISTORY_PER_LAYER) {
                 val diff = max(index - MAX_HISTORY_PER_LAYER, 1)
                 boxesDao.cleanHistory(diff, layerId)
