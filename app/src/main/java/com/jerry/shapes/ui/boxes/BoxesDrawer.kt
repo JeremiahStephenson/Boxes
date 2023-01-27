@@ -168,28 +168,28 @@ fun DrawerMenu(
             }
         }
 
-        item {
-            ButtonSection(R.string.experimental) {
-                val context = LocalContext.current
-                val launcher =
-                    rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-                        uri?.let {
-                            context.contentResolver.takePersistableUriPermission(
-                                uri,
-                                Intent.FLAG_GRANT_READ_URI_PERMISSION
-                            )
-                            onAction(Action.ImageImport(it, canvasState.selectedLayer.id))
-                        }
-                    }
-                IconMenuButton(
-                    onClick = {
-                        launcher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                    },
-                    drawableRes = R.drawable.ic_upload_file_24,
-                    contentDescription = ""
-                )
-            }
-        }
+//        item {
+//            ButtonSection(R.string.experimental) {
+//                val context = LocalContext.current
+//                val launcher =
+//                    rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+//                        uri?.let {
+//                            context.contentResolver.takePersistableUriPermission(
+//                                uri,
+//                                Intent.FLAG_GRANT_READ_URI_PERMISSION
+//                            )
+//                            onAction(Action.ImageImport(it, canvasState.selectedLayer.id))
+//                        }
+//                    }
+//                IconMenuButton(
+//                    onClick = {
+//                        launcher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+//                    },
+//                    drawableRes = R.drawable.ic_upload_file_24,
+//                    contentDescription = ""
+//                )
+//            }
+//        }
 
         item {
             ButtonSection(R.string.clear) {

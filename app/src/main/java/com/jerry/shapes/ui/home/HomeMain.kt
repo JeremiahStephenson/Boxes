@@ -78,7 +78,7 @@ fun HomeMain(
 
         LazyVerticalStaggeredGrid(
             modifier = Modifier.fillMaxSize(),
-            columns = StaggeredGridCells.Adaptive(125.dp),
+            columns = StaggeredGridCells.Adaptive(150.dp),
             contentPadding = PaddingValues(
                 bottom = 84.dp,
                 top = 16.dp,

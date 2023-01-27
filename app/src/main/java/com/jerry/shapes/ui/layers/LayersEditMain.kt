@@ -39,7 +39,7 @@ fun LayersEditMain(
 ) {
     var showOpacity by rememberSaveable { mutableStateOf(false) }
     DefaultContainer(
-        title = stringResource(R.string.edit),
+        title = stringResource(R.string.edit_layers),
         appBarActions = {
             IconSelectableMenuButton(
                 onClick = { showOpacity = !showOpacity },

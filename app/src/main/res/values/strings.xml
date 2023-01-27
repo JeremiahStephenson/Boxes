@@ -15,6 +15,7 @@
     <string name="clear">Clear Layer</string>
     <string name="layers">Layers</string>
     <string name="error">Error</string>
+    <string name="edit_layers">Layers Edit</string>
 
     <string name="image_size">Image Size:</string>
     <string name="extra_small">X Small</string>
