@@ -70,9 +70,7 @@ fun BoxesMain(
     val context = LocalContext.current
 
     val genericError = stringResource(R.string.generic_error)
-    val canvasState = rememberCanvasState(viewModel) {
-        Toast.makeText(context, it ?: genericError, Toast.LENGTH_LONG).show()
-    }
+    val canvasState = rememberCanvasState(viewModel)
 
     val buttonsState = rememberSaveable {
         ButtonsState(
@@ -704,8 +702,7 @@ private fun saveProject(
 
 @Composable
 private fun rememberCanvasState(
-    viewModel: BoxesViewModel,
-    onError: (String?) -> Unit
+    viewModel: BoxesViewModel
 ): CanvasState {
     val layerState = viewModel.layerStateFlow.collectAsStateWithLifecycle(emptyList())
     val pixelsState = viewModel.pixelsFlow.collectAsStateWithLifecycle()
@@ -718,8 +715,7 @@ private fun rememberCanvasState(
             viewModel.layersOrderStateList,
             loadingState,
             historyCountState,
-            pixelsState,
-            onError
+            pixelsState
         )
     }
 }

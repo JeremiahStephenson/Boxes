@@ -27,8 +27,7 @@ class CanvasState(
     private val layerOrderState: SnapshotStateList<Long>,
     private val loadingState: State<Boolean>,
     private val historyCountState: State<Int>,
-    private val snapShot: State<Resource<SnapshotStateMap<Long, SnapshotStateMap<Point, SnapshotStateMap<Point, ColorAndShape>>>>>,
-    private val onError: (String?) -> Unit = {}
+    private val snapShot: State<Resource<SnapshotStateMap<Long, SnapshotStateMap<Point, SnapshotStateMap<Point, ColorAndShape>>>>>
 ) {
     private val _boxes = mutableStateMapOf<Point, RectF>()
 

@@ -32,6 +32,7 @@ import com.jerry.shapes.ui.boxes.state.CanvasState
 import com.jerry.shapes.ui.boxes.state.SelectionState
 import com.jerry.shapes.ui.common.LocalAppBarHeight
 import com.jerry.shapes.ui.common.pngBackground
+import timber.log.Timber
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.pow
@@ -333,45 +334,50 @@ private fun Grid(
                 translationY = offset.y
             }
     ) {
-        for (i in 0 until rows) {
-            safeLet(
-                canvasState.boxes[Point(0, i)],
-                canvasState.boxes[Point(columns - 1, i)]
-            ) { start, end ->
-                drawLine(
-                    strokeWidth = strokeWidth / scale,
-                    color = strokeColor,
-                    start = Offset(start.left, start.top),
-                    end = Offset(end.right, end.top)
-                )
-                if (i == rows - 1) {
+        val boxSize = (canvasState.boxes[Point(0, 0)]?.width() ?: 0F) * scale
+        val stroke = strokeWidth / scale
+        val strokeSpace = stroke * 2
+        if (boxSize > strokeSpace) {
+            for (i in 0 until rows) {
+                safeLet(
+                    canvasState.boxes[Point(0, i)],
+                    canvasState.boxes[Point(columns - 1, i)]
+                ) { start, end ->
                     drawLine(
-                        strokeWidth = strokeWidth / scale,
+                        strokeWidth = stroke,
                         color = strokeColor,
-                        start = Offset(start.left, start.bottom),
-                        end = Offset(end.right, end.bottom)
+                        start = Offset(start.left, start.top),
+                        end = Offset(end.right, end.top)
                     )
+                    if (i == rows - 1) {
+                        drawLine(
+                            strokeWidth = stroke,
+                            color = strokeColor,
+                            start = Offset(start.left, start.bottom),
+                            end = Offset(end.right, end.bottom)
+                        )
+                    }
                 }
             }
-        }
-        for (i in 0 until columns) {
-            safeLet(
-                canvasState.boxes[Point(i, 0)],
-                canvasState.boxes[Point(i, rows - 1)]
-            ) { start, end ->
-                drawLine(
-                    strokeWidth = strokeWidth / scale,
-                    color = strokeColor,
-                    start = Offset(start.left, start.top),
-                    end = Offset(end.left, end.bottom)
-                )
-                if (i == columns - 1) {
+            for (i in 0 until columns) {
+                safeLet(
+                    canvasState.boxes[Point(i, 0)],
+                    canvasState.boxes[Point(i, rows - 1)]
+                ) { start, end ->
                     drawLine(
-                        strokeWidth = strokeWidth / scale,
+                        strokeWidth = stroke,
                         color = strokeColor,
-                        start = Offset(start.right, start.top),
-                        end = Offset(end.right, end.bottom)
+                        start = Offset(start.left, start.top),
+                        end = Offset(end.left, end.bottom)
                     )
+                    if (i == columns - 1) {
+                        drawLine(
+                            strokeWidth = stroke,
+                            color = strokeColor,
+                            start = Offset(start.right, start.top),
+                            end = Offset(end.right, end.bottom)
+                        )
+                    }
                 }
             }
         }
