@@ -1,4 +1,4 @@
-package com.jerry.shapes.ui.boxes
+package com.jerry.shapes.util
 
 import android.graphics.Bitmap
 import android.graphics.Canvas

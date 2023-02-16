@@ -10,7 +10,7 @@ import com.jerry.shapes.cache.BoxesDatabase
 import com.jerry.shapes.cache.data.*
 import com.jerry.shapes.extensions.logError
 import com.jerry.shapes.ui.boxes.data.LayerUi
-import com.jerry.shapes.ui.boxes.generateSelections
+import com.jerry.shapes.util.generateSelections
 import com.jerry.shapes.ui.shapes.Shape
 import com.jerry.shapes.util.CoroutineContextProvider
 import com.jerry.shapes.util.ExportType

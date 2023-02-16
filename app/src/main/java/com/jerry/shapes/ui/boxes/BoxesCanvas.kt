@@ -32,7 +32,8 @@ import com.jerry.shapes.ui.boxes.state.CanvasState
 import com.jerry.shapes.ui.boxes.state.SelectionState
 import com.jerry.shapes.ui.common.LocalAppBarHeight
 import com.jerry.shapes.ui.common.pngBackground
-import timber.log.Timber
+import com.jerry.shapes.util.QUADRANT_SIZE
+import com.jerry.shapes.util.drawShapes
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.pow

@@ -420,7 +420,7 @@ private fun RowScope.SizeButton(
 
 private const val COLUMN_COUNT = 4
 private const val HIGHEST_QUALITY = 12800
-private const val LOWEST_QUALITY = 50
+private const val LOWEST_QUALITY = 10
 
 private const val XSMALL = 256
 private const val SMALL = 512

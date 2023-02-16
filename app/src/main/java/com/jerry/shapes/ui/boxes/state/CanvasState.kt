@@ -7,14 +7,11 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.unit.Constraints
 import com.jerry.shapes.cache.data.ColorAndShape
-import com.jerry.shapes.extensions.adjust
-import com.jerry.shapes.extensions.filterNotNullValues
 import com.jerry.shapes.extensions.groupByQuadrant
 import com.jerry.shapes.extensions.quadrant
 import com.jerry.shapes.ui.boxes.data.LayerUi
-import com.jerry.shapes.ui.boxes.generateBoxes
+import com.jerry.shapes.util.generateBoxes
 import com.jerry.shapes.ui.boxes.history.UserHistory
-import com.jerry.shapes.ui.boxes.state.enums.Direction
 import com.jerry.shapes.ui.shapes.Shape
 import com.jerry.shapes.util.Resource
 import kotlin.math.max

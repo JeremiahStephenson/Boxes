@@ -9,7 +9,6 @@ import androidx.core.content.FileProvider
 import com.jerry.shapes.R
 import com.jerry.shapes.cache.data.ColorAndShape
 import com.jerry.shapes.ui.boxes.data.LayerUi
-import com.jerry.shapes.ui.boxes.generateBitmap
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat

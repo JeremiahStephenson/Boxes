@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.*
 import androidx.compose.ui.window.Popup
 import com.jerry.shapes.R
 import com.jerry.shapes.cache.data.ColorAndShape
-import com.jerry.shapes.ui.boxes.drawCustomShape
+import com.jerry.shapes.util.drawCustomShape
 import com.jerry.shapes.ui.shapes.Shape
 import com.jerry.shapes.util.TooltipPositionProvider
 import kotlinx.coroutines.delay

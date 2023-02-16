@@ -36,6 +36,38 @@ fun Canvas.drawCornerArcRight(
     )
 }
 
+fun DrawScope.drawCornerArcRightSmall(
+    pos: RectF,
+    color: ColorAndShape
+) {
+    drawArc(
+        startAngle = -90F,
+        sweepAngle = 90F,
+        useCenter = true,
+        topLeft = Offset(pos.left - (pos.width() / 2), pos.top + (pos.height() / 2)),
+        size = Size(pos.width(), pos.height()),
+        color = color.color
+    )
+}
+
+fun Canvas.drawCornerArcRightSmall(
+    pos: RectF,
+    color: ColorAndShape
+) {
+    drawArc(
+        RectF(
+            pos.left - (pos.width() / 2),
+            pos.top + (pos.height() / 2),
+            pos.right - (pos.width() / 2),
+            pos.bottom + (pos.height() / 2)
+        ),
+        -90F,
+        90F,
+        true,
+        Paint().apply { this.color = color.color.toArgb() }
+    )
+}
+
 fun DrawScope.drawCornerArcLeft(
     pos: RectF,
     color: ColorAndShape
@@ -56,6 +88,38 @@ fun Canvas.drawCornerArcLeft(
 ) {
     drawArc(
         RectF(pos.left, pos.top, pos.right + pos.width(), pos.bottom + pos.height()),
+        -90F,
+        -90F,
+        true,
+        Paint().apply { this.color = color.color.toArgb() }
+    )
+}
+
+fun DrawScope.drawCornerArcLeftSmall(
+    pos: RectF,
+    color: ColorAndShape
+) {
+    drawArc(
+        startAngle = -90F,
+        sweepAngle = -90F,
+        useCenter = true,
+        topLeft = Offset(pos.left + (pos.width() / 2), pos.top + (pos.height() / 2)),
+        size = Size(pos.width(), pos.height()),
+        color = color.color
+    )
+}
+
+fun Canvas.drawCornerArcLeftSmall(
+    pos: RectF,
+    color: ColorAndShape
+) {
+    drawArc(
+        RectF(
+            pos.left + (pos.width() / 2),
+            pos.top + (pos.height() / 2),
+            pos.right + (pos.width() / 2),
+            pos.bottom + (pos.height() / 2)
+        ),
         -90F,
         -90F,
         true,
@@ -90,6 +154,38 @@ fun Canvas.drawCornerArcRightInverse(
     )
 }
 
+fun DrawScope.drawCornerArcRightInverseSmall(
+    pos: RectF,
+    color: ColorAndShape
+) {
+    drawArc(
+        startAngle = 0F,
+        sweepAngle = 90F,
+        useCenter = true,
+        topLeft = Offset(pos.left - (pos.width() / 2), pos.top - (pos.height() / 2)),
+        size = Size(pos.width(), pos.height()),
+        color = color.color
+    )
+}
+
+fun Canvas.drawCornerArcRightInverseSmall(
+    pos: RectF,
+    color: ColorAndShape
+) {
+    drawArc(
+        RectF(
+            pos.left - (pos.width() / 2),
+            pos.top - (pos.height() / 2),
+            pos.right - (pos.width() / 2),
+            pos.bottom - (pos.height() / 2)
+        ),
+        0F,
+        90F,
+        true,
+        Paint().apply { this.color = color.color.toArgb() }
+    )
+}
+
 fun DrawScope.drawCornerArcLeftInverse(
     pos: RectF,
     color: ColorAndShape
@@ -110,6 +206,38 @@ fun Canvas.drawCornerArcLeftInverse(
 ) {
     drawArc(
         RectF(pos.left, pos.top - pos.height(), pos.right + pos.width(), pos.bottom),
+        90F,
+        90F,
+        true,
+        Paint().apply { this.color = color.color.toArgb() }
+    )
+}
+
+fun DrawScope.drawCornerArcLeftInverseSmall(
+    pos: RectF,
+    color: ColorAndShape
+) {
+    drawArc(
+        startAngle = 90F,
+        sweepAngle = 90F,
+        useCenter = true,
+        topLeft = Offset(pos.left + (pos.width() / 2), pos.top - (pos.height() / 2)),
+        size = Size(pos.width(), pos.height()),
+        color = color.color
+    )
+}
+
+fun Canvas.drawCornerArcLeftInverseSmall(
+    pos: RectF,
+    color: ColorAndShape
+) {
+    drawArc(
+        RectF(
+            pos.left + (pos.width() / 2),
+            pos.top - (pos.height() / 2),
+            pos.right + (pos.width() / 2),
+            pos.bottom - (pos.height() / 2)
+        ),
         90F,
         90F,
         true,
@@ -190,7 +318,7 @@ fun Canvas.drawArcLeft(
     color: ColorAndShape
 ) {
     drawArc(
-        RectF(pos.left - (pos.width() / 2), pos.top, pos.right- (pos.width() / 2), pos.bottom),
+        RectF(pos.left - (pos.width() / 2), pos.top, pos.right - (pos.width() / 2), pos.bottom),
         -90F,
         180F,
         true,

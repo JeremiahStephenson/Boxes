@@ -9,7 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
-import com.jerry.shapes.ui.boxes.pngBackground
+import com.jerry.shapes.util.pngBackground
 
 @OptIn(ExperimentalFoundationApi::class)
 fun Modifier.unboundClickable(

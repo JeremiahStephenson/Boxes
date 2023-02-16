@@ -192,6 +192,42 @@ enum class Shape(val group: ShapeGroup) : ShapersInterface {
             scope.drawCornerArcLeftInverse(pos, color)
         }
     },
+    ArcCornerRightSmall(ShapeGroup.CORNER_ARC) {
+        override fun draw(scope: DrawScope, pos: RectF, color: ColorAndShape) {
+            scope.drawCornerArcRightSmall(pos, color)
+        }
+
+        override fun draw(scope: Canvas, pos: RectF, color: ColorAndShape) {
+            scope.drawCornerArcRightSmall(pos, color)
+        }
+    },
+    ArcCornerLeftSmall(ShapeGroup.CORNER_ARC) {
+        override fun draw(scope: DrawScope, pos: RectF, color: ColorAndShape) {
+            scope.drawCornerArcLeftSmall(pos, color)
+        }
+
+        override fun draw(scope: Canvas, pos: RectF, color: ColorAndShape) {
+            scope.drawCornerArcLeftSmall(pos, color)
+        }
+    },
+    ArcCornerRightInverseSmall(ShapeGroup.CORNER_ARC) {
+        override fun draw(scope: DrawScope, pos: RectF, color: ColorAndShape) {
+            scope.drawCornerArcRightInverseSmall(pos, color)
+        }
+
+        override fun draw(scope: Canvas, pos: RectF, color: ColorAndShape) {
+            scope.drawCornerArcRightInverseSmall(pos, color)
+        }
+    },
+    ArcCornerLeftInverseSmall(ShapeGroup.CORNER_ARC) {
+        override fun draw(scope: DrawScope, pos: RectF, color: ColorAndShape) {
+            scope.drawCornerArcLeftInverseSmall(pos, color)
+        }
+
+        override fun draw(scope: Canvas, pos: RectF, color: ColorAndShape) {
+            scope.drawCornerArcLeftInverseSmall(pos, color)
+        }
+    },
     BoxTopLeft(ShapeGroup.CORNER) {
         override fun draw(scope: DrawScope, pos: RectF, color: ColorAndShape) {
             scope.drawBoxTopLeft(pos, color)

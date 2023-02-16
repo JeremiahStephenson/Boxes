@@ -7,8 +7,8 @@ import androidx.lifecycle.viewModelScope
 import androidx.room.withTransaction
 import com.jerry.shapes.cache.BoxesDao
 import com.jerry.shapes.cache.BoxesDatabase
-import com.jerry.shapes.ui.boxes.generateBitmap
-import com.jerry.shapes.ui.boxes.generateSelections
+import com.jerry.shapes.util.generateBitmap
+import com.jerry.shapes.util.generateSelections
 import com.jerry.shapes.ui.destinations.BoxesMainDestination
 import com.jerry.shapes.ui.layers.data.LayerEditUi
 import com.jerry.shapes.ui.layers.data.ProjectUi

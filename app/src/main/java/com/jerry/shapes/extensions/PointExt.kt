@@ -2,7 +2,7 @@ package com.jerry.shapes.extensions
 
 import android.graphics.Point
 import com.jerry.shapes.cache.data.HistoryItem
-import com.jerry.shapes.ui.boxes.QUADRANT_SIZE
+import com.jerry.shapes.util.QUADRANT_SIZE
 import com.jerry.shapes.ui.boxes.state.enums.Direction
 import kotlin.math.floor
 
