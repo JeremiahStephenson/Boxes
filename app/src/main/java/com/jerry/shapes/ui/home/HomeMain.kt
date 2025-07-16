@@ -85,7 +85,7 @@ fun HomeMain(
                 start = 10.dp,
                 end = 10.dp
             ),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            verticalItemSpacing = 16.dp,
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             itemsIndexed(items ?: emptyList()) { _, item ->

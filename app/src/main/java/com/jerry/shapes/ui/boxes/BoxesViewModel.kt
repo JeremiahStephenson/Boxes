@@ -162,7 +162,7 @@ class BoxesViewModel(
                     layersOrderStateList.addAll(order)
                 }
             }
-        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(1000), emptyList())
+        }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val historyCountFlow = layerStateFlow.flatMapLatest { layers ->
         layers.firstOrNull { it.selected }?.let { boxesRepository.getLayerHistoryCount(it.id) }

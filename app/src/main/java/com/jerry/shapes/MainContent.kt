@@ -14,7 +14,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.jerry.shapes.ui.NavGraphs
 import com.jerry.shapes.ui.appCurrentDestinationAsState
 import com.jerry.shapes.ui.common.*
@@ -23,7 +22,6 @@ import com.ramcosta.composedestinations.animations.defaults.RootNavGraphDefaultA
 import com.ramcosta.composedestinations.animations.rememberAnimatedNavHostEngine
 
 @OptIn(
-    ExperimentalMaterialNavigationApi::class,
     ExperimentalLayoutApi::class
 )
 @Composable

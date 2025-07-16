@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlin.properties.ReadOnlyProperty
 
 class AppDataStore(
@@ -14,7 +15,7 @@ class AppDataStore(
 ) {
     private val Context.datastore by store
 
-    val hasLaunchedBefore = context.datastore.data.map { preferences ->
+    val hasLaunchedBefore = context.datastore.data.mapLatest { preferences ->
         preferences[HAS_LAUNCHED]
     }
 
