@@ -45,7 +45,7 @@ fun MainContent(
     val engine = rememberAnimatedNavHostEngine(
         rootDefaultAnimations = RootNavGraphDefaultAnimations(
             enterTransition = { fadeIn(animationSpec = tween(ANIM_DURATION)) },
-            exitTransition = { fadeOut(animationSpec = tween(ANIM_DURATION)) }
+            exitTransition = { fadeOut(animationSpec = tween(ANIM_DURATION)) },
         )
     )
     val navController = engine.rememberNavController()
