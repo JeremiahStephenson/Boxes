@@ -134,7 +134,7 @@ private fun LazyItemScope.LayerItem(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .animateItemPlacement()
+            .animateItem()
     ) {
         if (showDivider()) {
             Divider()

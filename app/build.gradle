@@ -3,9 +3,10 @@ plugins {
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-parcelize'
     id 'kotlin-kapt'
-    id 'com.google.devtools.ksp' version '1.9.0-1.0.13'
+    id 'com.google.devtools.ksp' version '2.2.0-2.0.2'
     id 'com.google.gms.google-services'
     id 'com.google.firebase.crashlytics'
+    id 'org.jetbrains.kotlin.plugin.compose'
 }
 
 apply plugin: "com.github.ben-manes.versions" // ./gradlew dependencyUpdates -Drevision=release
@@ -51,11 +52,11 @@ android {
     }
     compileOptions {
         coreLibraryDesugaringEnabled true
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
     }
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8
+        jvmTarget = JavaVersion.VERSION_21
         freeCompilerArgs += [
                 "-opt-in=kotlin.RequiresOptIn",
                 "-opt-in=androidx.compose.animation.ExperimentalAnimationApi",

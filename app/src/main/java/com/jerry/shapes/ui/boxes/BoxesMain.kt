@@ -467,15 +467,15 @@ private fun AdditionalButtonBar(
             .padding(top = 56.dp),
         verticalAlignment = Alignment.Top
     ) {
-        AnimatedContent(targetState = buttonsState) {
+        AnimatedContent(targetState = buttonsState) { state ->
             when {
-                buttonsState.selectToolSelectedState -> IconMenuButton(
+                state.selectToolSelectedState -> IconMenuButton(
                     modifier = Modifier,
                     onClick = { onAction(Action.SelectTool) },
                     drawableRes = R.drawable.ic_select_all_24,
                     contentDescription = stringResource(R.string.turn_off_select_and_move)
                 )
-                buttonsState.eraserSelectedState -> IconMenuButton(
+                state.eraserSelectedState -> IconMenuButton(
                     modifier = Modifier,
                     onClick = { onAction(Action.Eraser) },
                     drawableRes = R.drawable.ic_eraser_on_24,

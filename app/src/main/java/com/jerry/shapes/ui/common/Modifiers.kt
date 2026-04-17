@@ -3,6 +3,7 @@ package com.jerry.shapes.ui.common
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.material.ripple
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -15,12 +16,12 @@ import com.jerry.shapes.util.pngBackground
 fun Modifier.unboundClickable(
     enabled: Boolean = true,
     onLongClick: (() -> Unit)? = null,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ): Modifier = composed {
     combinedClickable(
         enabled = enabled,
         interactionSource = remember { MutableInteractionSource() },
-        indication = rememberRipple(bounded = false),
+        indication = ripple(bounded = false),
         onClick = onClick,
         onLongClick = onLongClick
     )

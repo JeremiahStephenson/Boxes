@@ -67,7 +67,7 @@ fun CreateMain(
                     else -> when (viewModel.isSave) {
                         true -> navController.popBackStack()
                         else -> navController.navigate(BoxesMainDestination(it.data!!, null)) {
-                            popUpTo(CreateMainDestination.route) {
+                            popUpTo(CreateMainDestination) {
                                 inclusive = true
                             }
                         }
