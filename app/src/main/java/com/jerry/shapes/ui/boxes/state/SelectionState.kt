@@ -25,7 +25,6 @@ class SelectionState(
     private val topLeft: Point? = null,
     private val bottomRight: Point? = null,
 ) : Parcelable {
-
     @IgnoredOnParcel
     var topLeftState by mutableStateOf(topLeft)
         private set
@@ -44,16 +43,17 @@ class SelectionState(
         size: Constraints,
         columns: Int,
         rows: Int,
-        boxes: Map<Point, RectF>
+        boxes: Map<Point, RectF>,
     ) {
-        val position = area.findBox(
-            scale,
-            offset,
-            size,
-            columns,
-            rows,
-            boxes
-        )
+        val position =
+            area.findBox(
+                scale,
+                offset,
+                size,
+                columns,
+                rows,
+                boxes,
+            )
         when (topLeftState == null || bottomRightState == null) {
             true -> {
                 mode = SelectionType.FREE
@@ -61,14 +61,16 @@ class SelectionState(
             }
             else -> {
                 position?.let {
-                    val tl = Point(
-                        min(topLeftState!!.x, bottomRightState!!.x),
-                        min(topLeftState!!.y, bottomRightState!!.y)
-                    )
-                    val br = Point(
-                        max(topLeftState!!.x, bottomRightState!!.x),
-                        max(topLeftState!!.y, bottomRightState!!.y)
-                    )
+                    val tl =
+                        Point(
+                            min(topLeftState!!.x, bottomRightState!!.x),
+                            min(topLeftState!!.y, bottomRightState!!.y),
+                        )
+                    val br =
+                        Point(
+                            max(topLeftState!!.x, bottomRightState!!.x),
+                            max(topLeftState!!.y, bottomRightState!!.y),
+                        )
                     topLeftState = tl
                     bottomRightState = br
 
@@ -77,17 +79,18 @@ class SelectionState(
                     val nearTop = it.y >= tl.y - 1 && it.y <= tl.y + 1
                     val nearBottom = it.y <= br.y + 1 && it.y >= br.y - 1
 
-                    mode = when {
-                        nearLeft && nearTop -> SelectionType.TOP_LEFT
-                        nearLeft && nearBottom -> SelectionType.BOTTOM_LEFT
-                        nearRight && nearTop -> SelectionType.TOP_RIGHT
-                        nearRight && nearBottom -> SelectionType.BOTTOM_RIGHT
-                        nearLeft -> SelectionType.LEFT
-                        nearRight -> SelectionType.RIGHT
-                        nearTop -> SelectionType.TOP
-                        nearBottom -> SelectionType.BOTTOM
-                        else -> null
-                    }
+                    mode =
+                        when {
+                            nearLeft && nearTop -> SelectionType.TOP_LEFT
+                            nearLeft && nearBottom -> SelectionType.BOTTOM_LEFT
+                            nearRight && nearTop -> SelectionType.TOP_RIGHT
+                            nearRight && nearBottom -> SelectionType.BOTTOM_RIGHT
+                            nearLeft -> SelectionType.LEFT
+                            nearRight -> SelectionType.RIGHT
+                            nearTop -> SelectionType.TOP
+                            nearBottom -> SelectionType.BOTTOM
+                            else -> null
+                        }
                 }
             }
         }
@@ -100,57 +103,69 @@ class SelectionState(
         size: Constraints,
         columns: Int,
         rows: Int,
-        boxes: Map<Point, RectF>
+        boxes: Map<Point, RectF>,
     ) {
-        val position = area.findBox(
-            scale,
-            offset,
-            size,
-            columns,
-            rows,
-            boxes
-        )
+        val position =
+            area.findBox(
+                scale,
+                offset,
+                size,
+                columns,
+                rows,
+                boxes,
+            )
         when (mode) {
             SelectionType.FREE -> setBottomRight(position)
-            SelectionType.TOP -> safeLet(topLeftState, position) { tl, point ->
-                setTopLeft(Point(tl.x, point.y))
-            }
-            SelectionType.LEFT -> safeLet(topLeftState, position) { tl, point ->
-                setTopLeft(Point(point.x, tl.y))
-            }
-            SelectionType.BOTTOM -> safeLet(bottomRightState, position) { br, point ->
-                setBottomRight(Point(br.x, point.y))
-            }
-            SelectionType.RIGHT -> safeLet(bottomRightState, position) { br, point ->
-                setBottomRight(Point(point.x, br.y))
-            }
-            SelectionType.TOP_RIGHT -> safeLet(
-                topLeftState,
-                bottomRightState,
-                position
-            ) { tl, br, point ->
-                setTopLeft(Point(tl.x, point.y))
-                setBottomRight(Point(point.x, br.y))
-            }
-            SelectionType.TOP_LEFT -> safeLet(topLeftState, position) { _, point ->
-                setTopLeft(Point(point.x, point.y))
-            }
-            SelectionType.BOTTOM_RIGHT -> safeLet(bottomRightState, position) { _, point ->
-                setBottomRight(Point(point.x, point.y))
-            }
-            SelectionType.BOTTOM_LEFT -> safeLet(
-                topLeftState,
-                bottomRightState,
-                position
-            ) { tl, br, point ->
-                setTopLeft(Point(point.x, tl.y))
-                setBottomRight(Point(br.x, point.y))
-            }
+            SelectionType.TOP ->
+                safeLet(topLeftState, position) { tl, point ->
+                    setTopLeft(Point(tl.x, point.y))
+                }
+            SelectionType.LEFT ->
+                safeLet(topLeftState, position) { tl, point ->
+                    setTopLeft(Point(point.x, tl.y))
+                }
+            SelectionType.BOTTOM ->
+                safeLet(bottomRightState, position) { br, point ->
+                    setBottomRight(Point(br.x, point.y))
+                }
+            SelectionType.RIGHT ->
+                safeLet(bottomRightState, position) { br, point ->
+                    setBottomRight(Point(point.x, br.y))
+                }
+            SelectionType.TOP_RIGHT ->
+                safeLet(
+                    topLeftState,
+                    bottomRightState,
+                    position,
+                ) { tl, br, point ->
+                    setTopLeft(Point(tl.x, point.y))
+                    setBottomRight(Point(point.x, br.y))
+                }
+            SelectionType.TOP_LEFT ->
+                safeLet(topLeftState, position) { _, point ->
+                    setTopLeft(Point(point.x, point.y))
+                }
+            SelectionType.BOTTOM_RIGHT ->
+                safeLet(bottomRightState, position) { _, point ->
+                    setBottomRight(Point(point.x, point.y))
+                }
+            SelectionType.BOTTOM_LEFT ->
+                safeLet(
+                    topLeftState,
+                    bottomRightState,
+                    position,
+                ) { tl, br, point ->
+                    setTopLeft(Point(point.x, tl.y))
+                    setBottomRight(Point(br.x, point.y))
+                }
             else -> {}
         }
     }
 
-    fun checkRowsAndColumns(columns: Int, rows: Int) {
+    fun checkRowsAndColumns(
+        columns: Int,
+        rows: Int,
+    ) {
         if (topLeftState == null || bottomRightState == null) return
         if (
             max(topLeftState!!.x, bottomRightState!!.x) > (columns - 1) ||

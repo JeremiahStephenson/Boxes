@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.dp
 fun DrawerContainer(
     drawerState: DrawerState,
     drawerContent: @Composable () -> Unit,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         ModalNavigationDrawer(
@@ -27,7 +27,7 @@ fun DrawerContainer(
             drawerContent = {
                 CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
                     ModalDrawerSheet(
-                        drawerShape = RoundedCornerShape(topStart = 16.dp)
+                        drawerShape = RoundedCornerShape(topStart = 16.dp),
                     ) {
                         drawerContent()
                     }
@@ -37,7 +37,7 @@ fun DrawerContainer(
                 CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
                     content()
                 }
-            }
+            },
         )
     }
 }
@@ -50,19 +50,20 @@ fun ModalDrawerSheet(
     drawerContentColor: Color = contentColorFor(drawerContainerColor),
     drawerTonalElevation: Dp = DrawerDefaults.ModalDrawerElevation,
     windowInsets: WindowInsets = DrawerDefaults.windowInsets,
-    content: @Composable ColumnScope.() -> Unit
+    content: @Composable ColumnScope.() -> Unit,
 ) {
-    val padding = with(LocalDensity.current) {
-        WindowInsets.navigationBars.getRight(this, LayoutDirection.Ltr).toDp()
-    }
+    val padding =
+        with(LocalDensity.current) {
+            WindowInsets.navigationBars.getRight(this, LayoutDirection.Ltr).toDp()
+        }
     Row(
-        modifier = Modifier
-            .sizeIn(
-                minWidth = DRAWER_MIN_WIDTH + padding,
-                maxWidth = DRAWER_MAX_WIDTH + padding
-            )
-            .fillMaxHeight()
-            .windowInsetsPadding(windowInsets)
+        modifier =
+            Modifier
+                .sizeIn(
+                    minWidth = DRAWER_MIN_WIDTH + padding,
+                    maxWidth = DRAWER_MAX_WIDTH + padding,
+                ).fillMaxHeight()
+                .windowInsetsPadding(windowInsets),
     ) {
         Spacer(modifier = Modifier.size(padding))
         DrawerSheet(
@@ -72,7 +73,7 @@ fun ModalDrawerSheet(
             drawerContainerColor,
             drawerContentColor,
             drawerTonalElevation,
-            content
+            content,
         )
     }
 }
@@ -86,28 +87,27 @@ private fun DrawerSheet(
     drawerContainerColor: Color = MaterialTheme.colorScheme.surface,
     drawerContentColor: Color = contentColorFor(drawerContainerColor),
     drawerTonalElevation: Dp = DrawerDefaults.PermanentDrawerElevation,
-    content: @Composable ColumnScope.() -> Unit
+    content: @Composable ColumnScope.() -> Unit,
 ) {
     Surface(
-        modifier = modifier
-            .sizeIn(
-                minWidth = DRAWER_MIN_WIDTH,
-                maxWidth = DRAWER_MAX_WIDTH
-            )
-            .fillMaxHeight(),
+        modifier =
+            modifier
+                .sizeIn(
+                    minWidth = DRAWER_MIN_WIDTH,
+                    maxWidth = DRAWER_MAX_WIDTH,
+                ).fillMaxHeight(),
         shape = drawerShape,
         color = drawerContainerColor,
         contentColor = drawerContentColor,
-        tonalElevation = drawerTonalElevation
+        tonalElevation = drawerTonalElevation,
     ) {
         Column(
             Modifier
                 .sizeIn(
                     minWidth = DRAWER_MIN_WIDTH,
-                    maxWidth = DRAWER_MAX_WIDTH
-                )
-                .windowInsetsPadding(windowInsets),
-            content = content
+                    maxWidth = DRAWER_MAX_WIDTH,
+                ).windowInsetsPadding(windowInsets),
+            content = content,
         )
     }
 }

@@ -15,20 +15,21 @@ import kotlinx.coroutines.SupervisorJob
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 
-val appModule = module {
-    viewModel { BoxesViewModel(get(), get(), get(), get()) }
-    viewModel { HomeViewModel(get(), get()) }
-    viewModel { CreateViewModel(get(), get()) }
-    viewModel { LayersEditViewModel(get(), get(), get(), get()) }
-    viewModel { LaunchViewModel(get()) }
+val appModule =
+    module {
+        viewModel { BoxesViewModel(get(), get(), get(), get()) }
+        viewModel { HomeViewModel(get(), get()) }
+        viewModel { CreateViewModel(get(), get()) }
+        viewModel { LayersEditViewModel(get(), get(), get(), get()) }
+        viewModel { LaunchViewModel(get()) }
 
-    single { BoxesRepository(get(), get(), get(), get(), get(), get()) }
+        single { BoxesRepository(get(), get(), get(), get(), get(), get()) }
 
-    single { CoroutineScope(SupervisorJob() + get<CoroutineContextProvider>().commonPool) }
+        single { CoroutineScope(SupervisorJob() + get<CoroutineContextProvider>().commonPool) }
 
-    single<CoroutineContextProvider> { CoroutineContextProvider.MainCoroutineContext }
+        single<CoroutineContextProvider> { CoroutineContextProvider.MainCoroutineContext }
 
-    single { AppDataStore(get(), preferencesDataStore(name = "settings")) }
+        single { AppDataStore(get(), preferencesDataStore(name = "settings")) }
 
-    single { FirebaseAnalytics.getInstance(get()) }
-}
+        single { FirebaseAnalytics.getInstance(get()) }
+    }

@@ -8,5 +8,5 @@ import kotlinx.parcelize.Parcelize
 @Parcelize
 data class UserHistory(
     val layerId: Long,
-    val points: Map<Point, ColorAndShape?>
+    val points: Map<Point, ColorAndShape?>,
 ) : Parcelable

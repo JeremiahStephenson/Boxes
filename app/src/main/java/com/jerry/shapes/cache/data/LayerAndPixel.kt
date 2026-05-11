@@ -7,7 +7,7 @@ data class LayerAndPixel(
     @Embedded val layer: Layer,
     @Relation(
         parentColumn = "id",
-        entityColumn = "layerId"
+        entityColumn = "layerId",
     )
-    val pixels: List<Pixel>
+    val pixels: List<Pixel>,
 )

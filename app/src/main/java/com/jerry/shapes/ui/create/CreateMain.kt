@@ -48,14 +48,15 @@ import kotlin.math.min
 fun CreateMain(
     projectId: Long? = null,
     navController: DestinationsNavigator,
-    viewModel: CreateViewModel = koinViewModel()
+    viewModel: CreateViewModel = koinViewModel(),
 ) {
     val projectState by viewModel.projectFlow.collectAsStateWithLifecycle(null)
     DefaultContainer(
-        title = when (projectState) {
-            null -> stringResource(R.string.add_new_project)
-            else -> stringResource(R.string.editing_project, projectState!!.name)
-        }
+        title =
+            when (projectState) {
+                null -> stringResource(R.string.add_new_project)
+                else -> stringResource(R.string.editing_project, projectState!!.name)
+            },
     ) {
         val context = LocalContext.current
         val error = stringResource(R.string.error_save)
@@ -64,14 +65,16 @@ fun CreateMain(
                 // Should only be error or done
                 when (it.isError) {
                     true -> Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
-                    else -> when (viewModel.isSave) {
-                        true -> navController.popBackStack()
-                        else -> navController.navigate(BoxesMainDestination(it.data!!, null)) {
-                            popUpTo(CreateMainDestination) {
-                                inclusive = true
-                            }
+                    else ->
+                        when (viewModel.isSave) {
+                            true -> navController.popBackStack()
+                            else ->
+                                navController.navigate(BoxesMainDestination(it.data!!, null)) {
+                                    popUpTo(CreateMainDestination) {
+                                        inclusive = true
+                                    }
+                                }
                         }
-                    }
                 }
             }
         }
@@ -79,7 +82,7 @@ fun CreateMain(
             project = projectState,
             onSave = { text, columns, rows ->
                 viewModel.saveProject(text, columns, rows)
-            }
+            },
         )
     }
 }
@@ -87,14 +90,15 @@ fun CreateMain(
 @Composable
 private fun CreateForm(
     project: Project? = null,
-    onSave: (String, Int, Int) -> Unit
+    onSave: (String, Int, Int) -> Unit,
 ) {
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .imePadding()
-            .padding(horizontal = 16.dp),
-        contentAlignment = Alignment.BottomCenter
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .imePadding()
+                .padding(horizontal = 16.dp),
+        contentAlignment = Alignment.BottomCenter,
     ) {
         var text by rememberSaveable(project) { mutableStateOf(project?.name.orEmpty()) }
         var columnValue by remember(project) { mutableStateOf(project?.columns ?: 16) }
@@ -103,19 +107,20 @@ private fun CreateForm(
         var columnError by remember { mutableStateOf(false) }
         var rowError by remember { mutableStateOf(false) }
 
-        val sizes = remember {
-            ImmutableList(
-                listOf(
-                    16 to 16,
-                    10 to 10,
-                    25 to 25,
-                    32 to 32,
-                    64 to 64,
-                    10 to 20,
-                    20 to 10
+        val sizes =
+            remember {
+                ImmutableList(
+                    listOf(
+                        16 to 16,
+                        10 to 10,
+                        25 to 25,
+                        32 to 32,
+                        64 to 64,
+                        10 to 20,
+                        20 to 10,
+                    ),
                 )
-            )
-        }
+            }
 
         val scope = rememberCoroutineScope()
         val scrollState = rememberLazyListState()
@@ -123,7 +128,7 @@ private fun CreateForm(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(bottom = 86.dp),
             state = scrollState,
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             item {
                 NameItem(
@@ -134,13 +139,13 @@ private fun CreateForm(
                     },
                     onNameError = {
                         nameError = it
-                    }
+                    },
                 )
             }
 
             item {
                 Row(
-                    modifier = Modifier.padding(bottom = 32.dp).fillMaxWidth()
+                    modifier = Modifier.padding(bottom = 32.dp).fillMaxWidth(),
                 ) {
                     ProjectNumberPicker(
                         modifier = Modifier.padding(end = 8.dp),
@@ -148,7 +153,7 @@ private fun CreateForm(
                         value = columnValue,
                         error = columnError,
                         onError = { columnError = it },
-                        onValueChange = { columnValue = it }
+                        onValueChange = { columnValue = it },
                     )
                     ProjectNumberPicker(
                         modifier = Modifier.padding(start = 8.dp),
@@ -156,7 +161,7 @@ private fun CreateForm(
                         value = rowValue,
                         error = rowError,
                         onError = { rowError = it },
-                        onValueChange = { rowValue = it }
+                        onValueChange = { rowValue = it },
                     )
                 }
             }
@@ -169,15 +174,16 @@ private fun CreateForm(
                     onSizeChange = { columns, rows ->
                         columnValue = columns
                         rowValue = rows
-                    }
+                    },
                 )
             }
         }
 
         Button(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
             onClick = {
                 when (text.trim().isEmpty()) {
                     true -> {
@@ -186,11 +192,12 @@ private fun CreateForm(
                             scrollState.animateScrollToItem(0)
                         }
                     }
-                    else -> if (columnValue in 1..BoxesRepository.MAX_SIDE_SIZE && rowValue in 1..BoxesRepository.MAX_SIDE_SIZE) {
-                        onSave(text.trim(), columnValue, rowValue)
-                    }
+                    else ->
+                        if (columnValue in 1..BoxesRepository.MAX_SIDE_SIZE && rowValue in 1..BoxesRepository.MAX_SIDE_SIZE) {
+                            onSave(text.trim(), columnValue, rowValue)
+                        }
                 }
-            }
+            },
         ) {
             Text(text = stringResource(R.string.save))
         }
@@ -202,7 +209,7 @@ private fun LayerItem(
     value: Pair<Int, Int>,
     columnValue: Int,
     rowValue: Int,
-    onSizeChange: (Int, Int) -> Unit
+    onSizeChange: (Int, Int) -> Unit,
 ) {
     val color = MaterialTheme.colorScheme.onSurface
     val density = LocalDensity.current
@@ -210,25 +217,25 @@ private fun LayerItem(
     val (columns, rows) = value
     val matchesState by remember(
         columnValue,
-        rowValue
+        rowValue,
     ) { derivedStateOf { columnValue == columns && rowValue == rows } }
     Column(
-        modifier = Modifier
-            .clip(MaterialTheme.shapes.large)
-            .background(
-                when (matchesState) {
-                    true -> MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.4F)
-                    else -> Color.Transparent
-                }
-            )
-            .clickable {
-                onSizeChange(columns, rows)
-            }
-            .padding(top = 32.dp, bottom = 24.dp).padding(horizontal = 32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        modifier =
+            Modifier
+                .clip(MaterialTheme.shapes.large)
+                .background(
+                    when (matchesState) {
+                        true -> MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.4F)
+                        else -> Color.Transparent
+                    },
+                ).clickable {
+                    onSizeChange(columns, rows)
+                }.padding(top = 32.dp, bottom = 24.dp)
+                .padding(horizontal = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Canvas(
-            modifier = Modifier.size(200.dp)
+            modifier = Modifier.size(200.dp),
         ) {
             val boxSize = min(size.width / columns, size.height / rows)
             val offsetY = (size.height - (boxSize * rows)) / 2
@@ -238,7 +245,7 @@ private fun LayerItem(
                     strokeWidth = strokeWidth,
                     color = color,
                     start = Offset(offsetX, offsetY + (i * boxSize)),
-                    end = Offset(size.width - offsetX, offsetY + (i * boxSize))
+                    end = Offset(size.width - offsetX, offsetY + (i * boxSize)),
                 )
             }
             for (i in 0..columns) {
@@ -246,13 +253,13 @@ private fun LayerItem(
                     strokeWidth = strokeWidth,
                     color = color,
                     start = Offset(offsetX + (i * boxSize), offsetY),
-                    end = Offset(offsetX + (i * boxSize), size.height - offsetY)
+                    end = Offset(offsetX + (i * boxSize), size.height - offsetY),
                 )
             }
         }
         Text(
             modifier = Modifier.padding(top = 8.dp),
-            text = "$columns x $rows"
+            text = "$columns x $rows",
         )
     }
 }
@@ -262,20 +269,22 @@ private fun NameItem(
     text: String,
     nameError: Boolean,
     onTextChange: (String) -> Unit,
-    onNameError: (Boolean) -> Unit
+    onNameError: (Boolean) -> Unit,
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 16.dp)
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 16.dp),
     ) {
         Text(
             modifier = Modifier.padding(bottom = 16.dp),
-            text = buildAnnotatedString {
-                append(stringResource(R.string.name))
-                append(":")
-            },
-            style = MaterialTheme.typography.titleLarge
+            text =
+                buildAnnotatedString {
+                    append(stringResource(R.string.name))
+                    append(":")
+                },
+            style = MaterialTheme.typography.titleLarge,
         )
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
@@ -286,13 +295,13 @@ private fun NameItem(
                 if (it.length <= 50) {
                     onTextChange(it)
                 }
-            }
+            },
         )
         FadeAnimatedVisibility(visible = nameError) {
             Text(
                 text = stringResource(R.string.name_required),
                 color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.titleSmall
+                style = MaterialTheme.typography.titleSmall,
             )
         }
     }
@@ -305,48 +314,52 @@ private fun RowScope.ProjectNumberPicker(
     value: Int,
     error: Boolean,
     onError: (Boolean) -> Unit,
-    onValueChange: (Int) -> Unit
+    onValueChange: (Int) -> Unit,
 ) {
     Column(modifier = modifier.weight(1F)) {
         Text(
             modifier = Modifier.padding(top = 8.dp),
-            text = buildAnnotatedString {
-                append(title)
-                append(":")
-            },
-            style = MaterialTheme.typography.titleLarge
+            text =
+                buildAnnotatedString {
+                    append(title)
+                    append(":")
+                },
+            style = MaterialTheme.typography.titleLarge,
         )
         Text(
             text = stringResource(R.string.project_range, 1, BoxesRepository.MAX_SIDE_SIZE),
-            style = MaterialTheme.typography.bodySmall
+            style = MaterialTheme.typography.bodySmall,
         )
         OutlinedTextField(
-            modifier = Modifier
-                .padding(top = 16.dp)
-                .fillMaxWidth(),
+            modifier =
+                Modifier
+                    .padding(top = 16.dp)
+                    .fillMaxWidth(),
             value = value.toString(),
             isError = error,
             onValueChange = {
                 val num = it.toIntOrNull() ?: 0
-                val newValue = when (value == 0 && num > 0) {
-                    true -> it.trimEnd('0').toIntOrNull() ?: 0
-                    else -> num
-                }
+                val newValue =
+                    when (value == 0 && num > 0) {
+                        true -> it.trimEnd('0').toIntOrNull() ?: 0
+                        else -> num
+                    }
                 onError(newValue < 1 || newValue > BoxesRepository.MAX_SIDE_SIZE)
                 onValueChange(newValue)
             },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         )
         FadeAnimatedVisibility(visible = error) {
             Text(
-                text = stringResource(
-                    when (value > 200) {
-                        true -> R.string.value_too_high
-                        else -> R.string.value_too_low
-                    }
-                ),
+                text =
+                    stringResource(
+                        when (value > 200) {
+                            true -> R.string.value_too_high
+                            else -> R.string.value_too_low
+                        },
+                    ),
                 color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.titleSmall
+                style = MaterialTheme.typography.titleSmall,
             )
         }
     }

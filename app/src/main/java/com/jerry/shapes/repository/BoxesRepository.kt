@@ -10,12 +10,12 @@ import com.jerry.shapes.cache.BoxesDatabase
 import com.jerry.shapes.cache.data.*
 import com.jerry.shapes.extensions.logError
 import com.jerry.shapes.ui.boxes.data.LayerUi
-import com.jerry.shapes.util.generateSelections
 import com.jerry.shapes.ui.shapes.Shape
 import com.jerry.shapes.util.CoroutineContextProvider
 import com.jerry.shapes.util.ExportType
 import com.jerry.shapes.util.Resource
 import com.jerry.shapes.util.exportCanvas
+import com.jerry.shapes.util.generateSelections
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
@@ -32,70 +32,85 @@ class BoxesRepository(
     private val applicationScope: CoroutineScope,
     private val cc: CoroutineContextProvider,
     private val application: Context,
-    private val analytics: FirebaseAnalytics
+    private val analytics: FirebaseAnalytics,
 ) {
-    fun getPixelsFlow(projectId: Long) = boxesDao.getProjectPixelsFlow(projectId)
-        .map {
-            Resource.done(generateSelections(it))
-        }
-        .flowOn(cc.io)
+    fun getPixelsFlow(projectId: Long) =
+        boxesDao
+            .getProjectPixelsFlow(projectId)
+            .map {
+                Resource.done(generateSelections(it))
+            }.flowOn(cc.io)
 
-    fun getLayersFlow(projectId: Long) = boxesDao
-        .getProjectLayersByProjectId(projectId)
-        .map { it.sortedByDescending { layer -> layer.index } }
+    fun getLayersFlow(projectId: Long) =
+        boxesDao
+            .getProjectLayersByProjectId(projectId)
+            .map { it.sortedByDescending { layer -> layer.index } }
 
-    fun getLayerHistoryCount(layerId: Long): Flow<Int> {
-        return boxesDao.layerHistoryCount(layerId)
-    }
+    fun getLayerHistoryCount(layerId: Long): Flow<Int> = boxesDao.layerHistoryCount(layerId)
 
     fun getProjectFlowById(projectId: Long) =
-        boxesDao.getProjectFlowById(projectId)
+        boxesDao
+            .getProjectFlowById(projectId)
             .filterNotNull()
 
-    suspend fun updateProjectShape(projectId: Long, shape: Shape) {
+    suspend fun updateProjectShape(
+        projectId: Long,
+        shape: Shape,
+    ) {
         boxesDao.updateProjectShape(projectId, shape)
     }
 
-    suspend fun updateProjectColor(projectId: Long, color: ColorAndShape) {
+    suspend fun updateProjectColor(
+        projectId: Long,
+        color: ColorAndShape,
+    ) {
         boxesDao.updateProjectColor(projectId, color.color.toArgb())
     }
 
-    suspend fun updateProjectShowGrid(projectId: Long, showGrid: Boolean) {
+    suspend fun updateProjectShowGrid(
+        projectId: Long,
+        showGrid: Boolean,
+    ) {
         boxesDao.updateProjectShowGrid(projectId, showGrid)
     }
 
-    suspend fun updateProjectShowPngBg(projectId: Long, showPngBg: Boolean) {
+    suspend fun updateProjectShowPngBg(
+        projectId: Long,
+        showPngBg: Boolean,
+    ) {
         boxesDao.updateProjectShowPngBg(projectId, showPngBg)
     }
 
     private var saveJob: Job? = null
+
     fun save(
         project: Project,
         boxes: List<Point>? = null,
         selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
-        layers: Collection<LayerUi>
+        layers: Collection<LayerUi>,
     ) {
         if (saveJob?.isActive == true) return
-        saveJob = applicationScope.launch(cc.io) {
-            try {
-                export(
-                    project = project,
-                    fileName = project.id.toString(),
-                    imageSize = 200,
-                    layers = layers,
-                    selections = selections,
-                    exportType = ExportType.THUMBNAIL
-                )
-            } catch (t: Throwable) {
-                analytics.logError(t)
-            }
-            boxesDatabase.withTransaction {
-                saveProject(project.id, boxes, selections)
-                layers.forEach {
-                    boxesDao.turnOnOrOffLayer(it.on, it.id)
+        saveJob =
+            applicationScope.launch(cc.io) {
+                try {
+                    export(
+                        project = project,
+                        fileName = project.id.toString(),
+                        imageSize = 200,
+                        layers = layers,
+                        selections = selections,
+                        exportType = ExportType.THUMBNAIL,
+                    )
+                } catch (t: Throwable) {
+                    analytics.logError(t)
+                }
+                boxesDatabase.withTransaction {
+                    saveProject(project.id, boxes, selections)
+                    layers.forEach {
+                        boxesDao.turnOnOrOffLayer(it.on, it.id)
+                    }
                 }
             }
-        }
     }
 
     fun export(
@@ -104,37 +119,39 @@ class BoxesRepository(
         selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
         layers: Collection<LayerUi>,
         imageSize: Int,
-        exportType: ExportType
-    ): String? {
-        return application.exportCanvas(
+        exportType: ExportType,
+    ): String? =
+        application.exportCanvas(
             imageSize = imageSize,
             name = fileName,
             rows = project.rows,
             columns = project.columns,
             layers = layers,
             selections = selections,
-            exportType = exportType
+            exportType = exportType,
         )
-    }
 
     suspend fun addLayer(
         projectId: Long,
         name: String,
         index: Int,
-        selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>
-    ): Long {
-        return boxesDatabase.withTransaction {
+        selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
+    ): Long =
+        boxesDatabase.withTransaction {
             saveProject(projectId, selections = selections)
             boxesDao.insertLayer(Layer(projectId, index, name, true))
         }
-    }
 
-    suspend fun updateHistory(layerId: Long, points: Map<Point, ColorAndShape?>) {
+    suspend fun updateHistory(
+        layerId: Long,
+        points: Map<Point, ColorAndShape?>,
+    ) {
         boxesDatabase.withTransaction {
             val index = boxesDao.findMaxIndexForHistory(layerId)
-            val historyId = boxesDao.insertHistory(
-                History(layerId, index + 1, Instant.now().toEpochMilli())
-            )
+            val historyId =
+                boxesDao.insertHistory(
+                    History(layerId, index + 1, Instant.now().toEpochMilli()),
+                )
             boxesDao.insertHistoryItems(
                 points.map { (point, color) ->
                     HistoryItem(
@@ -142,9 +159,9 @@ class BoxesRepository(
                         point.x,
                         point.y,
                         color?.color?.toArgb(),
-                        color?.shape
+                        color?.shape,
                     )
-                }
+                },
             )
             if (index >= MAX_HISTORY_PER_LAYER) {
                 val diff = max(index - MAX_HISTORY_PER_LAYER, 1)
@@ -161,7 +178,7 @@ class BoxesRepository(
             history?.let {
                 boxesDao.findAllHistoryItems(history.id)
             } ?: emptyList()
-            ).also { history?.let { boxesDao.deleteHistory(it.id) } }
+        ).also { history?.let { boxesDao.deleteHistory(it.id) } }
     }
 
     suspend fun deleteInvalidHistoryItems() {
@@ -171,23 +188,24 @@ class BoxesRepository(
     private suspend fun saveProject(
         projectId: Long,
         boxes: List<Point>? = null,
-        selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>
+        selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
     ) {
         val now = Instant.now().toEpochMilli()
-        val list = selections.flatMap { (layer, quad) ->
-            quad.flatMap { q ->
-                q.value.filterKeys { boxes?.contains(it) ?: true }.map {
-                    Pixel(
-                        layer,
-                        it.key.x,
-                        it.key.y,
-                        it.value.color.toArgb(),
-                        it.value.shape,
-                        now
-                    )
+        val list =
+            selections.flatMap { (layer, quad) ->
+                quad.flatMap { q ->
+                    q.value.filterKeys { boxes?.contains(it) ?: true }.map {
+                        Pixel(
+                            layer,
+                            it.key.x,
+                            it.key.y,
+                            it.value.color.toArgb(),
+                            it.value.shape,
+                            now,
+                        )
+                    }
                 }
             }
-        }
         boxesDao.updateProjectTimestamp(projectId)
         boxesDao.insertAllPixels(list)
         boxesDao.deletePixelsFromProject(projectId, now)

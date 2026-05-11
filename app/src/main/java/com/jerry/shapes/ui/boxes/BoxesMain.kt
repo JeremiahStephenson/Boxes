@@ -54,7 +54,7 @@ fun BoxesMain(
     projectId: Long,
     projectName: String?,
     navController: DestinationsNavigator,
-    viewModel: BoxesViewModel = koinViewModel()
+    viewModel: BoxesViewModel = koinViewModel(),
 ) {
     val project by viewModel.projectFlow.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
@@ -72,12 +72,13 @@ fun BoxesMain(
     val genericError = stringResource(R.string.generic_error)
     val canvasState = rememberCanvasState(viewModel)
 
-    val buttonsState = rememberSaveable {
-        ButtonsState(
-            eraserSelected = false,
-            selectToolSelected = false
-        )
-    }
+    val buttonsState =
+        rememberSaveable {
+            ButtonsState(
+                eraserSelected = false,
+                selectToolSelected = false,
+            )
+        }
 
     val selectionState = rememberSaveable { SelectionState() }
     DefaultContainer(
@@ -85,50 +86,51 @@ fun BoxesMain(
         disableAppbarScroll = true,
         appBarActions = {
             Icon(
-                modifier = Modifier
-                    .unboundClickable {
-                        navController.navigate(LayersEditMainDestination(projectId))
-                    }
-                    .padding(16.dp),
+                modifier =
+                    Modifier
+                        .unboundClickable {
+                            navController.navigate(LayersEditMainDestination(projectId))
+                        }.padding(16.dp),
                 painter = painterResource(R.drawable.ic_layers_24),
-                contentDescription = null
+                contentDescription = null,
             )
             Icon(
-                modifier = Modifier
-                    .unboundClickable {
-                        scope.launch {
-                            when (drawerState.isOpen) {
-                                true -> drawerState.close()
-                                else -> drawerState.open()
+                modifier =
+                    Modifier
+                        .unboundClickable {
+                            scope.launch {
+                                when (drawerState.isOpen) {
+                                    true -> drawerState.close()
+                                    else -> drawerState.open()
+                                }
                             }
-                        }
-                    }
-                    .padding(16.dp),
+                        }.padding(16.dp),
                 painter = painterResource(R.drawable.ic_menu_24),
-                contentDescription = null
+                contentDescription = null,
             )
-        }
+        },
     ) {
         val transformerState = remember { TransformerState() }
-        val handleAction: (Action) -> Unit = remember {
-            {
-                handleAction(
-                    canvasState,
-                    buttonsState,
-                    transformerState,
-                    drawerState,
-                    selectionState,
-                    project,
-                    viewModel,
-                    scope,
-                    context,
-                    navController,
-                    it
-                )
+        val handleAction: (Action) -> Unit =
+            remember {
+                {
+                    handleAction(
+                        canvasState,
+                        buttonsState,
+                        transformerState,
+                        drawerState,
+                        selectionState,
+                        project,
+                        viewModel,
+                        scope,
+                        context,
+                        navController,
+                        it,
+                    )
+                }
             }
-        }
         Box(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
         ) {
             DrawerContainer(
                 drawerState = drawerState,
@@ -138,10 +140,10 @@ fun BoxesMain(
                             buttonsState = buttonsState,
                             onAction = handleAction,
                             canvasState = canvasState,
-                            getProject = { project!! }
+                            getProject = { project!! },
                         )
                     }
-                }
+                },
             ) {
                 if (projectNotNull) {
                     MainCanvas(
@@ -151,13 +153,13 @@ fun BoxesMain(
                         selectionState = selectionState,
                         transformerState = transformerState,
                         onAction = handleAction,
-                        getUsedColorList = { viewModel.usedColors }
+                        getUsedColorList = { viewModel.usedColors },
                     )
                 }
             }
             FadeAnimatedVisibility(
                 modifier = Modifier.align(Alignment.Center),
-                visible = canvasState.isLoading
+                visible = canvasState.isLoading,
             ) {
                 CircularProgressIndicator()
             }
@@ -167,19 +169,22 @@ fun BoxesMain(
                 viewModel.uiEventFlow.collectLatest {
                     when (it) {
                         is UiEvent.Error ->
-                            Toast.makeText(context, it.error ?: genericError, Toast.LENGTH_LONG)
+                            Toast
+                                .makeText(context, it.error ?: genericError, Toast.LENGTH_LONG)
                                 .show()
-                        is UiEvent.Export -> when (it.exportType) {
-                            ExportType.FILE -> it.filePath?.let { path ->
-                                snackBarHostState.showSnackbar(
-                                    path,
-                                    duration = SnackbarDuration.Indefinite
-                                )
+                        is UiEvent.Export ->
+                            when (it.exportType) {
+                                ExportType.FILE ->
+                                    it.filePath?.let { path ->
+                                        snackBarHostState.showSnackbar(
+                                            path,
+                                            duration = SnackbarDuration.Indefinite,
+                                        )
+                                    }
+                                else -> {
+                                    it.filePath?.let { context.openShareSheet(it) }
+                                }
                             }
-                            else -> {
-                                it.filePath?.let { context.openShareSheet(it) }
-                            }
-                        }
                         is UiEvent.MoveSelection -> {
                             selectionState.move(it.direction)
                         }
@@ -191,9 +196,7 @@ fun BoxesMain(
 }
 
 @Composable
-private fun BoxScope.SnackBarImageLocator(
-    snackBarHostState: SnackbarHostState
-) {
+private fun BoxScope.SnackBarImageLocator(snackBarHostState: SnackbarHostState) {
     val context = LocalContext.current
     SnackbarHost(
         modifier = Modifier.align(Alignment.BottomCenter),
@@ -206,7 +209,7 @@ private fun BoxScope.SnackBarImageLocator(
                             onClick = {
                                 context.openImage(snackBarData.visuals.message)
                                 snackBarHostState.currentSnackbarData?.dismiss()
-                            }
+                            },
                         ) {
                             Text(stringResource(R.string.view))
                         }
@@ -214,15 +217,15 @@ private fun BoxScope.SnackBarImageLocator(
                         Button(
                             onClick = {
                                 snackBarHostState.currentSnackbarData?.dismiss()
-                            }
+                            },
                         ) {
                             Text(stringResource(R.string.dismiss))
                         }
                     }
                 },
-                modifier = Modifier.padding(8.dp)
+                modifier = Modifier.padding(8.dp),
             ) { Text(text = snackBarData.visuals.message) }
-        }
+        },
     )
 }
 
@@ -234,7 +237,7 @@ private fun MainCanvas(
     selectionState: SelectionState,
     transformerState: TransformerState,
     getUsedColorList: () -> ImmutableList<ColorAndShape>,
-    onAction: (Action) -> Unit
+    onAction: (Action) -> Unit,
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val density = LocalDensity.current
@@ -249,7 +252,7 @@ private fun MainCanvas(
                 size,
                 buttonBarOffset,
                 project.columns,
-                project.rows
+                project.rows,
             )
         }
 
@@ -276,21 +279,22 @@ private fun MainCanvas(
                 onTap = { point ->
                     if (canvasState.hasLayersTurnedOn) {
                         when (buttonsState.tapTypeState) {
-                            TapType.PICKER -> canvasState.getCurrentSelection(point)?.let {
-                                onAction(Action.SetColor(it))
-                            }
+                            TapType.PICKER ->
+                                canvasState.getCurrentSelection(point)?.let {
+                                    onAction(Action.SetColor(it))
+                                }
                             TapType.TAP -> {
                                 if (!canvasState.isLoading) {
                                     onAction(
                                         Action.AddToHistory(
-                                            canvasState.getTapHistoryItem(point, currentLayer)
-                                        )
+                                            canvasState.getTapHistoryItem(point, currentLayer),
+                                        ),
                                     )
                                     canvasState.onTap(
                                         point,
                                         currentLayer,
                                         projectState.colorAndShape,
-                                        projectState.currentShape
+                                        projectState.currentShape,
                                     )
                                 }
                             }
@@ -300,17 +304,18 @@ private fun MainCanvas(
                 },
                 onDrag = {
                     if (canvasState.hasLayersTurnedOn && !canvasState.isLoading) {
-                        val color = projectState.colorAndShape
-                            .copy(shape = projectState.currentShape)
+                        val color =
+                            projectState.colorAndShape
+                                .copy(shape = projectState.currentShape)
                         canvasState.addToDragHistory(
                             it,
                             currentLayer,
-                            if (buttonsState.eraserSelectedState) null else color
+                            if (buttonsState.eraserSelectedState) null else color,
                         )
                         canvasState.onDrag(
                             it,
                             currentLayer,
-                            if (buttonsState.eraserSelectedState) null else color
+                            if (buttonsState.eraserSelectedState) null else color,
                         )
                     }
                 },
@@ -319,11 +324,11 @@ private fun MainCanvas(
                     if (canvasState.hasLayersTurnedOn && !canvasState.isLoading) {
                         onAction(
                             Action.AddToHistory(
-                                canvasState.closeDragHistory(currentLayer)
-                            )
+                                canvasState.closeDragHistory(currentLayer),
+                            ),
                         )
                     }
-                }
+                },
             )
         }
 
@@ -343,7 +348,7 @@ private fun MainCanvas(
                 onAction(Action.SetShape(it))
             },
             onAction = onAction,
-            getUsedColorList = getUsedColorList
+            getUsedColorList = getUsedColorList,
         )
 
         AdditionalButtonBar(
@@ -352,7 +357,7 @@ private fun MainCanvas(
             selectionState = selectionState,
             columns = project.columns,
             rows = project.rows,
-            onAction = onAction
+            onAction = onAction,
         )
     }
 }
@@ -367,20 +372,21 @@ private fun ButtonBar(
     getUsedColorList: () -> ImmutableList<ColorAndShape>,
     onAction: (Action) -> Unit,
     onColorChosen: (ColorAndShape) -> Unit,
-    onShapeChosen: (Shape) -> Unit
+    onShapeChosen: (Shape) -> Unit,
 ) {
     Row(
-        modifier = Modifier
-            .height(56.dp)
-            .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.8F))
-            .fillMaxWidth()
+        modifier =
+            Modifier
+                .height(56.dp)
+                .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.8F))
+                .fillMaxWidth(),
     ) {
         var colorPicker by rememberSaveable { mutableStateOf(false) }
         if (colorPicker) {
             ColorPickerDialog(
                 color = getColor(),
                 usedColors = getUsedColorList(),
-                onColorChosen = onColorChosen
+                onColorChosen = onColorChosen,
             ) {
                 colorPicker = false
             }
@@ -391,7 +397,7 @@ private fun ButtonBar(
             ShapePickerDialog(
                 color = getColor(),
                 numberOfBoxes = canvasState.boxes.size,
-                onShapeChosen = onShapeChosen
+                onShapeChosen = onShapeChosen,
             ) {
                 shapePicker = false
             }
@@ -401,13 +407,13 @@ private fun ButtonBar(
             onClick = { colorPicker = true },
             color = getColor(),
             drawableRes = R.drawable.ic_color_lens_24,
-            contentDescription = stringResource(R.string.color_selector)
+            contentDescription = stringResource(R.string.color_selector),
         )
 
         ShapeOption(
             shape = getShape(),
             color = getColor(),
-            showToolTip = true
+            showToolTip = true,
         ) {
             shapePicker = true
         }
@@ -425,7 +431,7 @@ private fun ButtonBar(
             onClick = { buttonsState.alternateTapType() },
             color = getColor(),
             drawableRes = tapTypeState,
-            contentDescription = stringResource(R.string.toggle_tap_tool)
+            contentDescription = stringResource(R.string.toggle_tap_tool),
         )
 
         Spacer(modifier = Modifier.weight(1F))
@@ -435,7 +441,7 @@ private fun ButtonBar(
             enabled = historyEnabled,
             onClick = { onAction(Action.Undo) },
             drawableRes = R.drawable.ic_undo_24,
-            contentDescription = stringResource(R.string.undo_history)
+            contentDescription = stringResource(R.string.undo_history),
         )
 
         Spacer(modifier = Modifier.weight(1F))
@@ -445,7 +451,7 @@ private fun ButtonBar(
             enabled = isTransformed,
             onClick = { onAction(Action.ResetZoom) },
             drawableRes = R.drawable.ic_zoom_out_map_24,
-            contentDescription = stringResource(R.string.re_center)
+            contentDescription = stringResource(R.string.re_center),
         )
     }
 }
@@ -457,30 +463,33 @@ private fun AdditionalButtonBar(
     selectionState: SelectionState,
     columns: Int,
     rows: Int,
-    onAction: (Action) -> Unit
+    onAction: (Action) -> Unit,
 ) {
     val columnsState by rememberUpdatedState(columns)
     val rowsState by rememberUpdatedState(rows)
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 56.dp),
-        verticalAlignment = Alignment.Top
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(top = 56.dp),
+        verticalAlignment = Alignment.Top,
     ) {
         AnimatedContent(targetState = buttonsState) { state ->
             when {
-                state.selectToolSelectedState -> IconMenuButton(
-                    modifier = Modifier,
-                    onClick = { onAction(Action.SelectTool) },
-                    drawableRes = R.drawable.ic_select_all_24,
-                    contentDescription = stringResource(R.string.turn_off_select_and_move)
-                )
-                state.eraserSelectedState -> IconMenuButton(
-                    modifier = Modifier,
-                    onClick = { onAction(Action.Eraser) },
-                    drawableRes = R.drawable.ic_eraser_on_24,
-                    contentDescription = stringResource(R.string.turn_off_eraser)
-                )
+                state.selectToolSelectedState ->
+                    IconMenuButton(
+                        modifier = Modifier,
+                        onClick = { onAction(Action.SelectTool) },
+                        drawableRes = R.drawable.ic_select_all_24,
+                        contentDescription = stringResource(R.string.turn_off_select_and_move),
+                    )
+                state.eraserSelectedState ->
+                    IconMenuButton(
+                        modifier = Modifier,
+                        onClick = { onAction(Action.Eraser) },
+                        drawableRes = R.drawable.ic_eraser_on_24,
+                        contentDescription = stringResource(R.string.turn_off_eraser),
+                    )
             }
         }
         if (buttonsState.selectToolSelectedState) {
@@ -493,7 +502,7 @@ private fun AdditionalButtonBar(
             }
             Spacer(modifier = Modifier.weight(1F))
             Row(
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 IconMenuButton(
                     enabled = !isAtLeftEdge && enabled,
@@ -501,12 +510,12 @@ private fun AdditionalButtonBar(
                         onAction(
                             Action.Move(
                                 canvasState.selectedLayer.id,
-                                Direction.LEFT
-                            )
+                                Direction.LEFT,
+                            ),
                         )
                     },
                     drawableRes = R.drawable.ic_arrow_back_24,
-                    contentDescription = stringResource(R.string.move_left)
+                    contentDescription = stringResource(R.string.move_left),
                 )
                 Column {
                     val isAtTopEdge by remember {
@@ -521,12 +530,12 @@ private fun AdditionalButtonBar(
                             onAction(
                                 Action.Move(
                                     canvasState.selectedLayer.id,
-                                    Direction.UP
-                                )
+                                    Direction.UP,
+                                ),
                             )
                         },
                         drawableRes = R.drawable.ic_arrow_upward_24,
-                        contentDescription = stringResource(R.string.move_up)
+                        contentDescription = stringResource(R.string.move_up),
                     )
                     val isAtBottomEdge by remember {
                         derivedStateOf {
@@ -540,12 +549,12 @@ private fun AdditionalButtonBar(
                             onAction(
                                 Action.Move(
                                     canvasState.selectedLayer.id,
-                                    Direction.DOWN
-                                )
+                                    Direction.DOWN,
+                                ),
                             )
                         },
                         drawableRes = R.drawable.ic_arrow_downward_24,
-                        contentDescription = stringResource(R.string.move_down)
+                        contentDescription = stringResource(R.string.move_down),
                     )
                 }
                 val isAtRightEdge by remember {
@@ -560,19 +569,19 @@ private fun AdditionalButtonBar(
                         onAction(
                             Action.Move(
                                 canvasState.selectedLayer.id,
-                                Direction.RIGHT
-                            )
+                                Direction.RIGHT,
+                            ),
                         )
                     },
                     drawableRes = R.drawable.ic_arrow_forward_24,
-                    contentDescription = stringResource(R.string.move_right)
+                    contentDescription = stringResource(R.string.move_right),
                 )
             }
             Spacer(modifier = Modifier.weight(1F))
             IconMenuButton(
                 onClick = { onAction(Action.ClearSelect) },
                 drawableRes = R.drawable.ic_close_24,
-                contentDescription = stringResource(R.string.un_select)
+                contentDescription = stringResource(R.string.un_select),
             )
         }
     }
@@ -589,7 +598,7 @@ private fun handleAction(
     scope: CoroutineScope,
     context: Context,
     navController: DestinationsNavigator,
-    action: Action
+    action: Action,
 ) {
     when (action) {
         is Action.Fill -> {
@@ -599,7 +608,7 @@ private fun handleAction(
                 ColorAndShape(project?.currentColor?.run { Color(this) } ?: Color.Green),
                 project?.currentShape ?: Shape.Box,
                 project?.columns ?: 0,
-                project?.rows ?: 0
+                project?.rows ?: 0,
             )
         }
         is Action.Eraser -> buttonsState.toggleEraserSelected()
@@ -610,32 +619,36 @@ private fun handleAction(
                     canvasState,
                     it,
                     viewModel,
-                    action.autoSave
+                    action.autoSave,
                 )
             }
         }
         is Action.SelectLayer -> viewModel.selectLayer(action.layerId)
-        is Action.Clear -> if (canvasState.hasLayersTurnedOn) {
-            scope.launch {
-                viewModel.addToHistory(
-                    UserHistory(
-                        canvasState.selectedLayer.id,
-                        canvasState.getCurrentSelectedLayerSelections(canvasState.selectedLayer.id)
+        is Action.Clear ->
+            if (canvasState.hasLayersTurnedOn) {
+                scope.launch {
+                    viewModel.addToHistory(
+                        UserHistory(
+                            canvasState.selectedLayer.id,
+                            canvasState.getCurrentSelectedLayerSelections(canvasState.selectedLayer.id),
+                        ),
                     )
-                )
-                canvasState.clear()
+                    canvasState.clear()
+                }
             }
-        }
-        is Action.Undo -> scope.launch {
-            buttonsState.turnOffSelectionTool()
-            viewModel.onUndo(canvasState.selectedLayer.id)
-        }
-        is Action.AddToHistory -> scope.launch {
-            viewModel.addToHistory(action.historyItem)
-        }
-        is Action.ShowPngBackground -> viewModel.updateProjectShowPngBg(
-            !(project?.showPngBg ?: false)
-        )
+        is Action.Undo ->
+            scope.launch {
+                buttonsState.turnOffSelectionTool()
+                viewModel.onUndo(canvasState.selectedLayer.id)
+            }
+        is Action.AddToHistory ->
+            scope.launch {
+                viewModel.addToHistory(action.historyItem)
+            }
+        is Action.ShowPngBackground ->
+            viewModel.updateProjectShowPngBg(
+                !(project?.showPngBg ?: false),
+            )
         is Action.ShowGrid -> viewModel.updateProjectShowGrid(!(project?.showGrid ?: false))
         is Action.SetColor -> viewModel.updateProjectColor(action.color)
         is Action.SetShape -> viewModel.updateProjectShape(action.shape)
@@ -648,13 +661,14 @@ private fun handleAction(
             viewModel.addLayer(
                 name = action.name,
                 index = (canvasState.layers.maxOf { it.index } ?: -1) + 1,
-                selections = canvasState.selections
+                selections = canvasState.selections,
             )
         is Action.TurnOnOrOffLayer -> viewModel.setLayerOnOrOff(action.layerId, action.on)
         is Action.AddColorToUsedList -> scope.launch { viewModel.addUsedColor(action.color) }
-        is Action.GoToLayerEdit -> project?.id?.let {
-            navController.navigate(LayersEditMainDestination(it))
-        }
+        is Action.GoToLayerEdit ->
+            project?.id?.let {
+                navController.navigate(LayersEditMainDestination(it))
+            }
         is Action.Export ->
             project?.let {
                 viewModel.export(
@@ -662,7 +676,7 @@ private fun handleAction(
                     canvasState.selections,
                     canvasState.layers,
                     action.size,
-                    action.exportType
+                    action.exportType,
                 )
             }
         is Action.SelectTool -> buttonsState.toggleSelectTool()
@@ -672,7 +686,7 @@ private fun handleAction(
                 action.layerId,
                 selectionState.topLeftState,
                 selectionState.bottomRightState,
-                action.direction
+                action.direction,
             )
         }
         is Action.ImageImport ->
@@ -681,7 +695,7 @@ private fun handleAction(
                 action.layerId,
                 project?.columns,
                 project?.rows,
-                action.uri
+                action.uri,
             )
     }
 }
@@ -690,20 +704,18 @@ private fun saveProject(
     canvasState: CanvasState,
     project: Project,
     viewModel: BoxesViewModel,
-    autoSave: Boolean
+    autoSave: Boolean,
 ) {
     viewModel.saveProject(
         project,
         if (autoSave) null else canvasState.boxes.keys.toList(),
         canvasState.selections,
-        canvasState.layers
+        canvasState.layers,
     )
 }
 
 @Composable
-private fun rememberCanvasState(
-    viewModel: BoxesViewModel
-): CanvasState {
+private fun rememberCanvasState(viewModel: BoxesViewModel): CanvasState {
     val layerState = viewModel.layerStateFlow.collectAsStateWithLifecycle(emptyList())
     val pixelsState = viewModel.pixelsFlow.collectAsStateWithLifecycle()
     val loadingState = viewModel.loadingState.collectAsStateWithLifecycle()
@@ -715,7 +727,7 @@ private fun rememberCanvasState(
             viewModel.layersOrderStateList,
             loadingState,
             historyCountState,
-            pixelsState
+            pixelsState,
         )
     }
 }

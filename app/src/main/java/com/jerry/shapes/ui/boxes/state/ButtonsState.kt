@@ -13,9 +13,8 @@ import kotlinx.parcelize.Parcelize
 @Stable
 class ButtonsState(
     private val eraserSelected: Boolean = false,
-    private val selectToolSelected: Boolean = false
+    private val selectToolSelected: Boolean = false,
 ) : Parcelable {
-
     @IgnoredOnParcel
     var eraserSelectedState by mutableStateOf(eraserSelected)
         private set
@@ -47,18 +46,20 @@ class ButtonsState(
     }
 
     fun setTapType(tapType: TapType) {
-        tapTypeState = when (tapTypeState == tapType) {
-            true -> TapType.TAP
-            else -> tapType
-        }
+        tapTypeState =
+            when (tapTypeState == tapType) {
+                true -> TapType.TAP
+                else -> tapType
+            }
     }
 
     fun alternateTapType() {
-        val newType = when (tapTypeState) {
-            TapType.TAP -> TapType.PICKER
-            TapType.PICKER -> TapType.FILL
-            else -> TapType.TAP
-        }
+        val newType =
+            when (tapTypeState) {
+                TapType.TAP -> TapType.PICKER
+                TapType.PICKER -> TapType.FILL
+                else -> TapType.TAP
+            }
         setTapType(newType)
     }
 }

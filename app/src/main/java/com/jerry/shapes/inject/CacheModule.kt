@@ -4,13 +4,15 @@ import androidx.room.Room
 import com.jerry.shapes.cache.BoxesDatabase
 import org.koin.dsl.module
 
-val cacheModule = module {
-    single {
-        Room.databaseBuilder(
-            get(),
-            BoxesDatabase::class.java,
-            BoxesDatabase.DATABASE_NAME
-        ).build()
+val cacheModule =
+    module {
+        single {
+            Room
+                .databaseBuilder(
+                    get(),
+                    BoxesDatabase::class.java,
+                    BoxesDatabase.DATABASE_NAME,
+                ).build()
+        }
+        single { get<BoxesDatabase>().boxesDao() }
     }
-    single { get<BoxesDatabase>().boxesDao() }
-}

@@ -15,17 +15,17 @@ import com.jerry.shapes.ui.shapes.Shape
                 entity = History::class,
                 parentColumns = ["id"],
                 childColumns = ["historyId"],
-                onDelete = ForeignKey.CASCADE
+                onDelete = ForeignKey.CASCADE,
             )
-            )
-    ]
+        ),
+    ],
 )
 data class HistoryItem(
     val historyId: Long,
     val x: Int,
     val y: Int,
     val color: Int?,
-    val shape: Shape?
+    val shape: Shape?,
 ) {
     @PrimaryKey(autoGenerate = true)
     var id: Long = 0L

@@ -11,26 +11,79 @@ import com.jerry.shapes.util.ExportType
 
 sealed class Action {
     object Clear : Action()
+
     object Eraser : Action()
+
     object ResetZoom : Action()
+
     object ShowPngBackground : Action()
+
     object ShowGrid : Action()
+
     object SelectTool : Action()
+
     object Edit : Action()
+
     object Undo : Action()
+
     object GoToLayerEdit : Action()
+
     object ClearSelect : Action()
-    data class ImageImport(val uri: Uri, val layerId: Long) : Action()
-    data class SetColor(val color: ColorAndShape) : Action()
-    data class SetShape(val shape: Shape) : Action()
-    data class Move(val layerId: Long, val direction: Direction) : Action()
-    data class Fill(val point: Point, val layerId: Long) : Action()
-    data class SetTapType(val tapType: TapType) : Action()
-    data class Export(val size: Int, val exportType: ExportType) : Action()
-    data class AddLayer(val name: String) : Action()
-    data class SelectLayer(val layerId: Long) : Action()
-    data class AddColorToUsedList(val color: ColorAndShape) : Action()
-    data class AddToHistory(val historyItem: UserHistory) : Action()
-    data class TurnOnOrOffLayer(val on: Boolean, val layerId: Long) : Action()
-    data class Save(val autoSave: Boolean) : Action()
+
+    data class ImageImport(
+        val uri: Uri,
+        val layerId: Long,
+    ) : Action()
+
+    data class SetColor(
+        val color: ColorAndShape,
+    ) : Action()
+
+    data class SetShape(
+        val shape: Shape,
+    ) : Action()
+
+    data class Move(
+        val layerId: Long,
+        val direction: Direction,
+    ) : Action()
+
+    data class Fill(
+        val point: Point,
+        val layerId: Long,
+    ) : Action()
+
+    data class SetTapType(
+        val tapType: TapType,
+    ) : Action()
+
+    data class Export(
+        val size: Int,
+        val exportType: ExportType,
+    ) : Action()
+
+    data class AddLayer(
+        val name: String,
+    ) : Action()
+
+    data class SelectLayer(
+        val layerId: Long,
+    ) : Action()
+
+    data class AddColorToUsedList(
+        val color: ColorAndShape,
+    ) : Action()
+
+    data class AddToHistory(
+        val historyItem: UserHistory,
+    ) : Action()
+
+    data class TurnOnOrOffLayer(
+        val on: Boolean,
+        val layerId: Long,
+    ) : Action()
+
+    data class Save(
+        val autoSave: Boolean,
+    ) : Action()
 }

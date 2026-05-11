@@ -8,7 +8,7 @@ data class ProjectAndLayers(
     @Relation(
         entity = Layer::class,
         parentColumn = "id",
-        entityColumn = "projectId"
+        entityColumn = "projectId",
     )
-    val layers: List<Layer>
+    val layers: List<Layer>,
 )

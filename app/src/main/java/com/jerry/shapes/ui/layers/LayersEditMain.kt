@@ -5,11 +5,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Text
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -20,7 +20,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.jerry.shapes.R
 import com.jerry.shapes.ui.common.*
@@ -35,7 +34,7 @@ import org.koin.androidx.compose.koinViewModel
 fun LayersEditMain(
     projectId: Long,
     navController: DestinationsNavigator,
-    viewModel: LayersEditViewModel = koinViewModel()
+    viewModel: LayersEditViewModel = koinViewModel(),
 ) {
     var showOpacity by rememberSaveable { mutableStateOf(false) }
     DefaultContainer(
@@ -47,38 +46,40 @@ fun LayersEditMain(
                 contentDescription = stringResource(R.string.toggle_opacity_bg),
                 drawableResOn = R.drawable.ic_opacity_off_24,
                 drawableResOff = R.drawable.ic_opacity_on_24,
-                tint = LocalContentColor.current
+                tint = LocalContentColor.current,
             )
-        }
+        },
     ) {
         val projectState by viewModel.projectFlow.collectAsStateWithLifecycle()
         val list by rememberUpdatedState(
             remember(projectState) {
                 mutableStateListOf(
-                    *((projectState?.layers ?: emptyList()).toTypedArray())
+                    *((projectState?.layers ?: emptyList()).toTypedArray()),
                 )
-            }
-        )
-        val state = rememberReorderableLazyListState(
-            onMove = { from, to ->
-                val item = list[from.index]
-                list.remove(item)
-                list.add(to.index, item)
             },
-            onDragEnd = { _, _ ->
-                viewModel.setLayerIndicies(list.map { it.id to ((list.size - 1) - list.indexOf(it)) })
-            }
         )
+        val state =
+            rememberReorderableLazyListState(
+                onMove = { from, to ->
+                    val item = list[from.index]
+                    list.remove(item)
+                    list.add(to.index, item)
+                },
+                onDragEnd = { _, _ ->
+                    viewModel.setLayerIndicies(list.map { it.id to ((list.size - 1) - list.indexOf(it)) })
+                },
+            )
         LazyColumn(
             state = state.listState,
-            modifier = Modifier
-                .reorderable(state)
-                .detectReorderAfterLongPress(state)
-                .fillMaxSize()
+            modifier =
+                Modifier
+                    .reorderable(state)
+                    .detectReorderAfterLongPress(state)
+                    .fillMaxSize(),
         ) {
             itemsIndexed(
                 items = list,
-                key = { _, layer -> layer.id }
+                key = { _, layer -> layer.id },
             ) { index, layer ->
                 ReorderableItem(state, key = layer.id) { isDragging ->
                     LayerItem(
@@ -91,7 +92,7 @@ fun LayersEditMain(
                         onDeleteItem = {
                             viewModel.deleteLayer(
                                 projectState!!.layers,
-                                layer.id
+                                layer.id,
                             )
                         },
                         showDeleteBtn = {
@@ -102,7 +103,7 @@ fun LayersEditMain(
                         },
                         showReorderBtn = {
                             list.size > 1
-                        }
+                        },
                     )
                 }
             }
@@ -111,7 +112,7 @@ fun LayersEditMain(
         if (!projectNotNull) {
             Box(
                 modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 CircularProgressIndicator()
             }
@@ -129,72 +130,79 @@ private fun LazyItemScope.LayerItem(
     showDivider: () -> Boolean,
     showDeleteBtn: () -> Boolean,
     onDeleteItem: () -> Unit,
-    onLayerName: (String) -> Unit
+    onLayerName: (String) -> Unit,
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .animateItem()
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .animateItem(),
     ) {
         if (showDivider()) {
             Divider()
         }
         Row(
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                modifier = Modifier
-                    .weight(1F)
-                    .padding(16.dp),
+                modifier =
+                    Modifier
+                        .weight(1F)
+                        .padding(16.dp),
                 text = layer.name,
                 style = MaterialTheme.typography.titleLarge,
-                color = LocalContentColor.current
+                color = LocalContentColor.current,
             )
             if (showReorderBtn()) {
                 IconMenuButton(
-                    modifier = Modifier
-                        .detectReorder(state),
+                    modifier =
+                        Modifier
+                            .detectReorder(state),
                     onClick = { /* no op */ },
                     contentDescription = stringResource(R.string.drag_layer),
-                    drawableRes = R.drawable.ic_drag_indicator_24
+                    drawableRes = R.drawable.ic_drag_indicator_24,
                 )
             }
         }
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 24.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 24.dp),
         ) {
             val context = LocalContext.current
-            val request = ImageRequest.Builder(context)
-                .data(layer.image)
-                .crossfade(true)
-                .build()
+            val request =
+                ImageRequest
+                    .Builder(context)
+                    .data(layer.image)
+                    .crossfade(true)
+                    .build()
             ProjectImage(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .size(CANVAS_SIZE)
-                    .pngBackground(
-                        visible = showOpacity(),
-                        size = with(LocalDensity.current) { 10.dp.toPx() }
-                    ),
+                modifier =
+                    Modifier
+                        .padding(horizontal = 16.dp)
+                        .size(CANVAS_SIZE)
+                        .pngBackground(
+                            visible = showOpacity(),
+                            size = with(LocalDensity.current) { 10.dp.toPx() },
+                        ),
                 imageRequest = request,
-                contentScale = ContentScale.Fit
+                contentScale = ContentScale.Fit,
             )
             var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
             var showNameDialog by rememberSaveable { mutableStateOf(false) }
             ButtonRow(
                 onShowDeleteDialog = { showDeleteDialog = true },
                 onShowNameDialog = { showNameDialog = true },
-                showDeleteBtn = showDeleteBtn
+                showDeleteBtn = showDeleteBtn,
             )
 
             if (showDeleteDialog) {
                 AreYouSureDialog(
                     title = stringResource(R.string.are_you_sure_layer, layer.name),
                     dismiss = { showDeleteDialog = false },
-                    onDelete = onDeleteItem
+                    onDelete = onDeleteItem,
                 )
             }
 
@@ -202,7 +210,7 @@ private fun LazyItemScope.LayerItem(
                 SetNameDialog(
                     existingName = layer.name,
                     dismiss = { showNameDialog = false },
-                    onName = onLayerName
+                    onName = onLayerName,
                 )
             }
         }
@@ -213,23 +221,24 @@ private fun LazyItemScope.LayerItem(
 private fun RowScope.ButtonRow(
     showDeleteBtn: () -> Boolean,
     onShowNameDialog: () -> Unit,
-    onShowDeleteDialog: () -> Unit
+    onShowDeleteDialog: () -> Unit,
 ) {
     Column(
-        modifier = Modifier
-            .height(CANVAS_SIZE)
-            .weight(1F)
+        modifier =
+            Modifier
+                .height(CANVAS_SIZE)
+                .weight(1F),
     ) {
         IconMenuButton(
             onClick = onShowNameDialog,
             drawableRes = R.drawable.ic_edit_24,
-            contentDescription = stringResource(R.string.change_layer_name)
+            contentDescription = stringResource(R.string.change_layer_name),
         )
         if (showDeleteBtn()) {
             IconMenuButton(
                 onClick = onShowDeleteDialog,
                 drawableRes = R.drawable.ic_delete_24,
-                contentDescription = stringResource(R.string.delete_layer)
+                contentDescription = stringResource(R.string.delete_layer),
             )
         }
     }

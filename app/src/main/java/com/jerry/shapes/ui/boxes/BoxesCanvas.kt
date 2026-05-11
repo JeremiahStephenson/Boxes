@@ -7,7 +7,6 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.TransformableState
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -56,7 +55,7 @@ fun BoxCanvas(
     onTap: (Point) -> Unit,
     onDrag: (HashSet<Point>) -> Unit,
     onDragStart: () -> Unit,
-    onDragEnd: () -> Unit
+    onDragEnd: () -> Unit,
 ) {
     val contentOffset = LocalAppBarHeight.current
     val appBarExpanded by remember { derivedStateOf { contentOffset.value == 0F } }
@@ -69,92 +68,93 @@ fun BoxCanvas(
 
     if (project.showPngBg) {
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .pngBackground(true, pngBoxSize)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .pngBackground(true, pngBoxSize),
         )
     }
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .pointerInput(appBarExpanded) {
-                detectTapGestures { point ->
-                    if (state.isTransformInProgress) return@detectTapGestures
-                    point
-                        .findBox(
-                            scaleState,
-                            offsetState,
-                            sizeState,
-                            columnsState,
-                            rowsState,
-                            canvasState.boxes
-                        )
-                        ?.let {
-                            onTap(it)
-                        }
-                }
-            }
-            .pointerInput(appBarExpanded) {
-                detectDragGestures(
-                    onDragStart = {
-                        if (state.isTransformInProgress) return@detectDragGestures
-                        when (buttonsState.selectToolSelectedState) {
-                            true -> selectionState.startSelection(
-                                it,
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .pointerInput(appBarExpanded) {
+                    detectTapGestures { point ->
+                        if (state.isTransformInProgress) return@detectTapGestures
+                        point
+                            .findBox(
                                 scaleState,
                                 offsetState,
                                 sizeState,
                                 columnsState,
                                 rowsState,
-                                canvasState.boxes
-                            )
-                            else -> onDragStart()
-                        }
-                    },
-                    onDragEnd = {
-                        if (!buttonsState.selectToolSelectedState) {
-                            onDragEnd()
-                        }
-                    },
-                    onDragCancel = {
-                        if (!buttonsState.selectToolSelectedState) {
-                            onDragEnd()
-                        }
-                    },
-                    onDrag = { position, change ->
-                        if (state.isTransformInProgress) return@detectDragGestures
-                        when (buttonsState.selectToolSelectedState) {
-                            true -> {
-                                selectionState.updateSelection(
-                                    position.position,
-                                    scaleState,
-                                    offsetState,
-                                    sizeState,
-                                    columnsState,
-                                    rowsState,
-                                    canvasState.boxes
-                                )
+                                canvasState.boxes,
+                            )?.let {
+                                onTap(it)
                             }
-                            else -> onDrag(
-                                getDragPoints(canvasState, change, position).findBoxes(
-                                    scaleState,
-                                    offsetState,
-                                    sizeState,
-                                    columnsState,
-                                    rowsState,
-                                    canvasState.boxes
-                                )
-                            )
-                        }
                     }
-                )
-            }
-            .transformable(
-                state = state,
-                canPan = { false },
-                lockRotationOnZoomPan = true
-            )
+                }.pointerInput(appBarExpanded) {
+                    detectDragGestures(
+                        onDragStart = {
+                            if (state.isTransformInProgress) return@detectDragGestures
+                            when (buttonsState.selectToolSelectedState) {
+                                true ->
+                                    selectionState.startSelection(
+                                        it,
+                                        scaleState,
+                                        offsetState,
+                                        sizeState,
+                                        columnsState,
+                                        rowsState,
+                                        canvasState.boxes,
+                                    )
+                                else -> onDragStart()
+                            }
+                        },
+                        onDragEnd = {
+                            if (!buttonsState.selectToolSelectedState) {
+                                onDragEnd()
+                            }
+                        },
+                        onDragCancel = {
+                            if (!buttonsState.selectToolSelectedState) {
+                                onDragEnd()
+                            }
+                        },
+                        onDrag = { position, change ->
+                            if (state.isTransformInProgress) return@detectDragGestures
+                            when (buttonsState.selectToolSelectedState) {
+                                true -> {
+                                    selectionState.updateSelection(
+                                        position.position,
+                                        scaleState,
+                                        offsetState,
+                                        sizeState,
+                                        columnsState,
+                                        rowsState,
+                                        canvasState.boxes,
+                                    )
+                                }
+                                else ->
+                                    onDrag(
+                                        getDragPoints(canvasState, change, position).findBoxes(
+                                            scaleState,
+                                            offsetState,
+                                            sizeState,
+                                            columnsState,
+                                            rowsState,
+                                            canvasState.boxes,
+                                        ),
+                                    )
+                            }
+                        },
+                    )
+                }.transformable(
+                    state = state,
+                    canPan = { false },
+                    lockRotationOnZoomPan = true,
+                ),
     ) {
         val quadrantXSize by remember {
             derivedStateOf {
@@ -172,14 +172,15 @@ fun BoxCanvas(
             size = size,
             quadrantXSize = quadrantXSize,
             quadrantYSize = quadrantYSize,
-            canvasState = canvasState
+            canvasState = canvasState,
         )
 
         if (project.showGrid) {
-            val color = when (project.showPngBg) {
-                true -> MaterialTheme.colorScheme.background
-                else -> Color.Gray
-            }
+            val color =
+                when (project.showPngBg) {
+                    true -> MaterialTheme.colorScheme.background
+                    else -> Color.Gray
+                }
             Grid(
                 rows = rowsState,
                 columns = columnsState,
@@ -188,7 +189,7 @@ fun BoxCanvas(
                 scale = scale,
                 offset = offset,
                 size = sizeState,
-                canvasState = canvasState
+                canvasState = canvasState,
             )
         }
 
@@ -206,7 +207,7 @@ fun BoxCanvas(
                 offset = offset,
                 size = size,
                 boxes = canvasState.boxes,
-                selectionState = selectionState
+                selectionState = selectionState,
             )
         }
     }
@@ -219,31 +220,33 @@ fun SelectionsBoxes(
     size: Constraints,
     quadrantXSize: Int,
     quadrantYSize: Int,
-    canvasState: CanvasState
+    canvasState: CanvasState,
 ) {
     for (layerIndex in 0 until canvasState.layersOrder.count()) {
         for (x in 0 until quadrantXSize) {
             for (y in 0 until quadrantYSize) {
                 Canvas(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .graphicsLayer {
-                            transformOrigin = TransformOrigin(
-                                ((size.maxWidth / 2F) - offset.x) / size.maxWidth,
-                                ((size.maxHeight / 2F) - offset.y) / size.maxHeight
-                            )
-                            scaleX = scale
-                            scaleY = scale
-                            translationX = offset.x
-                            translationY = offset.y
-                        }
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .graphicsLayer {
+                                transformOrigin =
+                                    TransformOrigin(
+                                        ((size.maxWidth / 2F) - offset.x) / size.maxWidth,
+                                        ((size.maxHeight / 2F) - offset.y) / size.maxHeight,
+                                    )
+                                scaleX = scale
+                                scaleY = scale
+                                translationX = offset.x
+                                translationY = offset.y
+                            },
                 ) {
                     val id = canvasState.layersOrder[layerIndex]
                     if (canvasState.layersVisibility[id]?.value == true) {
                         drawShapes(
                             id,
                             canvasState.selections[id]?.get(Point(x, y)),
-                            canvasState.boxes
+                            canvasState.boxes,
                         )
                     }
                 }
@@ -258,57 +261,62 @@ fun SelectionTool(
     offset: Offset,
     size: Constraints,
     boxes: Map<Point, RectF>,
-    selectionState: SelectionState
+    selectionState: SelectionState,
 ) {
     val highlightColor = MaterialTheme.colorScheme.primary
     val stroke = with(LocalDensity.current) { 5.dp.toPx() }
     Canvas(
-        modifier = Modifier
-            .fillMaxSize()
-            .graphicsLayer {
-                transformOrigin = TransformOrigin(
-                    ((size.maxWidth / 2F) - offset.x) / size.maxWidth,
-                    ((size.maxHeight / 2F) - offset.y) / size.maxHeight
-                )
-                scaleX = scale
-                scaleY = scale
-                translationX = offset.x
-                translationY = offset.y
-            }
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .graphicsLayer {
+                    transformOrigin =
+                        TransformOrigin(
+                            ((size.maxWidth / 2F) - offset.x) / size.maxWidth,
+                            ((size.maxHeight / 2F) - offset.y) / size.maxHeight,
+                        )
+                    scaleX = scale
+                    scaleY = scale
+                    translationX = offset.x
+                    translationY = offset.y
+                },
     ) {
         if (selectionState.topLeftState == null || selectionState.bottomRightState == null) return@Canvas
         safeLet(
             boxes[selectionState.topLeftState],
-            boxes[selectionState.bottomRightState]
+            boxes[selectionState.bottomRightState],
         ) { tl, br ->
-            val adjustmentTopLeft = Offset(
-                when (br.left < tl.left) {
-                    true -> tl.right
-                    else -> tl.left
-                },
-                when (br.top < tl.top) {
-                    true -> tl.bottom
-                    else -> tl.top
-                }
-            )
-            val adjustmentBottomRight = Offset(
-                when (br.left < tl.left) {
-                    true -> br.left
-                    else -> br.right
-                },
-                when (br.top < tl.top) {
-                    true -> br.top
-                    else -> br.bottom
-                }
-            )
+            val adjustmentTopLeft =
+                Offset(
+                    when (br.left < tl.left) {
+                        true -> tl.right
+                        else -> tl.left
+                    },
+                    when (br.top < tl.top) {
+                        true -> tl.bottom
+                        else -> tl.top
+                    },
+                )
+            val adjustmentBottomRight =
+                Offset(
+                    when (br.left < tl.left) {
+                        true -> br.left
+                        else -> br.right
+                    },
+                    when (br.top < tl.top) {
+                        true -> br.top
+                        else -> br.bottom
+                    },
+                )
             drawRect(
                 style = Stroke(width = stroke / scale),
                 color = highlightColor,
                 topLeft = adjustmentTopLeft,
-                size = Size(
-                    adjustmentBottomRight.x - adjustmentTopLeft.x,
-                    adjustmentBottomRight.y - adjustmentTopLeft.y
-                )
+                size =
+                    Size(
+                        adjustmentBottomRight.x - adjustmentTopLeft.x,
+                        adjustmentBottomRight.y - adjustmentTopLeft.y,
+                    ),
             )
         }
     }
@@ -323,21 +331,22 @@ private fun Grid(
     scale: Float,
     offset: Offset,
     size: Constraints,
-    canvasState: CanvasState
+    canvasState: CanvasState,
 ) {
     Canvas(
         Modifier
             .fillMaxSize()
             .graphicsLayer {
-                transformOrigin = TransformOrigin(
-                    ((size.maxWidth / 2F) - offset.x) / size.maxWidth,
-                    ((size.maxHeight / 2F) - offset.y) / size.maxHeight
-                )
+                transformOrigin =
+                    TransformOrigin(
+                        ((size.maxWidth / 2F) - offset.x) / size.maxWidth,
+                        ((size.maxHeight / 2F) - offset.y) / size.maxHeight,
+                    )
                 scaleX = scale
                 scaleY = scale
                 translationX = offset.x
                 translationY = offset.y
-            }
+            },
     ) {
         val boxSize = (canvasState.boxes[Point(0, 0)]?.width() ?: 0F) * scale
         val stroke = strokeWidth / scale
@@ -346,20 +355,20 @@ private fun Grid(
             for (i in 0 until rows) {
                 safeLet(
                     canvasState.boxes[Point(0, i)],
-                    canvasState.boxes[Point(columns - 1, i)]
+                    canvasState.boxes[Point(columns - 1, i)],
                 ) { start, end ->
                     drawLine(
                         strokeWidth = stroke,
                         color = strokeColor,
                         start = Offset(start.left, start.top),
-                        end = Offset(end.right, end.top)
+                        end = Offset(end.right, end.top),
                     )
                     if (i == rows - 1) {
                         drawLine(
                             strokeWidth = stroke,
                             color = strokeColor,
                             start = Offset(start.left, start.bottom),
-                            end = Offset(end.right, end.bottom)
+                            end = Offset(end.right, end.bottom),
                         )
                     }
                 }
@@ -367,20 +376,20 @@ private fun Grid(
             for (i in 0 until columns) {
                 safeLet(
                     canvasState.boxes[Point(i, 0)],
-                    canvasState.boxes[Point(i, rows - 1)]
+                    canvasState.boxes[Point(i, rows - 1)],
                 ) { start, end ->
                     drawLine(
                         strokeWidth = stroke,
                         color = strokeColor,
                         start = Offset(start.left, start.top),
-                        end = Offset(end.left, end.bottom)
+                        end = Offset(end.left, end.bottom),
                     )
                     if (i == columns - 1) {
                         drawLine(
                             strokeWidth = stroke,
                             color = strokeColor,
                             start = Offset(start.right, start.top),
-                            end = Offset(end.right, end.bottom)
+                            end = Offset(end.right, end.bottom),
                         )
                     }
                 }
@@ -392,33 +401,33 @@ private fun Grid(
 private fun getDragPoints(
     canvasState: CanvasState,
     change: Offset,
-    position: PointerInputChange
-): HashSet<Offset> {
-    return HashSet<Offset>().apply {
-        val boxSize = canvasState.boxes.values
-            .first()
-            .width()
-            .toInt()
+    position: PointerInputChange,
+): HashSet<Offset> =
+    HashSet<Offset>().apply {
+        val boxSize =
+            canvasState.boxes.values
+                .first()
+                .width()
+                .toInt()
 
         if (abs(change.x) > boxSize || abs(change.y) > boxSize) {
             val distance =
                 sqrt(
                     (position.position.x - position.previousPosition.x).pow(2) +
                         (position.position.y - position.previousPosition.y).pow(
-                            2
-                        )
+                            2,
+                        ),
                 )
             for (i in 1..(distance / boxSize).toInt()) {
                 val t = (boxSize * i) / distance
                 add(
                     Offset(
                         ((1 - t) * (position.previousPosition.x) + (t * position.position.x)),
-                        ((1 - t) * (position.previousPosition.y) + (t * position.position.y))
-                    )
+                        ((1 - t) * (position.previousPosition.y) + (t * position.position.y)),
+                    ),
                 )
             }
         }
 
         add(position.position)
     }
-}

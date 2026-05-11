@@ -11,12 +11,16 @@ import java.io.Serializable
 @Entity(
     tableName = Pixel.TABLE_NAME,
     indices = [(Index(value = ["layerId", "x", "y"], unique = true))],
-    foreignKeys = [(ForeignKey(
-        entity = Layer::class,
-        parentColumns = ["id"],
-        childColumns = ["layerId"],
-        onDelete = ForeignKey.CASCADE
-    ))]
+    foreignKeys = [
+        (
+            ForeignKey(
+                entity = Layer::class,
+                parentColumns = ["id"],
+                childColumns = ["layerId"],
+                onDelete = ForeignKey.CASCADE,
+            )
+        ),
+    ],
 )
 data class Pixel(
     val layerId: Long,
@@ -24,7 +28,7 @@ data class Pixel(
     val y: Int,
     val color: Int,
     val shape: Shape,
-    val timestamp: Long
+    val timestamp: Long,
 ) : Serializable {
     @PrimaryKey(autoGenerate = true)
     var id: Long = 0L

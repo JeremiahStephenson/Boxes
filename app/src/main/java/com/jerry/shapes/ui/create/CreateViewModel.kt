@@ -21,9 +21,8 @@ import java.time.Instant
 
 class CreateViewModel(
     handle: SavedStateHandle,
-    private val boxesDao: BoxesDao
+    private val boxesDao: BoxesDao,
 ) : ViewModel() {
-
     private val _uiState = MutableSharedFlow<Resource<Long>>(0, 1, BufferOverflow.DROP_OLDEST)
     val uiState = _uiState.asSharedFlow()
 
@@ -34,34 +33,40 @@ class CreateViewModel(
     val projectFlow =
         boxesDao.takeIf { projectId != null }?.getProjectFlowById(projectId!!) ?: emptyFlow()
 
-    fun saveProject(name: String, columns: Int, rows: Int) {
+    fun saveProject(
+        name: String,
+        columns: Int,
+        rows: Int,
+    ) {
         viewModelScope.launch(
             CoroutineExceptionHandler { _, error ->
                 _uiState.tryEmit(Resource.error(error))
-            }
+            },
         ) {
-            val id = when (projectId) {
-                null -> {
-                    val projectId = boxesDao.insertProject(
-                        Project(
-                            name,
-                            columns,
-                            rows,
-                            Color.Green.toArgb(),
-                            Shape.Box,
-                            showGrid = true,
-                            showPngBg = false,
-                            timestamp = Instant.now().toEpochMilli()
-                        )
-                    )
-                    boxesDao.insertLayer(Layer(projectId, 0, "Layer 1", true))
-                    projectId
+            val id =
+                when (projectId) {
+                    null -> {
+                        val projectId =
+                            boxesDao.insertProject(
+                                Project(
+                                    name,
+                                    columns,
+                                    rows,
+                                    Color.Green.toArgb(),
+                                    Shape.Box,
+                                    showGrid = true,
+                                    showPngBg = false,
+                                    timestamp = Instant.now().toEpochMilli(),
+                                ),
+                            )
+                        boxesDao.insertLayer(Layer(projectId, 0, "Layer 1", true))
+                        projectId
+                    }
+                    else -> {
+                        boxesDao.updateProject(name, columns, rows, projectId)
+                        projectId
+                    }
                 }
-                else -> {
-                    boxesDao.updateProject(name, columns, rows, projectId)
-                    projectId
-                }
-            }
             _uiState.tryEmit(Resource.done(id))
         }
     }

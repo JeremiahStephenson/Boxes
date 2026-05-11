@@ -11,13 +11,15 @@ import androidx.compose.ui.Modifier
 fun FadeAnimatedVisibility(
     visible: Boolean,
     modifier: Modifier = Modifier,
-    content: @Composable() AnimatedVisibilityScope.() -> Unit
+    content:
+        @Composable()
+        AnimatedVisibilityScope.() -> Unit,
 ) {
     AnimatedVisibility(
         modifier = modifier,
         visible = visible,
         enter = fadeIn(),
-        exit = fadeOut()
+        exit = fadeOut(),
     ) {
         content()
     }

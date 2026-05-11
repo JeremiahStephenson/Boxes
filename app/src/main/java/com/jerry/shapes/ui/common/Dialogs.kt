@@ -21,34 +21,37 @@ fun SetNameDialog(
     existingName: String,
     dismiss: () -> Unit,
     hint: String? = null,
-    onName: (String) -> Unit
+    onName: (String) -> Unit,
 ) {
     Dialog(onDismissRequest = dismiss) {
         val scrollState = rememberScrollState()
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .verticalScroll(scrollState)
-                .clip(MaterialTheme.shapes.large)
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-                .padding(16.dp),
-            horizontalAlignment = Alignment.Start
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(scrollState)
+                    .clip(MaterialTheme.shapes.large)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .padding(16.dp),
+            horizontalAlignment = Alignment.Start,
         ) {
             Text(
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(bottom = 8.dp),
-                text = buildAnnotatedString {
-                    append(stringResource(R.string.name))
-                    append(":")
-                },
-                textAlign = TextAlign.Center
+                text =
+                    buildAnnotatedString {
+                        append(stringResource(R.string.name))
+                        append(":")
+                    },
+                textAlign = TextAlign.Center,
             )
             var name by remember { mutableStateOf(existingName) }
             var nameError by remember { mutableStateOf(false) }
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp, bottom = 0.dp)
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp, bottom = 0.dp),
             ) {
                 OutlinedTextField(
                     modifier = Modifier.fillMaxWidth(),
@@ -62,18 +65,19 @@ fun SetNameDialog(
                         if (it.length < 30) {
                             name = it
                         }
-                    }
+                    },
                 )
                 Text(
                     text = if (nameError) stringResource(R.string.name_required) else "",
                     color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.titleSmall
+                    style = MaterialTheme.typography.titleSmall,
                 )
             }
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp)
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
             ) {
                 Button(
                     modifier = Modifier.weight(1F),
@@ -85,14 +89,14 @@ fun SetNameDialog(
                                 dismiss()
                             }
                         }
-                    }
+                    },
                 ) {
                     Text(text = stringResource(R.string.save))
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 OutlinedButton(
                     modifier = Modifier,
-                    onClick = dismiss
+                    onClick = dismiss,
                 ) {
                     Text(text = stringResource(R.string.cancel))
                 }
@@ -105,37 +109,39 @@ fun SetNameDialog(
 fun AreYouSureDialog(
     title: String,
     dismiss: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
 ) {
     Dialog(onDismissRequest = dismiss) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(MaterialTheme.shapes.large)
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .clip(MaterialTheme.shapes.large)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(bottom = 16.dp),
                 text = title,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
             OutlinedButton(
                 modifier = Modifier.fillMaxWidth(),
                 onClick = {
                     onDelete()
                     dismiss()
-                }
+                },
             ) {
                 Text(text = stringResource(R.string.yes))
             }
             Button(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
-                onClick = dismiss
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                onClick = dismiss,
             ) {
                 Text(text = stringResource(R.string.no))
             }

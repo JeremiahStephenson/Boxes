@@ -6,7 +6,7 @@ import kotlin.reflect.KProperty
 data class SavedHandle<T>(
     private val handle: SavedStateHandle,
     private val tag: String,
-    private val setIfNull: T? = null
+    private val setIfNull: T? = null,
 ) {
     init {
         setIfNull?.takeIf { handle.get<T>(tag) == null }?.let {
@@ -14,6 +14,14 @@ data class SavedHandle<T>(
         }
     }
 
-    operator fun getValue(thisRef: Any, property: KProperty<*>) = handle.get<T>(tag)
-    operator fun setValue(thisRef: Any, property: KProperty<*>, value: T?) = handle.set(tag, value)
+    operator fun getValue(
+        thisRef: Any,
+        property: KProperty<*>,
+    ) = handle.get<T>(tag)
+
+    operator fun setValue(
+        thisRef: Any,
+        property: KProperty<*>,
+        value: T?,
+    ) = handle.set(tag, value)
 }

@@ -21,7 +21,7 @@ fun Context?.exportCanvas(
     columns: Int,
     imageSize: Int,
     layers: Collection<LayerUi>,
-    selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>
+    selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
 ): String? {
     val context = this ?: return null
     val bitmap = generateBitmap(rows, columns, imageSize, layers, selections)
@@ -31,10 +31,11 @@ fun Context?.exportCanvas(
 fun Bitmap.storeImage(
     context: Context,
     exportType: ExportType,
-    name: String? = null
+    name: String? = null,
 ): String? {
-    val pictureFile = getOutputMediaFile(context, exportType, name)
-        ?: throw (Throwable(context.getString(R.string.error_export)))
+    val pictureFile =
+        getOutputMediaFile(context, exportType, name)
+            ?: throw (Throwable(context.getString(R.string.error_export)))
 
     val fos = FileOutputStream(pictureFile)
     compress(Bitmap.CompressFormat.PNG, 90, fos)
@@ -47,15 +48,16 @@ fun Bitmap.storeImage(
 private fun getOutputMediaFile(
     context: Context,
     exportType: ExportType,
-    name: String? = null
+    name: String? = null,
 ): File? {
     // To be safe, you should check that the SDCard is mounted
     // using Environment.getExternalStorageState() before doing this.
-    val mediaStorageDir = when (exportType) {
-        ExportType.FILE -> Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES + "/Pixels")
-        ExportType.SHARE -> File(context.cacheDir, "pixels")
-        else -> File(context.filesDir, "pixels")
-    }
+    val mediaStorageDir =
+        when (exportType) {
+            ExportType.FILE -> Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES + "/Pixels")
+            ExportType.SHARE -> File(context.cacheDir, "pixels")
+            else -> File(context.filesDir, "pixels")
+        }
 
     // This location works best if you want the created images to be shared
     // between applications and persist after your app has been uninstalled.
@@ -80,25 +82,25 @@ private fun getOutputMediaFile(
 
 private fun Context.fileIntent(
     path: String,
-    export: Boolean
-): Intent {
-    return Intent(
+    export: Boolean,
+): Intent =
+    Intent(
         when (export) {
             true -> Intent.ACTION_VIEW
             else -> Intent.ACTION_SEND
-        }
+        },
     ).apply {
         val file = File(path)
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        val photoURI = FileProvider.getUriForFile(
-            this@fileIntent,
-            this@fileIntent.applicationContext.packageName + ".provider",
-            file
-        )
+        val photoURI =
+            FileProvider.getUriForFile(
+                this@fileIntent,
+                this@fileIntent.applicationContext.packageName + ".provider",
+                file,
+            )
         putExtra(Intent.EXTRA_STREAM, photoURI)
         setDataAndType(photoURI, "image/png")
     }
-}
 
 fun Context.openImage(path: String) {
     startActivity(fileIntent(path, true))

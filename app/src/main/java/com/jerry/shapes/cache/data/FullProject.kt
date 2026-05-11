@@ -8,7 +8,7 @@ data class FullProject(
     @Relation(
         entity = Layer::class,
         parentColumn = "id",
-        entityColumn = "projectId"
+        entityColumn = "projectId",
     )
-    val layers: List<LayerAndPixel>
+    val layers: List<LayerAndPixel>,
 )

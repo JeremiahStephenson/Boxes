@@ -11,7 +11,6 @@ import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class LaunchActivity : ComponentActivity() {
-
     private val viewModel by viewModel<LaunchViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {

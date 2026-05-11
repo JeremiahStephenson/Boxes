@@ -18,7 +18,10 @@ class TransformerState {
     private val panAnimatorX = Animatable(0F)
     private val panAnimatorY = Animatable(0F)
 
-    fun setChanges(zoomChange: Float, offsetChange: Offset) {
+    fun setChanges(
+        zoomChange: Float,
+        offsetChange: Offset,
+    ) {
         scale = max(1F, scale * zoomChange)
         offset += (offsetChange / scale)
     }

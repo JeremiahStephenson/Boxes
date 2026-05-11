@@ -9,10 +9,11 @@ import com.jerry.shapes.ui.boxes.state.TransformerState
 @Composable
 fun Transformer(
     transformerState: TransformerState,
-    content: @Composable (Float, Offset, TransformableState) -> Unit
+    content: @Composable (Float, Offset, TransformableState) -> Unit,
 ) {
-    val state = rememberTransformableState { zoomChange, offsetChange, _ ->
-        transformerState.setChanges(zoomChange, offsetChange)
-    }
+    val state =
+        rememberTransformableState { zoomChange, offsetChange, _ ->
+            transformerState.setChanges(zoomChange, offsetChange)
+        }
     content(transformerState.scale, transformerState.offset, state)
 }

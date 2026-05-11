@@ -14,16 +14,16 @@ import androidx.room.PrimaryKey
                 entity = Project::class,
                 parentColumns = ["id"],
                 childColumns = ["projectId"],
-                onDelete = ForeignKey.CASCADE
+                onDelete = ForeignKey.CASCADE,
             )
-            )
-    ]
+        ),
+    ],
 )
 data class Layer(
     val projectId: Long,
     val index: Int,
     val name: String,
-    val on: Boolean
+    val on: Boolean,
 ) {
     @PrimaryKey(autoGenerate = true)
     var id: Long = 0L

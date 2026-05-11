@@ -7,7 +7,7 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateOf
 
 data class FloatButtonProperties(
-    val onClick: () -> Unit
+    val onClick: () -> Unit,
 )
 
 val LocalFloatingActionBarButton = compositionLocalOf<(FloatButtonProperties?) -> Unit> { {} }

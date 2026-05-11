@@ -8,5 +8,5 @@ data class LayerUi(
     val on: Boolean,
     val selected: Boolean,
     val visibilityEnabled: Boolean,
-    val showControls: Boolean
+    val showControls: Boolean,
 )

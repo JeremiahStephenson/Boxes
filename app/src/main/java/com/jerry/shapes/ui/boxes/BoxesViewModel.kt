@@ -44,24 +44,24 @@ class BoxesViewModel(
     private val handle: SavedStateHandle,
     private val boxesRepository: BoxesRepository,
     private val cc: CoroutineContextProvider,
-    private val analytics: FirebaseAnalytics
+    private val analytics: FirebaseAnalytics,
 ) : ViewModel() {
-
     private var layerStateHandle by SavedHandle<MutableMap<Long, Boolean>?>(
         handle,
         LAYER_LIST_STATE,
-        null
+        null,
     )
 
-    private val layerState = handle.getStateFlow<MutableMap<Long, Boolean>?>(
-        LAYER_LIST_STATE,
-        null
-    )
+    private val layerState =
+        handle.getStateFlow<MutableMap<Long, Boolean>?>(
+            LAYER_LIST_STATE,
+            null,
+        )
 
     private var selectedLayerStateHandle by SavedHandle<Long?>(
         handle,
         SELECTED_LAYER,
-        null
+        null,
     )
 
     private val selectedLayerStateFlow = handle.getStateFlow<Long?>(SELECTED_LAYER, null)
@@ -69,7 +69,7 @@ class BoxesViewModel(
     private var usedColorsHandle by SavedHandle<MutableList<ColorAndShape>>(
         handle,
         USED_COLORS_STATE,
-        mutableListOf()
+        mutableListOf(),
     )
 
     private val projectId = BoxesMainDestination.argsFrom(handle).projectId
@@ -77,19 +77,23 @@ class BoxesViewModel(
     private val colorsMutex = Mutex()
     val usedColors get() = ImmutableList(usedColorsHandle as List<ColorAndShape>)
 
-    val projectFlow = boxesRepository.getProjectFlowById(projectId)
-        .stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(1000),
-            null
-        )
+    val projectFlow =
+        boxesRepository
+            .getProjectFlowById(projectId)
+            .stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(1000),
+                null,
+            )
 
-    val pixelsFlow = boxesRepository.getPixelsFlow(projectId)
-        .stateIn(
-            viewModelScope,
-            SharingStarted.Eagerly,
-            Resource.loading(SnapshotStateMap())
-        )
+    val pixelsFlow =
+        boxesRepository
+            .getPixelsFlow(projectId)
+            .stateIn(
+                viewModelScope,
+                SharingStarted.Eagerly,
+                Resource.loading(SnapshotStateMap()),
+            )
 
     private val _loading = MutableStateFlow(false)
     val loadingState = _loading.asStateFlow()
@@ -137,43 +141,50 @@ class BoxesViewModel(
                 state?.putIfAbsent(it.id, it.on)
             }
 
-            layers.map {
-                val isOn = state?.getOrDefault(it.id, it.on) == true
-                LayerUi(
-                    it.id,
-                    it.projectId,
-                    it.index,
-                    it.name,
-                    on = isOn,
-                    selected = selected == it.id,
-                    visibilityEnabled = !(isOn && state?.count { it.value } == 1),
-                    showControls = layers.size > 1
-                )
-            }.onEach {
-                val current = layersVisibilityList.get(it.id)?.value
-                if (current != it.on) {
-                    layersVisibilityList.getOrPut(it.id) { mutableStateOf(it.on) }
-                        .apply { this.value = it.on }
+            layers
+                .map {
+                    val isOn = state?.getOrDefault(it.id, it.on) == true
+                    LayerUi(
+                        it.id,
+                        it.projectId,
+                        it.index,
+                        it.name,
+                        on = isOn,
+                        selected = selected == it.id,
+                        visibilityEnabled = !(isOn && state?.count { it.value } == 1),
+                        showControls = layers.size > 1,
+                    )
+                }.onEach {
+                    val current = layersVisibilityList.get(it.id)?.value
+                    if (current != it.on) {
+                        layersVisibilityList
+                            .getOrPut(it.id) { mutableStateOf(it.on) }
+                            .apply { this.value = it.on }
+                    }
+                }.also {
+                    val order = it.sortedBy { layer -> layer.index }.map { layer -> layer.id }
+                    if (order != layersOrderStateList) {
+                        layersOrderStateList.clear()
+                        layersOrderStateList.addAll(order)
+                    }
                 }
-            }.also {
-                val order = it.sortedBy { layer -> layer.index }.map { layer -> layer.id }
-                if (order != layersOrderStateList) {
-                    layersOrderStateList.clear()
-                    layersOrderStateList.addAll(order)
-                }
-            }
         }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val historyCountFlow = layerStateFlow.flatMapLatest { layers ->
-        layers.firstOrNull { it.selected }?.let { boxesRepository.getLayerHistoryCount(it.id) }
-            ?: emptyFlow()
-    }
-
-    fun setLayerOnOrOff(layerId: Long, on: Boolean) {
-        if (!on && (layerStateHandle?.count { it.value } ?: 0) <= 1) return
-        layerStateHandle = (layerStateHandle?.toMutableMap() ?: mutableMapOf()).apply {
-            put(layerId, on)
+    val historyCountFlow =
+        layerStateFlow.flatMapLatest { layers ->
+            layers.firstOrNull { it.selected }?.let { boxesRepository.getLayerHistoryCount(it.id) }
+                ?: emptyFlow()
         }
+
+    fun setLayerOnOrOff(
+        layerId: Long,
+        on: Boolean,
+    ) {
+        if (!on && (layerStateHandle?.count { it.value } ?: 0) <= 1) return
+        layerStateHandle =
+            (layerStateHandle?.toMutableMap() ?: mutableMapOf()).apply {
+                put(layerId, on)
+            }
         if (!on && (layerId == selectedLayerStateHandle || selectedLayerStateHandle == null)) {
             selectedLayerStateHandle = layerStateFlow.value.firstOrNull { it.on }?.id
         }
@@ -220,59 +231,66 @@ class BoxesViewModel(
     }
 
     private var undoJob: Job? = null
+
     fun onUndo(layerId: Long?) {
         if (undoJob?.isActive == true || layerId == null || _loading.value) return
-        undoJob = viewModelScope.launch(cc.io) {
-            _loading.value = true
-            try {
-                val layer = pixelsFlow.value.data?.getOrPut(layerId) { mutableStateMapOf() }
-                val quads = boxesRepository.getLastHistoryItem(layerId).quadrants
-                quads.forEach {
-                    val quad = layer?.getOrPut(it.key) { mutableStateMapOf() }
-                    val map = it.value.associate { historyItem ->
-                        Point(historyItem.x, historyItem.y) to historyItem.color?.let { color ->
-                            ColorAndShape(Color(color), historyItem.shape ?: Shape.Box)
-                        }
+        undoJob =
+            viewModelScope.launch(cc.io) {
+                _loading.value = true
+                try {
+                    val layer = pixelsFlow.value.data?.getOrPut(layerId) { mutableStateMapOf() }
+                    val quads = boxesRepository.getLastHistoryItem(layerId).quadrants
+                    quads.forEach {
+                        val quad = layer?.getOrPut(it.key) { mutableStateMapOf() }
+                        val map =
+                            it.value.associate { historyItem ->
+                                Point(historyItem.x, historyItem.y) to
+                                    historyItem.color?.let { color ->
+                                        ColorAndShape(Color(color), historyItem.shape ?: Shape.Box)
+                                    }
+                            }
+                        quad?.keys?.removeAll(map.keys)
+                        quad?.putAll(map.filterNotNullValues())
                     }
-                    quad?.keys?.removeAll(map.keys)
-                    quad?.putAll(map.filterNotNullValues())
+                } catch (t: Throwable) {
+                    _uiEventFlow.emit(UiEvent.Error(t.message))
                 }
-            } catch (t: Throwable) {
-                _uiEventFlow.emit(UiEvent.Error(t.message))
+                _loading.value = false
             }
-            _loading.value = false
-        }
     }
 
     private var exportJob: Job? = null
+
     fun export(
         project: Project,
         selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
         layers: Collection<LayerUi>,
         imageSize: Int,
-        exportType: ExportType
+        exportType: ExportType,
     ) {
         if (exportJob?.isActive == true) return
-        exportJob = viewModelScope.launch(cc.io) {
-            _loading.value = true
-            try {
-                val path = boxesRepository.export(
-                    project,
-                    project.name,
-                    selections,
-                    layers,
-                    imageSize,
-                    exportType
-                )
-                path?.let {
-                    _uiEventFlow.emit(UiEvent.Export(it, exportType))
+        exportJob =
+            viewModelScope.launch(cc.io) {
+                _loading.value = true
+                try {
+                    val path =
+                        boxesRepository.export(
+                            project,
+                            project.name,
+                            selections,
+                            layers,
+                            imageSize,
+                            exportType,
+                        )
+                    path?.let {
+                        _uiEventFlow.emit(UiEvent.Export(it, exportType))
+                    }
+                } catch (t: Throwable) {
+                    _uiEventFlow.emit(UiEvent.Error(t.message))
+                    analytics.logError(t)
                 }
-            } catch (t: Throwable) {
-                _uiEventFlow.emit(UiEvent.Error(t.message))
-                analytics.logError(t)
+                _loading.value = false
             }
-            _loading.value = false
-        }
     }
 
     fun selectLayer(layerId: Long) {
@@ -282,7 +300,7 @@ class BoxesViewModel(
     fun addLayer(
         name: String,
         index: Int,
-        selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>
+        selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
     ) {
         viewModelScope.launch {
             selectLayer(boxesRepository.addLayer(projectId, name, index, selections))
@@ -295,28 +313,29 @@ class BoxesViewModel(
         currentColor: ColorAndShape,
         currentShape: Shape,
         columns: Int,
-        rows: Int
+        rows: Int,
     ) {
         if (fillJob?.isActive == true) return
-        fillJob = viewModelScope.launch(cc.io) {
-            _loading.value = true
-            withTimeout(FILL_TIMEOUT) {
-                try {
-                    fillInArea(point, layerId, currentColor, currentShape, columns, rows)
-                    _loading.value = false
-                } catch (t: Throwable) {
-                    _uiEventFlow.emit(UiEvent.Error(t.message))
-                    _loading.value = false
+        fillJob =
+            viewModelScope.launch(cc.io) {
+                _loading.value = true
+                withTimeout(FILL_TIMEOUT) {
+                    try {
+                        fillInArea(point, layerId, currentColor, currentShape, columns, rows)
+                        _loading.value = false
+                    } catch (t: Throwable) {
+                        _uiEventFlow.emit(UiEvent.Error(t.message))
+                        _loading.value = false
+                    }
                 }
             }
-        }
     }
 
     fun saveProject(
         project: Project,
         boxes: List<Point>? = null,
         selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
-        layers: Collection<LayerUi>
+        layers: Collection<LayerUi>,
     ) {
         try {
             boxesRepository.save(project, boxes, selections, layers)
@@ -326,47 +345,56 @@ class BoxesViewModel(
         }
     }
 
-    fun importImage(context: Context, layerId: Long, columns: Int?, rows: Int?, uri: Uri) {
+    fun importImage(
+        context: Context,
+        layerId: Long,
+        columns: Int?,
+        rows: Int?,
+        uri: Uri,
+    ) {
         if (uri.path.isNullOrEmpty() || columns == null || rows == null) return
         viewModelScope.launch(cc.io) {
             _loading.value = true
             try {
-                val bitmap = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
-                    MediaStore.Images.Media.getBitmap(
-                        context.contentResolver,
-                        uri
-                    )
-                } else {
-                    val source = ImageDecoder.createSource(context.contentResolver, uri)
-                    ImageDecoder.decodeBitmap(source).copy(Bitmap.Config.ARGB_8888, true)
-                }
+                val bitmap =
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+                        MediaStore.Images.Media.getBitmap(
+                            context.contentResolver,
+                            uri,
+                        )
+                    } else {
+                        val source = ImageDecoder.createSource(context.contentResolver, uri)
+                        ImageDecoder.decodeBitmap(source).copy(Bitmap.Config.ARGB_8888, true)
+                    }
 
-                val dimens = when {
-                    columns < rows -> {
-                        val newRows = ceil((columns.toFloat() / bitmap.width.toFloat()) * bitmap.height.toFloat())
-                        columns to newRows.toInt()
-                    }
-                    rows < columns -> {
-                        val newCols = ceil((rows.toFloat() / bitmap.height.toFloat()) * bitmap.width.toFloat())
-                        newCols.toInt() to rows
-                    }
-                    else -> {
-                        when (bitmap.height <= bitmap.width) {
-                            true -> {
-                                val newRows = ceil((columns.toFloat() / bitmap.width.toFloat()) * bitmap.height.toFloat())
-                                columns to newRows.toInt()
-                            }
-                            else -> {
-                                val newCols = ceil((rows.toFloat() / bitmap.height.toFloat()) * bitmap.width.toFloat())
-                                newCols.toInt() to rows
+                val dimens =
+                    when {
+                        columns < rows -> {
+                            val newRows = ceil((columns.toFloat() / bitmap.width.toFloat()) * bitmap.height.toFloat())
+                            columns to newRows.toInt()
+                        }
+                        rows < columns -> {
+                            val newCols = ceil((rows.toFloat() / bitmap.height.toFloat()) * bitmap.width.toFloat())
+                            newCols.toInt() to rows
+                        }
+                        else -> {
+                            when (bitmap.height <= bitmap.width) {
+                                true -> {
+                                    val newRows = ceil((columns.toFloat() / bitmap.width.toFloat()) * bitmap.height.toFloat())
+                                    columns to newRows.toInt()
+                                }
+                                else -> {
+                                    val newCols = ceil((rows.toFloat() / bitmap.height.toFloat()) * bitmap.width.toFloat())
+                                    newCols.toInt() to rows
+                                }
                             }
                         }
                     }
-                }
-                val boxSize = min(
-                    bitmap.width.toFloat() / dimens.first.toFloat(),
-                    bitmap.height.toFloat() / dimens.second.toFloat()
-                )
+                val boxSize =
+                    min(
+                        bitmap.width.toFloat() / dimens.first.toFloat(),
+                        bitmap.height.toFloat() / dimens.second.toFloat(),
+                    )
                 val boxes = generateBoxes(dimens.first, dimens.second, boxSize, 0F, 0F)
                 val points = HashMap<Point, ColorAndShape>()
                 boxes.forEach {
@@ -381,7 +409,9 @@ class BoxesViewModel(
                     val quads = points.keys.groupByQuadrant
                     quads.forEach { (quad, list) ->
                         l.getOrPut(quad) { mutableStateMapOf() }.keys.removeAll(list.toSet())
-                        list.associateWith { points[it] }.filterNotNullValues()
+                        list
+                            .associateWith { points[it] }
+                            .filterNotNullValues()
                             .let { l.getOrPut(quad) { mutableStateMapOf() }.putAll(it) }
                     }
                 }
@@ -393,41 +423,52 @@ class BoxesViewModel(
     }
 
     private var moveJob: Job? = null
-    fun move(layerId: Long, topLeft: Point?, bottomRight: Point?, direction: Direction) {
+
+    fun move(
+        layerId: Long,
+        topLeft: Point?,
+        bottomRight: Point?,
+        direction: Direction,
+    ) {
         if (moveJob?.isActive == true || _loading.value || topLeft == null || bottomRight == null) return
-        moveJob = viewModelScope.launch(cc.io) {
-            _loading.value = true
-            try {
-                val points = HashSet<Point>()
-                for (c in min(topLeft.x, bottomRight.x)..max(topLeft.x, bottomRight.x)) {
-                    for (r in min(topLeft.y, bottomRight.y)..max(topLeft.y, bottomRight.y)) {
-                        points.add(Point(c, r))
+        moveJob =
+            viewModelScope.launch(cc.io) {
+                _loading.value = true
+                try {
+                    val points = HashSet<Point>()
+                    for (c in min(topLeft.x, bottomRight.x)..max(topLeft.x, bottomRight.x)) {
+                        for (r in min(topLeft.y, bottomRight.y)..max(topLeft.y, bottomRight.y)) {
+                            points.add(Point(c, r))
+                        }
                     }
-                }
-                val layer = pixelsFlow.value.data?.get(layerId)
-                val history = mutableMapOf<Point, ColorAndShape?>()
+                    val layer = pixelsFlow.value.data?.get(layerId)
+                    val history = mutableMapOf<Point, ColorAndShape?>()
 
-                val list = layer?.flatMap { it.value.keys }?.filter { points.contains(it) }
-                val adjusted = list?.map { entry ->
-                    entry.adjust(direction) to layer[entry.quadrant]?.get(entry)
-                }?.toMap() ?: emptyMap()
-                val merged = list?.union(adjusted.keys)?.toSet() ?: emptySet()
-                val currentSelection =
-                    layer?.let { l -> merged.associateWith { l[it.quadrant]?.get(it) } } ?: emptyMap()
-                history.putAll(currentSelection)
+                    val list = layer?.flatMap { it.value.keys }?.filter { points.contains(it) }
+                    val adjusted =
+                        list
+                            ?.map { entry ->
+                                entry.adjust(direction) to layer[entry.quadrant]?.get(entry)
+                            }?.toMap() ?: emptyMap()
+                    val merged = list?.union(adjusted.keys)?.toSet() ?: emptySet()
+                    val currentSelection =
+                        layer?.let { l -> merged.associateWith { l[it.quadrant]?.get(it) } } ?: emptyMap()
+                    history.putAll(currentSelection)
 
-                adjusted.keys.groupByQuadrant.forEach { (t, u) ->
-                    layer?.get(t)?.keys?.removeAll(merged)
-                    u.associateWith { adjusted[it] }.filterNotNullValues()
-                        .let { layer?.get(t)?.putAll(it) }
+                    adjusted.keys.groupByQuadrant.forEach { (t, u) ->
+                        layer?.get(t)?.keys?.removeAll(merged)
+                        u
+                            .associateWith { adjusted[it] }
+                            .filterNotNullValues()
+                            .let { layer?.get(t)?.putAll(it) }
+                    }
+                    addToHistory(UserHistory(layerId, history))
+                    _uiEventFlow.emit(UiEvent.MoveSelection(direction))
+                } catch (t: Throwable) {
+                    _uiEventFlow.emit(UiEvent.Error(t.message))
                 }
-                addToHistory(UserHistory(layerId, history))
-                _uiEventFlow.emit(UiEvent.MoveSelection(direction))
-            } catch (t: Throwable) {
-                _uiEventFlow.emit(UiEvent.Error(t.message))
+                _loading.value = false
             }
-            _loading.value = false
-        }
     }
 
     private suspend fun fillInArea(
@@ -436,17 +477,24 @@ class BoxesViewModel(
         color: ColorAndShape,
         shape: Shape,
         columns: Int,
-        rows: Int
+        rows: Int,
     ) {
         val fillMap = HashSet<Point>()
         val iterator = LinkedList<Point>().apply { add(point) }
         val newColor = color.copy(shape = shape)
-        val currentColor = pixelsFlow.value.data?.get(layerId)?.get(point.quadrant)?.get(point)
+        val currentColor =
+            pixelsFlow.value.data
+                ?.get(layerId)
+                ?.get(point.quadrant)
+                ?.get(point)
         if (currentColor == newColor) return
         while (iterator.isNotEmpty()) {
             iterator.peek()?.let { p ->
                 if (p.isNotOutside(columns, rows) &&
-                    !fillMap.contains(p) && pixelsFlow.value.data?.get(layerId)?.get(p.quadrant)
+                    !fillMap.contains(p) &&
+                    pixelsFlow.value.data
+                        ?.get(layerId)
+                        ?.get(p.quadrant)
                         ?.get(p) == currentColor
                 ) {
                     fillMap.add(p)

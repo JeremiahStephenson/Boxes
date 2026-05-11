@@ -7,7 +7,7 @@ import com.jerry.shapes.cache.data.*
 @Database(
     entities = [Project::class, Pixel::class, Layer::class, History::class, HistoryItem::class],
     version = 1,
-    exportSchema = false
+    exportSchema = false,
 )
 abstract class BoxesDatabase : RoomDatabase() {
     abstract fun boxesDao(): BoxesDao

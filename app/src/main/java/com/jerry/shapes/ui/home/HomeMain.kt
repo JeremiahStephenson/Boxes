@@ -47,7 +47,7 @@ import java.time.Instant
 @Composable
 fun HomeMain(
     navController: DestinationsNavigator,
-    viewModel: HomeViewModel = koinViewModel()
+    viewModel: HomeViewModel = koinViewModel(),
 ) {
     val items by viewModel.projectsFlow.collectAsStateWithLifecycle(null)
     var editMode by rememberSaveable { mutableStateOf(false) }
@@ -63,7 +63,7 @@ fun HomeMain(
                     editMode = !editMode
                 }
             }
-        }
+        },
     ) {
         // If the user is launching for the first time then go
         // ahead and send to the create project screen
@@ -79,14 +79,15 @@ fun HomeMain(
         LazyVerticalStaggeredGrid(
             modifier = Modifier.fillMaxSize(),
             columns = StaggeredGridCells.Adaptive(150.dp),
-            contentPadding = PaddingValues(
-                bottom = 84.dp,
-                top = 16.dp,
-                start = 10.dp,
-                end = 10.dp
-            ),
+            contentPadding =
+                PaddingValues(
+                    bottom = 84.dp,
+                    top = 16.dp,
+                    start = 10.dp,
+                    end = 10.dp,
+                ),
             verticalItemSpacing = 16.dp,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             itemsIndexed(items ?: emptyList()) { _, item ->
                 ProjectItem(
@@ -95,12 +96,12 @@ fun HomeMain(
                     onGoToProject = {
                         editMode = false
                         navController.navigate(
-                            BoxesMainDestination(it, item.name)
+                            BoxesMainDestination(it, item.name),
                         )
                     },
                     onDeleteProject = {
                         viewModel.deleteProject(it)
-                    }
+                    },
                 )
             }
         }
@@ -110,19 +111,20 @@ fun HomeMain(
             Column(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
-                    modifier = Modifier
-                        .padding(32.dp),
+                    modifier =
+                        Modifier
+                            .padding(32.dp),
                     text = stringResource(R.string.empty_list_title),
                     textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.titleLarge
+                    style = MaterialTheme.typography.titleLarge,
                 )
                 Image(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     painter = painterResource(R.drawable.puppy),
-                    contentDescription = null
+                    contentDescription = null,
                 )
             }
         }
@@ -134,59 +136,63 @@ private fun ProjectItem(
     item: Project,
     editMode: Boolean,
     onGoToProject: (Long) -> Unit,
-    onDeleteProject: (Long) -> Unit
+    onDeleteProject: (Long) -> Unit,
 ) {
     Card {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable {
-                    onGoToProject(item.id)
-                },
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        onGoToProject(item.id)
+                    },
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             var showConfirmationDialog by remember { mutableStateOf(false) }
             BoxWithConstraints(
                 modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.TopEnd
+                contentAlignment = Alignment.TopEnd,
             ) {
                 ProjectImageItem(item.id, item.timestamp)
                 if (editMode) {
                     Icon(
-                        modifier = Modifier
-                            .unboundClickable {
-                                showConfirmationDialog = true
-                            }
-                            .padding(16.dp),
+                        modifier =
+                            Modifier
+                                .unboundClickable {
+                                    showConfirmationDialog = true
+                                }.padding(16.dp),
                         painter = painterResource(R.drawable.ic_delete_24),
                         tint = MaterialTheme.colorScheme.error,
-                        contentDescription = null // todo
+                        contentDescription = null, // todo
                     )
                 }
             }
 
             Text(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp).padding(top = 24.dp),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .padding(top = 24.dp),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                text = item.name
+                text = item.name,
             )
             Text(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .padding(bottom = 16.dp),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 16.dp),
                 text = stringResource(R.string.last_edited, Instant.ofEpochMilli(item.timestamp).readableDateAndTime),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             if (showConfirmationDialog) {
                 AreYouSureDialog(
                     title = stringResource(R.string.are_you_sure_project, item.name),
                     dismiss = { showConfirmationDialog = false },
-                    onDelete = { onDeleteProject(item.id) }
+                    onDelete = { onDeleteProject(item.id) },
                 )
             }
         }
@@ -194,36 +200,41 @@ private fun ProjectItem(
 }
 
 @Composable
-private fun BoxWithConstraintsScope.ProjectImageItem(projectId: Long, memoryKey: Long) {
+private fun BoxWithConstraintsScope.ProjectImageItem(
+    projectId: Long,
+    memoryKey: Long,
+) {
     val context = LocalContext.current
     val imagePath =
         remember(projectId) { context.thumbnailLocation.path + File.separator.toString() + "$projectId.png" }
     ProjectImage(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(this.maxWidth),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .height(this.maxWidth),
         imagePath = imagePath,
         memoryKey = memoryKey.toString(),
-        contentScale = ContentScale.Fit
+        contentScale = ContentScale.Fit,
     )
 }
 
 @Composable
 private fun EditMenu(
     editMode: Boolean,
-    onEditClick: () -> Unit
+    onEditClick: () -> Unit,
 ) {
     Text(
-        modifier = Modifier
-            .unboundClickable {
-                onEditClick()
-            }
-            .padding(8.dp),
-        text = stringResource(
-            when (editMode) {
-                true -> R.string.done
-                else -> R.string.edit
-            }
-        )
+        modifier =
+            Modifier
+                .unboundClickable {
+                    onEditClick()
+                }.padding(8.dp),
+        text =
+            stringResource(
+                when (editMode) {
+                    true -> R.string.done
+                    else -> R.string.edit
+                },
+            ),
     )
 }

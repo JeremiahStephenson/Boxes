@@ -10,10 +10,10 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.core.graphics.applyCanvas
+import com.jerry.shapes.cache.data.ColorAndShape
 import com.jerry.shapes.cache.data.LayerAndPixel
 import com.jerry.shapes.cache.data.Pixel
 import com.jerry.shapes.extensions.asList
-import com.jerry.shapes.cache.data.ColorAndShape
 import com.jerry.shapes.ui.boxes.data.LayerUi
 import com.jerry.shapes.ui.shapes.*
 import timber.log.Timber
@@ -22,65 +22,65 @@ import kotlin.math.floor
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-fun generateSelections(
-    pixels: List<Pixel>
-): SnapshotStateMap<Long, SnapshotStateMap<Point, SnapshotStateMap<Point, ColorAndShape>>> {
-    return SnapshotStateMap<Long, SnapshotStateMap<Point, SnapshotStateMap<Point, ColorAndShape>>>().apply {
+fun generateSelections(pixels: List<Pixel>): SnapshotStateMap<Long, SnapshotStateMap<Point, SnapshotStateMap<Point, ColorAndShape>>> =
+    SnapshotStateMap<Long, SnapshotStateMap<Point, SnapshotStateMap<Point, ColorAndShape>>>().apply {
         putAll(
             pixels
                 .groupBy { it.layerId }
                 .mapValues {
                     SnapshotStateMap<Point, SnapshotStateMap<Point, ColorAndShape>>().apply {
                         putAll(
-                            it.value.groupBy {
-                                Point(
-                                    floor(it.x.toFloat() / QUADRANT_SIZE).toInt(),
-                                    floor(it.y.toFloat() / QUADRANT_SIZE).toInt()
-                                )
-                            }.mapValues {
-                                it.value.associateTo(SnapshotStateMap()) {
-                                    Point(it.x, it.y) to it.asColorAndShape
-                                }
-                            }
+                            it.value
+                                .groupBy {
+                                    Point(
+                                        floor(it.x.toFloat() / QUADRANT_SIZE).toInt(),
+                                        floor(it.y.toFloat() / QUADRANT_SIZE).toInt(),
+                                    )
+                                }.mapValues {
+                                    it.value.associateTo(SnapshotStateMap()) {
+                                        Point(it.x, it.y) to it.asColorAndShape
+                                    }
+                                },
                         )
                     }
-                }
+                },
         )
     }
-}
 
 fun generateSelectionsMap(layers: List<LayerAndPixel>): Map<Long, Map<Point, ColorAndShape>> =
-    layers.flatMap {
-        it.pixels
-    }.groupBy {
-        it.layerId
-    }.mapValues {
-        it.value.associateTo(SnapshotStateMap()) { pixel ->
-            Point(pixel.x, pixel.y) to pixel.asColorAndShape
+    layers
+        .flatMap {
+            it.pixels
+        }.groupBy {
+            it.layerId
+        }.mapValues {
+            it.value.associateTo(SnapshotStateMap()) { pixel ->
+                Point(pixel.x, pixel.y) to pixel.asColorAndShape
+            }
         }
-    }
 
 fun generateBoxes(
     numX: Int,
     numY: Int,
     size: Float,
     xOffSet: Float,
-    yOffSet: Float
+    yOffSet: Float,
 ) = mutableMapOf<Point, RectF>().apply {
     for (y in 0 until numY) {
         for (x in 0 until numX) {
-            val topLeft = Offset(
-                (size * x) + xOffSet,
-                (size * y) + yOffSet
-            )
+            val topLeft =
+                Offset(
+                    (size * x) + xOffSet,
+                    (size * y) + yOffSet,
+                )
             put(
                 Point(x, y),
                 RectF(
                     topLeft.x,
                     topLeft.y,
                     (topLeft.x + size),
-                    (topLeft.y + size)
-                )
+                    (topLeft.y + size),
+                ),
             )
         }
     }
@@ -89,7 +89,7 @@ fun generateBoxes(
 fun Canvas.drawShapes(
     layers: Collection<LayerUi>,
     selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
-    boxes: Map<Point, RectF>
+    boxes: Map<Point, RectF>,
 ) {
     if (boxes.isEmpty()) return
     val layerIds = layers.filter { it.on }.sortedBy { it.index }.map { it.id }
@@ -108,7 +108,7 @@ fun Canvas.drawShapes(
 fun DrawScope.drawShapes(
     layers: List<LayerUi>,
     selections: Map<Long, Map<Point, ColorAndShape>>,
-    boxes: Map<Point, RectF>
+    boxes: Map<Point, RectF>,
 ) {
     if (boxes.isEmpty()) return
     val layerIds = layers.filter { it.on }.sortedBy { it.index }.map { it.id }
@@ -125,7 +125,7 @@ fun DrawScope.drawShapes(
 fun DrawScope.drawShapes(
     layerId: Long,
     selections: Map<Point, ColorAndShape>?,
-    boxes: Map<Point, RectF>
+    boxes: Map<Point, RectF>,
 ) {
     if (boxes.isEmpty() || selections.isNullOrEmpty()) return
     Timber.d("DrawTest - drawing: ${selections.size}")
@@ -140,7 +140,7 @@ fun DrawScope.drawShapes(
 fun Canvas.drawShapes(
     layerId: Long,
     selections: Map<Point, ColorAndShape>?,
-    boxes: Map<Point, RectF>
+    boxes: Map<Point, RectF>,
 ) {
     if (boxes.isEmpty() || selections.isNullOrEmpty()) return
     Timber.d("DrawTest - drawing: ${selections.size}")
@@ -161,16 +161,19 @@ fun DrawScope.pngBackground(size: Float) {
                 color = Color.Gray,
                 topLeft = Offset(c * size, r * size),
                 size = Size(size, size),
-                alpha = when (r % 2 == 0) {
-                    true -> when (c % 2 == 0) {
-                        true -> 1F
-                        else -> GRID_ODD_ALPHA
-                    }
-                    else -> when (c % 2 == 0) {
-                        true -> GRID_ODD_ALPHA
-                        else -> 1F
-                    }
-                }
+                alpha =
+                    when (r % 2 == 0) {
+                        true ->
+                            when (c % 2 == 0) {
+                                true -> 1F
+                                else -> GRID_ODD_ALPHA
+                            }
+                        else ->
+                            when (c % 2 == 0) {
+                                true -> GRID_ODD_ALPHA
+                                else -> 1F
+                            }
+                    },
             )
         }
     }
@@ -178,14 +181,14 @@ fun DrawScope.pngBackground(size: Float) {
 
 fun DrawScope.drawCustomShape(
     pos: RectF,
-    color: ColorAndShape
+    color: ColorAndShape,
 ) {
     (color.shape as ShapersInterface).draw(this, pos, color)
 }
 
 fun Canvas.drawCustomShape(
     pos: RectF,
-    color: ColorAndShape
+    color: ColorAndShape,
 ) {
     (color.shape as ShapersInterface).draw(this, pos, color)
 }
@@ -195,15 +198,16 @@ fun generateBitmap(
     columns: Int,
     imageSize: Int,
     layers: Collection<LayerUi>,
-    selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>
+    selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
 ): Bitmap {
     val boxSize = ceil(min(imageSize / columns.toFloat(), imageSize / rows.toFloat())).toInt()
     val newBoxes = generateBoxes(columns, rows, boxSize.toFloat(), 0F, 0F)
-    val bitmap = Bitmap.createBitmap(
-        columns * boxSize,
-        rows * boxSize,
-        Bitmap.Config.ARGB_8888
-    )
+    val bitmap =
+        Bitmap.createBitmap(
+            columns * boxSize,
+            rows * boxSize,
+            Bitmap.Config.ARGB_8888,
+        )
 
     return bitmap.applyCanvas {
         drawShapes(layers, selections, newBoxes)
@@ -215,9 +219,9 @@ fun generateBitmap(
     columns: Int,
     imageSize: Int,
     layerId: Long,
-    selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>
-): Bitmap {
-    return generateBitmap(
+    selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
+): Bitmap =
+    generateBitmap(
         rows,
         columns,
         imageSize,
@@ -229,11 +233,10 @@ fun generateBitmap(
             on = true,
             selected = true,
             visibilityEnabled = true,
-            showControls = true
+            showControls = true,
         ).asList,
-        selections
+        selections,
     )
-}
 
 const val QUADRANT_SIZE = 50F
 private const val GRID_ODD_ALPHA = 0.5F

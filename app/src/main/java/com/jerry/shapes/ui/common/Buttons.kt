@@ -31,9 +31,9 @@ import androidx.compose.ui.unit.*
 import androidx.compose.ui.window.Popup
 import com.jerry.shapes.R
 import com.jerry.shapes.cache.data.ColorAndShape
-import com.jerry.shapes.util.drawCustomShape
 import com.jerry.shapes.ui.shapes.Shape
 import com.jerry.shapes.util.TooltipPositionProvider
+import com.jerry.shapes.util.drawCustomShape
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -46,38 +46,41 @@ fun IconMenuButton(
     padding: PaddingValues = PaddingValues(16.dp),
     contentDescription: String,
     allowTooltip: Boolean = true,
-    @DrawableRes drawableRes: Int
+    @DrawableRes drawableRes: Int,
 ) {
     Box {
         var popupControl by remember { mutableStateOf(false) }
         Icon(
-            modifier = Modifier
-                .clip(CircleShape)
-                .run {
-                    when (enabled) {
-                        true -> combinedClickable(
-                            onClick = { onClick() },
-                            onLongClick = {
-                                if (allowTooltip) {
-                                    popupControl = true
-                                }
-                            }
-                        )
-                        else -> this
-                    }
-                }
-                .padding(padding)
-                .then(modifier),
+            modifier =
+                Modifier
+                    .clip(CircleShape)
+                    .run {
+                        when (enabled) {
+                            true ->
+                                combinedClickable(
+                                    onClick = { onClick() },
+                                    onLongClick = {
+                                        if (allowTooltip) {
+                                            popupControl = true
+                                        }
+                                    },
+                                )
+                            else -> this
+                        }
+                    }.padding(padding)
+                    .then(modifier),
             painter = painterResource(drawableRes),
-            tint = (color?.color ?: LocalContentColor.current).run {
-                copy(
-                    alpha = when (enabled) {
-                        true -> this.alpha
-                        else -> 0.3F
-                    }
-                )
-            },
-            contentDescription = contentDescription
+            tint =
+                (color?.color ?: LocalContentColor.current).run {
+                    copy(
+                        alpha =
+                            when (enabled) {
+                                true -> this.alpha
+                                else -> 0.3F
+                            },
+                    )
+                },
+            contentDescription = contentDescription,
         )
         if (popupControl) {
             ToolTip(text = contentDescription) { popupControl = false }
@@ -94,47 +97,51 @@ fun IconSelectableMenuButton(
     contentDescription: String,
     tint: Color? = null,
     @DrawableRes drawableResOn: Int,
-    @DrawableRes drawableResOff: Int? = null
+    @DrawableRes drawableResOff: Int? = null,
 ) {
     Box {
         var popupControl by remember { mutableStateOf(false) }
         Icon(
-            modifier = modifier
-                .run {
-                    when (isEnabled()) {
-                        true -> unboundClickable(
-                            onClick = { onClick() },
-                            onLongClick = { popupControl = true }
-                        )
-                        else -> this
-                    }
-                }
-                .padding(4.dp)
-                .clip(CircleShape)
-                .run {
-                    when (drawableResOff) {
-                        null -> when (isSelected()) {
-                            true -> background(MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.4F))
+            modifier =
+                modifier
+                    .run {
+                        when (isEnabled()) {
+                            true ->
+                                unboundClickable(
+                                    onClick = { onClick() },
+                                    onLongClick = { popupControl = true },
+                                )
                             else -> this
                         }
-                        else -> this
-                    }
-                }
-                .padding(12.dp),
-            painter = when (drawableResOff) {
-                null -> painterResource(drawableResOn)
-                else -> painterResource(
-                    when (isSelected()) {
-                        true -> drawableResOff
-                        else -> drawableResOn
-                    }
-                )
-            },
+                    }.padding(4.dp)
+                    .clip(CircleShape)
+                    .run {
+                        when (drawableResOff) {
+                            null ->
+                                when (isSelected()) {
+                                    true -> background(MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.4F))
+                                    else -> this
+                                }
+                            else -> this
+                        }
+                    }.padding(12.dp),
+            painter =
+                when (drawableResOff) {
+                    null -> painterResource(drawableResOn)
+                    else ->
+                        painterResource(
+                            when (isSelected()) {
+                                true -> drawableResOff
+                                else -> drawableResOn
+                            },
+                        )
+                },
             contentDescription = contentDescription,
-            tint = tint ?: when (isEnabled()) {
-                true -> MaterialTheme.colorScheme.onSurface
-                else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4F)
-            }
+            tint =
+                tint ?: when (isEnabled()) {
+                    true -> MaterialTheme.colorScheme.onSurface
+                    else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4F)
+                },
         )
         if (popupControl) {
             ToolTip(text = contentDescription) { popupControl = false }
@@ -149,7 +156,7 @@ fun ShapeOption(
     color: ColorAndShape? = null,
     showToolTip: Boolean = false,
     shapeSize: Dp = 26.dp,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     Box(modifier) {
         var popupControl by remember { mutableStateOf(false) }
@@ -158,23 +165,23 @@ fun ShapeOption(
         val size = with(LocalDensity.current) { (shapeSize - 2.dp).toPx() }
         val stroke = with(LocalDensity.current) { 1.dp.toPx() }
         Canvas(
-            modifier = Modifier
-                .unboundClickable(
-                    onClick = { onClick() },
-                    onLongClick = { if (showToolTip) popupControl = true }
-                )
-                .padding(16.dp)
-                .size(shapeSize)
-                .then(modifier)
+            modifier =
+                Modifier
+                    .unboundClickable(
+                        onClick = { onClick() },
+                        onLongClick = { if (showToolTip) popupControl = true },
+                    ).padding(16.dp)
+                    .size(shapeSize)
+                    .then(modifier),
         ) {
             drawCustomShape(
                 RectF(0F, 0F, size, size),
-                shapeColor
+                shapeColor,
             )
             drawRect(
                 color = onSurface.copy(alpha = 0.4F),
                 style = Stroke(stroke),
-                size = Size(size, size)
+                size = Size(size, size),
             )
         }
         if (popupControl) {
@@ -188,22 +195,23 @@ fun ShapeOption(
 @Composable
 private fun ToolTip(
     text: String,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     val offsetY = with(LocalDensity.current) { 16.dp.roundToPx() }
     Popup(
         popupPositionProvider = TooltipPositionProvider(offsetY),
-        onDismissRequest = onDismiss
+        onDismissRequest = onDismiss,
     ) {
         LaunchedEffect(Unit) {
             delay(5000L)
             onDismiss()
         }
         Box(
-            modifier = Modifier
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.secondaryContainer)
-                .padding(16.dp)
+            modifier =
+                Modifier
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.secondaryContainer)
+                    .padding(16.dp),
         ) {
             Text(text = text)
         }

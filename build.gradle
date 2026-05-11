@@ -1,40 +1,42 @@
 buildscript {
     ext {
-        coreKtx = "1.9.0"
-        composeActivity = "1.6.1"
-        material3 = "1.3.2"
+        coreKtx = "1.15.0"
+        composeActivity = "1.9.3"
+        material3 = "1.3.1"
         composeDestinations = "1.11.8"
-        koin = "3.3.2"
-        koinCompose = "3.4.1"
-        lifecycle = "2.6.0-alpha04"
-        compose = '1.5.1'
-        retrofit = "2.9.0"
+        koin = "3.5.6"
+        koinCompose = "3.5.6"
+        lifecycle = "2.8.7"
+        compose = '1.7.5'
+        retrofit = "2.11.0"
         moshi = "1.15.2"
-        desugarJdkLib = "1.2.2"
+        desugarJdkLib = "2.1.3"
         timber = "5.0.1"
         accompianist = "0.28.0"
-        room = "2.7.2"
-        coil = "2.2.2"
-        coroutines = "1.6.4"
-        paging = "3.1.1"
-        composePaging = "1.0.0-alpha17"
-        googleServices = "4.3.15"
+        room = "2.6.1"
+        coil = "2.7.0"
+        coroutines = "1.9.0"
+        paging = "3.3.4"
+        composePaging = "3.3.4"
+        googleServices = "4.4.2"
 
         junit = "4.13.2"
-        junitExt = "1.1.5"
-        espresso = "3.5.1"
-        ioMock = "1.13.3"
-        turbine = "0.12.1"
+        junitExt = "1.2.1"
+        espresso = "3.6.1"
+        ioMock = "1.13.13"
+        turbine = "1.2.0"
     }
-    dependencies {
-        classpath "com.google.gms:google-services:$googleServices"
-        classpath 'com.google.firebase:firebase-crashlytics-gradle:3.0.4'
-        classpath 'com.github.ben-manes:gradle-versions-plugin:0.44.0'
-    }
-}// Top-level build file where you can add configuration options common to all sub-projects/modules.
+}
+
 plugins {
-    id 'com.android.application' version '8.11.1' apply false
-    id 'com.android.library' version '8.11.1' apply false
-    id 'org.jetbrains.kotlin.android' version '2.2.0' apply false
-    id 'org.jetbrains.kotlin.plugin.compose' version "2.2.0" apply false
+    id 'com.android.application' version '8.7.3' apply false
+    id 'com.android.library' version '8.7.3' apply false
+    id 'org.jetbrains.kotlin.android' version '2.1.0' apply false
+    id 'org.jetbrains.kotlin.plugin.compose' version '2.1.0' apply false
+    id 'org.jetbrains.kotlin.plugin.parcelize' version '2.1.0' apply false
+    id 'com.google.devtools.ksp' version '2.1.0-1.0.29' apply false
+    id 'com.google.gms.google-services' version '4.4.2' apply false
+    id 'com.google.firebase.crashlytics' version '3.0.2' apply false
+    id 'com.github.ben-manes.versions' version '0.51.0' apply false
+    id 'org.jlleitschuh.gradle.ktlint' version '14.2.0' apply false
 }

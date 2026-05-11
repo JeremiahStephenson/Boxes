@@ -7,17 +7,16 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.window.PopupPositionProvider
 
 class TooltipPositionProvider(
-    private val additionalOffset: Int = 0
+    private val additionalOffset: Int = 0,
 ) : PopupPositionProvider {
     override fun calculatePosition(
         anchorBounds: IntRect,
         windowSize: IntSize,
         layoutDirection: LayoutDirection,
-        popupContentSize: IntSize
-    ): IntOffset {
-        return IntOffset(
+        popupContentSize: IntSize,
+    ): IntOffset =
+        IntOffset(
             anchorBounds.left,
-            anchorBounds.top - popupContentSize.height - additionalOffset
+            anchorBounds.top - popupContentSize.height - additionalOffset,
         )
-    }
 }

@@ -8,7 +8,6 @@ import java.time.Instant
 
 @Dao
 interface BoxesDao {
-
     @Query("SELECT * FROM project ORDER BY name COLLATE NOCASE ASC")
     fun findAllProjects(): Flow<List<Project>>
 
@@ -36,40 +35,74 @@ interface BoxesDao {
     suspend fun insertLayer(layer: Layer): Long
 
     @Query("UPDATE layer SET `index` = :index WHERE id = :layerId")
-    suspend fun setLayerIndex(layerId: Long, index: Int)
+    suspend fun setLayerIndex(
+        layerId: Long,
+        index: Int,
+    )
 
     @Query("UPDATE layer SET `on` = :on WHERE id = :layerId")
-    suspend fun turnOnOrOffLayer(on: Boolean, layerId: Long)
+    suspend fun turnOnOrOffLayer(
+        on: Boolean,
+        layerId: Long,
+    )
 
     @Query("DELETE FROM layer WHERE id = :layerId")
     suspend fun deleteLayer(layerId: Long)
 
     @Query("UPDATE layer SET name = :name WHERE id = :layerId")
-    suspend fun setLayerName(layerId: Long, name: String)
+    suspend fun setLayerName(
+        layerId: Long,
+        name: String,
+    )
 
     @Query("UPDATE project SET name = :name, rows = :rows, columns = :columns WHERE id = :id")
-    suspend fun updateProject(name: String, columns: Int, rows: Int, id: Long)
+    suspend fun updateProject(
+        name: String,
+        columns: Int,
+        rows: Int,
+        id: Long,
+    )
 
     @Query("UPDATE project SET timestamp = :timeStamp WHERE id = :id")
-    suspend fun updateProjectTimestamp(id: Long, timeStamp: Long = Instant.now().toEpochMilli())
+    suspend fun updateProjectTimestamp(
+        id: Long,
+        timeStamp: Long = Instant.now().toEpochMilli(),
+    )
 
     @Query("UPDATE project SET currentColor = :color WHERE id = :id")
-    suspend fun updateProjectColor(id: Long, color: Int)
+    suspend fun updateProjectColor(
+        id: Long,
+        color: Int,
+    )
 
     @Query("UPDATE project SET currentShape = :shape WHERE id = :id")
-    suspend fun updateProjectShape(id: Long, shape: Shape)
+    suspend fun updateProjectShape(
+        id: Long,
+        shape: Shape,
+    )
 
     @Query("UPDATE project SET showGrid = :showGrid WHERE id = :id")
-    suspend fun updateProjectShowGrid(id: Long, showGrid: Boolean)
+    suspend fun updateProjectShowGrid(
+        id: Long,
+        showGrid: Boolean,
+    )
 
     @Query("UPDATE project SET showPngBg = :showPngBg WHERE id = :id")
-    suspend fun updateProjectShowPngBg(id: Long, showPngBg: Boolean)
+    suspend fun updateProjectShowPngBg(
+        id: Long,
+        showPngBg: Boolean,
+    )
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAllPixels(pixelList: List<Pixel>)
 
-    @Query("DELETE FROM pixel WHERE pixel.layerId IN (SELECT layer.id FROM layer JOIN project ON project.id == layer.projectId AND project.id = :projectId) AND pixel.timestamp < :timestamp")
-    suspend fun deletePixelsFromProject(projectId: Long, timestamp: Long)
+    @Query(
+        "DELETE FROM pixel WHERE pixel.layerId IN (SELECT layer.id FROM layer JOIN project ON project.id == layer.projectId AND project.id = :projectId) AND pixel.timestamp < :timestamp",
+    )
+    suspend fun deletePixelsFromProject(
+        projectId: Long,
+        timestamp: Long,
+    )
 
     @Query("DELETE FROM project WHERE id = :id")
     suspend fun deleteProject(id: Long)
@@ -90,19 +123,30 @@ interface BoxesDao {
     suspend fun findMinIndexForHistory(layerId: Long): Int
 
     @Query("DELETE FROM history WHERE `index` <= :index AND layerId = :layerId")
-    suspend fun cleanHistory(index: Int, layerId: Long)
+    suspend fun cleanHistory(
+        index: Int,
+        layerId: Long,
+    )
 
-    @Query("DELETE FROM history WHERE history.layerId IN (SELECT layer.id FROM layer JOIN project ON project.id == layer.projectId AND history.timestamp > project.timestamp)")
+    @Query(
+        "DELETE FROM history WHERE history.layerId IN (SELECT layer.id FROM layer JOIN project ON project.id == layer.projectId AND history.timestamp > project.timestamp)",
+    )
     suspend fun cleanInvalidHistory()
 
     @Query("DELETE FROM history WHERE id = :id")
     suspend fun deleteHistory(id: Long)
 
     @Query("UPDATE history SET `index` = `index` - :amount WHERE layerId = :layerId")
-    suspend fun updateIndicies(layerId: Long, amount: Int)
+    suspend fun updateIndicies(
+        layerId: Long,
+        amount: Int,
+    )
 
     @Query("SELECT * FROM history WHERE layerId = :layerId AND `index` = :index")
-    suspend fun findMaxHistory(layerId: Long, index: Int): History?
+    suspend fun findMaxHistory(
+        layerId: Long,
+        index: Int,
+    ): History?
 
     @Query("SELECT * FROM historyItem WHERE historyId = :historyId")
     suspend fun findAllHistoryItems(historyId: Long): List<HistoryItem>

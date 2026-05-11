@@ -8,9 +8,8 @@ import kotlinx.coroutines.launch
 
 class HomeViewModel(
     private val boxesDao: BoxesDao,
-    private val appDataStore: AppDataStore
+    private val appDataStore: AppDataStore,
 ) : ViewModel() {
-
     val projectsFlow = boxesDao.findAllProjects()
 
     val hasLaunchedBefore = appDataStore.hasLaunchedBefore

@@ -6,5 +6,5 @@ import java.io.Serializable
 
 data class ColorAndShape(
     val color: Color,
-    val shape: Shape = Shape.Box
+    val shape: Shape = Shape.Box,
 ) : Serializable

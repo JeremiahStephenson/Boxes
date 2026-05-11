@@ -7,7 +7,7 @@ class ArrangementLastItem : Arrangement.Vertical {
     override fun Density.arrange(
         totalSize: Int,
         sizes: IntArray,
-        outPositions: IntArray
+        outPositions: IntArray,
     ) {
         var currentOffset = 0
         sizes.forEachIndexed { index, size ->

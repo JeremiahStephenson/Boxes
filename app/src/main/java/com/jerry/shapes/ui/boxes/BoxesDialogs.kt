@@ -27,8 +27,8 @@ import androidx.compose.ui.window.DialogProperties
 import com.godaddy.android.colorpicker.ClassicColorPicker
 import com.godaddy.android.colorpicker.HsvColor
 import com.jerry.shapes.R
-import com.jerry.shapes.extensions.asColorAndShape
 import com.jerry.shapes.cache.data.ColorAndShape
+import com.jerry.shapes.extensions.asColorAndShape
 import com.jerry.shapes.ui.common.ShapeOption
 import com.jerry.shapes.ui.common.pngBackground
 import com.jerry.shapes.ui.common.unboundClickable
@@ -44,57 +44,61 @@ fun ColorPickerDialog(
     color: ColorAndShape,
     usedColors: ImmutableList<ColorAndShape>,
     onColorChosen: (ColorAndShape) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     val isPortrait = LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT
 
     Dialog(
         onDismissRequest = onDismiss,
-        properties = DialogProperties(
-            usePlatformDefaultWidth = (isPortrait)
-        )
+        properties =
+            DialogProperties(
+                usePlatformDefaultWidth = (isPortrait),
+            ),
     ) {
         var currentColor by remember(color) { mutableStateOf(color) }
 
         Column(
-            modifier = Modifier
-                .run {
-                    when (!isPortrait) {
-                        true -> width(500.dp)
-                        else -> this
-                    }
-                }
-                .clip(MaterialTheme.shapes.large)
-                .background(MaterialTheme.colorScheme.surfaceVariant)
+            modifier =
+                Modifier
+                    .run {
+                        when (!isPortrait) {
+                            true -> width(500.dp)
+                            else -> this
+                        }
+                    }.clip(MaterialTheme.shapes.large)
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
         ) {
             Row(
-                modifier = Modifier
-                    .clip(MaterialTheme.shapes.large)
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                modifier =
+                    Modifier
+                        .clip(MaterialTheme.shapes.large)
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
             ) {
                 val size = with(LocalDensity.current) { 10.dp.toPx() }
-                val height = remember {
-                    when (isPortrait) {
-                        true -> 250.dp
-                        else -> 200.dp
+                val height =
+                    remember {
+                        when (isPortrait) {
+                            true -> 250.dp
+                            else -> 200.dp
+                        }
                     }
-                }
 
                 val showTopSpace by remember { derivedStateOf { usedColors.items.isNotEmpty() } }
 
                 if (!isPortrait && showTopSpace) {
                     LazyVerticalGrid(
-                        modifier = Modifier
-                            .weight(1F)
-                            .height(height),
-                        columns = GridCells.Fixed(4)
+                        modifier =
+                            Modifier
+                                .weight(1F)
+                                .height(height),
+                        columns = GridCells.Fixed(4),
                     ) {
                         items(usedColors.items) {
                             ColorBox(
                                 size = size,
                                 color = it,
                                 onColorChosen = onColorChosen,
-                                onDismiss = onDismiss
+                                onDismiss = onDismiss,
                             )
                         }
                     }
@@ -102,62 +106,66 @@ fun ColorPickerDialog(
 
                 Column(
                     modifier = Modifier.weight(1F),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     if (isPortrait) {
                         if (showTopSpace) {
                             Spacer(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(16.dp)
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .height(16.dp),
                             )
                         }
                         LazyVerticalGrid(
                             modifier = Modifier.fillMaxWidth(),
-                            columns = GridCells.Fixed(5)
+                            columns = GridCells.Fixed(5),
                         ) {
                             items(usedColors.items) {
                                 ColorBox(
                                     size = size,
                                     color = it,
                                     onColorChosen = onColorChosen,
-                                    onDismiss = onDismiss
+                                    onDismiss = onDismiss,
                                 )
                             }
                         }
                     }
 
                     Spacer(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(16.dp)
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .height(16.dp),
                     )
                     ClassicColorPicker(
                         color = color.color,
-                        modifier = Modifier
-                            .height(height)
-                            .padding(horizontal = 16.dp),
+                        modifier =
+                            Modifier
+                                .height(height)
+                                .padding(horizontal = 16.dp),
                         onColorChanged = { color: HsvColor ->
                             currentColor = color.asColorAndShape
-                        }
+                        },
                     )
                 }
             }
 
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
             ) {
                 SetColorButton(
                     modifier = Modifier.weight(1F),
                     onColorChosen = { onColorChosen(currentColor) },
-                    onDismiss = onDismiss
+                    onDismiss = onDismiss,
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 CloseColorButton(
                     modifier = Modifier,
-                    onDismiss = onDismiss
+                    onDismiss = onDismiss,
                 )
             }
         }
@@ -168,14 +176,14 @@ fun ColorPickerDialog(
 private fun SetColorButton(
     modifier: Modifier,
     onColorChosen: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     Button(
         modifier = modifier,
         onClick = {
             onColorChosen()
             onDismiss()
-        }
+        },
     ) {
         Text(text = stringResource(R.string.set_color))
     }
@@ -184,11 +192,11 @@ private fun SetColorButton(
 @Composable
 private fun CloseColorButton(
     modifier: Modifier,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     OutlinedButton(
         modifier = modifier,
-        onClick = onDismiss
+        onClick = onDismiss,
     ) {
         Text(text = stringResource(R.string.close))
     }
@@ -199,20 +207,20 @@ private fun ColorBox(
     size: Float,
     color: ColorAndShape,
     onColorChosen: (ColorAndShape) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     Box {
         Box(
-            modifier = Modifier
-                .unboundClickable {
-                    onColorChosen(color)
-                    onDismiss()
-                }
-                .padding(16.dp)
-                .size(34.dp)
-                .border(width = 1.dp, color = MaterialTheme.colorScheme.onSurface)
-                .pngBackground(true, size)
-                .background(color = color.color)
+            modifier =
+                Modifier
+                    .unboundClickable {
+                        onColorChosen(color)
+                        onDismiss()
+                    }.padding(16.dp)
+                    .size(34.dp)
+                    .border(width = 1.dp, color = MaterialTheme.colorScheme.onSurface)
+                    .pngBackground(true, size)
+                    .background(color = color.color),
         )
     }
 }
@@ -222,18 +230,26 @@ fun ShapePickerDialog(
     color: ColorAndShape,
     numberOfBoxes: Int,
     onShapeChosen: (Shape) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     Dialog(onDismissRequest = onDismiss) {
-        val shapes = remember { Shape.values().groupBy { it.group }.flatMap { it.value }.sortedBy { it.group.ordinal } }.filter {
-            (it.group == ShapeGroup.LEGO && numberOfBoxes <= LEGO_LIMIT) || it.group != ShapeGroup.LEGO
-        }
+        val shapes =
+            remember {
+                Shape
+                    .values()
+                    .groupBy { it.group }
+                    .flatMap { it.value }
+                    .sortedBy { it.group.ordinal }
+            }.filter {
+                (it.group == ShapeGroup.LEGO && numberOfBoxes <= LEGO_LIMIT) || it.group != ShapeGroup.LEGO
+            }
         LazyVerticalGrid(
-            modifier = Modifier
-                .clip(MaterialTheme.shapes.large)
-                .background(MaterialTheme.colorScheme.surfaceVariant),
+            modifier =
+                Modifier
+                    .clip(MaterialTheme.shapes.large)
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
             contentPadding = PaddingValues(16.dp),
-            columns = GridCells.Fixed(COLUMN_COUNT)
+            columns = GridCells.Fixed(COLUMN_COUNT),
         ) {
             items(
                 items = shapes,
@@ -246,14 +262,14 @@ fun ShapePickerDialog(
                         when (end) {
                             true -> COLUMN_COUNT - ((indexInGroup - 1) % COLUMN_COUNT)
                             else -> 1
-                        }
+                        },
                     )
-                }
+                },
             ) {
                 ShapeOption(
                     shapeSize = 34.dp,
                     color = color,
-                    shape = it
+                    shape = it,
                 ) {
                     onShapeChosen(it)
                     onDismiss()
@@ -267,55 +283,61 @@ fun ShapePickerDialog(
 fun ExportDialog(
     export: ExportType,
     onExport: (Int, ExportType) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     Dialog(onDismissRequest = onDismiss) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(MaterialTheme.shapes.large)
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-                .padding(16.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .clip(MaterialTheme.shapes.large)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .padding(16.dp),
         ) {
             Text(
                 modifier = Modifier.fillMaxWidth(),
                 text = stringResource(R.string.image_size),
-                style = MaterialTheme.typography.titleLarge
+                style = MaterialTheme.typography.titleLarge,
             )
             var quality by remember { mutableStateOf(MEDIUM) }
             var qualityError by remember { mutableStateOf(false) }
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp)
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
             ) {
                 OutlinedTextField(
-                    modifier = Modifier
-                        .fillMaxWidth(),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth(),
                     value = quality.toString(),
                     onValueChange = {
                         val value = it.toIntOrNull() ?: 0
-                        val newValue = when (quality == 0 && value > 0) {
-                            true -> it.trimEnd('0').toIntOrNull() ?: 0
-                            else -> value
-                        }
+                        val newValue =
+                            when (quality == 0 && value > 0) {
+                                true -> it.trimEnd('0').toIntOrNull() ?: 0
+                                else -> value
+                            }
                         qualityError = newValue < LOWEST_QUALITY || newValue > HIGHEST_QUALITY
                         quality = newValue
                     },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 )
                 Text(
-                    text = when (qualityError) {
-                        true -> stringResource(
-                            when (quality > HIGHEST_QUALITY) {
-                                true -> R.string.value_too_high
-                                else -> R.string.value_too_low
-                            }
-                        )
-                        else -> ""
-                    },
+                    text =
+                        when (qualityError) {
+                            true ->
+                                stringResource(
+                                    when (quality > HIGHEST_QUALITY) {
+                                        true -> R.string.value_too_high
+                                        else -> R.string.value_too_low
+                                    },
+                                )
+                            else -> ""
+                        },
                     color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.titleSmall
+                    style = MaterialTheme.typography.titleSmall,
                 )
             }
 
@@ -323,70 +345,71 @@ fun ExportDialog(
                 SizeButton(
                     titleRes = R.string.extra_small,
                     getQuality = { quality },
-                    quality = XSMALL
+                    quality = XSMALL,
                 ) { quality = XSMALL }
                 Spacer(modifier = Modifier.size(8.dp))
                 SizeButton(
                     titleRes = R.string.small,
                     getQuality = { quality },
-                    quality = SMALL
+                    quality = SMALL,
                 ) { quality = SMALL }
             }
             Row(modifier = Modifier.fillMaxWidth()) {
                 SizeButton(
                     titleRes = R.string.medium,
                     getQuality = { quality },
-                    quality = MEDIUM
+                    quality = MEDIUM,
                 ) { quality = MEDIUM }
                 Spacer(modifier = Modifier.size(8.dp))
                 SizeButton(
                     titleRes = R.string.large,
                     getQuality = { quality },
-                    quality = LARGE
+                    quality = LARGE,
                 ) { quality = LARGE }
             }
             Row(modifier = Modifier.fillMaxWidth()) {
                 SizeButton(
                     titleRes = R.string.extra_large,
                     getQuality = { quality },
-                    quality = XLARGE
+                    quality = XLARGE,
                 ) { quality = XLARGE }
                 Spacer(modifier = Modifier.size(8.dp))
                 SizeButton(
                     titleRes = R.string.extra_extra_large,
                     getQuality = { quality },
-                    quality = XXLARGE
+                    quality = XXLARGE,
                 ) { quality = XXLARGE }
             }
             Divider(
                 modifier = Modifier.padding(vertical = 16.dp),
-                color = MaterialTheme.colorScheme.outline
+                color = MaterialTheme.colorScheme.outline,
             )
             Row(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Button(
                     modifier = Modifier.weight(1F),
                     onClick = {
                         onExport(quality, export)
                         onDismiss()
-                    }
+                    },
                 ) {
                     Text(
-                        text = stringResource(
-                            when (export) {
-                                ExportType.SHARE -> R.string.share
-                                else -> R.string.export
-                            }
-                        )
+                        text =
+                            stringResource(
+                                when (export) {
+                                    ExportType.SHARE -> R.string.share
+                                    else -> R.string.export
+                                },
+                            ),
                     )
                 }
                 Spacer(modifier = Modifier.size(8.dp))
                 OutlinedButton(
-                    onClick = onDismiss
+                    onClick = onDismiss,
                 ) {
                     Text(
-                        text = stringResource(R.string.close)
+                        text = stringResource(R.string.close),
                     )
                 }
             }
@@ -399,20 +422,22 @@ private fun RowScope.SizeButton(
     @StringRes titleRes: Int,
     quality: Int,
     getQuality: () -> Int,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     val isSelected by remember { derivedStateOf { getQuality() == quality } }
     OutlinedButton(
-        modifier = Modifier
-            .weight(1F),
-        colors = ButtonDefaults.outlinedButtonColors(
-            containerColor =
-            when (isSelected) {
-                true -> MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.4F)
-                else -> Color.Transparent
-            }
-        ),
-        onClick = onClick
+        modifier =
+            Modifier
+                .weight(1F),
+        colors =
+            ButtonDefaults.outlinedButtonColors(
+                containerColor =
+                    when (isSelected) {
+                        true -> MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.4F)
+                        else -> Color.Transparent
+                    },
+            ),
+        onClick = onClick,
     ) {
         Text(text = stringResource(titleRes))
     }

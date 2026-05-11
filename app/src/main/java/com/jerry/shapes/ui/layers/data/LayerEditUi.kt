@@ -6,6 +6,5 @@ data class LayerEditUi(
     val id: Long,
     val index: Int,
     val name: String,
-    val image: Bitmap
+    val image: Bitmap,
 )
-

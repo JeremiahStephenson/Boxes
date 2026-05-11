@@ -22,12 +22,10 @@ import com.ramcosta.composedestinations.animations.defaults.RootNavGraphDefaultA
 import com.ramcosta.composedestinations.animations.rememberAnimatedNavHostEngine
 
 @OptIn(
-    ExperimentalLayoutApi::class
+    ExperimentalLayoutApi::class,
 )
 @Composable
-fun MainContent(
-    onBackPressed: () -> Unit
-) {
+fun MainContent(onBackPressed: () -> Unit) {
     var fab by remember { mutableStateOf<FloatButtonProperties?>(null) }
     var title by remember { mutableStateOf<Pair<String?, Boolean>>(null to false) }
     var actions by remember { mutableStateOf<(@Composable RowScope.() -> Unit)?>(null) }
@@ -40,12 +38,14 @@ fun MainContent(
 //            canScroll = { !title.second }
 //        )
 
-    val engine = rememberAnimatedNavHostEngine(
-        rootDefaultAnimations = RootNavGraphDefaultAnimations(
-            enterTransition = { fadeIn(animationSpec = tween(ANIM_DURATION)) },
-            exitTransition = { fadeOut(animationSpec = tween(ANIM_DURATION)) },
+    val engine =
+        rememberAnimatedNavHostEngine(
+            rootDefaultAnimations =
+                RootNavGraphDefaultAnimations(
+                    enterTransition = { fadeIn(animationSpec = tween(ANIM_DURATION)) },
+                    exitTransition = { fadeOut(animationSpec = tween(ANIM_DURATION)) },
+                ),
         )
-    )
     val navController = engine.rememberNavController()
 
     val showToolbarAnimator = remember { Animatable(0F) }
@@ -60,7 +60,7 @@ fun MainContent(
         LocalAppBarTitle provides { title = it },
         LocalFloatingActionBarButton provides { fab = it },
         LocalAppBarActions provides { actions = it },
-        LocalAppBarHeight provides rememberUpdatedState(scrollBehavior.state.heightOffset)
+        LocalAppBarHeight provides rememberUpdatedState(scrollBehavior.state.heightOffset),
     ) {
         Scaffold(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -73,37 +73,38 @@ fun MainContent(
                     showBackArrow = { showBackArrow },
                     onBack = onBackPressed,
                     getTitle = { title.first.orEmpty() },
-                    actions = { actions ?: {} }
+                    actions = { actions ?: {} },
                 )
             },
             floatingActionButton = {
                 val derived by remember { derivedStateOf { fab != null } }
                 AnimatedVisibility(
                     visible = derived,
-                    enter = fadeIn() + expandIn { IntSize(width = 1, height = 1) }
+                    enter = fadeIn() + expandIn { IntSize(width = 1, height = 1) },
                 ) {
                     FloatingActionButton(
                         modifier = Modifier.systemBarsPadding(),
-                        onClick = fab?.onClick ?: {}
+                        onClick = fab?.onClick ?: {},
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.ic_add_24),
-                            contentDescription = null
+                            contentDescription = null,
                         )
                     }
                 }
             },
-            contentWindowInsets = WindowInsets(0, 0, 0, 0)
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
         ) { innerPadding ->
             DestinationsNavHost(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .consumeWindowInsets(innerPadding)
-                    .systemBarsPadding(),
+                modifier =
+                    Modifier
+                        .padding(innerPadding)
+                        .consumeWindowInsets(innerPadding)
+                        .systemBarsPadding(),
                 engine = engine,
                 navGraph = NavGraphs.root,
                 navController = navController,
-                startRoute = NavGraphs.root.startRoute
+                startRoute = NavGraphs.root.startRoute,
             )
         }
     }
@@ -115,32 +116,33 @@ fun Toolbar(
     showBackArrow: () -> Boolean,
     onBack: () -> Unit,
     getTitle: () -> String,
-    actions: () -> @Composable RowScope.() -> Unit = { {} }
+    actions: () -> @Composable RowScope.() -> Unit = { {} },
 ) {
     val topAppBarElementColor = MaterialTheme.colorScheme.onPrimary
     val appBarContainerColor = MaterialTheme.colorScheme.primary
     TopAppBar(
         actions = actions(),
-        windowInsets = WindowInsets.statusBars.add(
-            WindowInsets.navigationBars.only(
-                WindowInsetsSides.Top + WindowInsetsSides.Horizontal
-            )
-        ),
+        windowInsets =
+            WindowInsets.statusBars.add(
+                WindowInsets.navigationBars.only(
+                    WindowInsetsSides.Top + WindowInsetsSides.Horizontal,
+                ),
+            ),
         navigationIcon = {
             AnimatedVisibility(
                 visible = showBackArrow(),
                 enter = fadeIn() + expandIn(expandFrom = Alignment.Center),
-                exit = shrinkOut(shrinkTowards = Alignment.Center) + fadeOut()
+                exit = shrinkOut(shrinkTowards = Alignment.Center) + fadeOut(),
             ) {
                 Icon(
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .unboundClickable {
-                            onBack()
-                        }
-                        .padding(8.dp),
+                    modifier =
+                        Modifier
+                            .padding(8.dp)
+                            .unboundClickable {
+                                onBack()
+                            }.padding(8.dp),
                     painter = painterResource(R.drawable.ic_arrow_back_24),
-                    contentDescription = stringResource(R.string.back)
+                    contentDescription = stringResource(R.string.back),
                 )
             }
         },
@@ -149,17 +151,18 @@ fun Toolbar(
                 modifier = Modifier.animateContentSize(),
                 text = getTitle(),
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
             )
         },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = appBarContainerColor,
-            scrolledContainerColor = appBarContainerColor,
-            navigationIconContentColor = topAppBarElementColor,
-            titleContentColor = topAppBarElementColor,
-            actionIconContentColor = topAppBarElementColor
-        ),
-        scrollBehavior = scrollBehavior
+        colors =
+            TopAppBarDefaults.topAppBarColors(
+                containerColor = appBarContainerColor,
+                scrolledContainerColor = appBarContainerColor,
+                navigationIconContentColor = topAppBarElementColor,
+                titleContentColor = topAppBarElementColor,
+                actionIconContentColor = topAppBarElementColor,
+            ),
+        scrollBehavior = scrollBehavior,
     )
 }
 

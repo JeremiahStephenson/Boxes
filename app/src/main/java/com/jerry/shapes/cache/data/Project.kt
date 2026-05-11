@@ -7,7 +7,7 @@ import com.jerry.shapes.ui.shapes.Shape
 import java.io.Serializable
 
 @Entity(
-    tableName = Project.TABLE_NAME
+    tableName = Project.TABLE_NAME,
 )
 data class Project(
     val name: String,
@@ -17,7 +17,7 @@ data class Project(
     val currentShape: Shape,
     val showGrid: Boolean,
     val showPngBg: Boolean,
-    val timestamp: Long
+    val timestamp: Long,
 ) : Serializable {
     @PrimaryKey(autoGenerate = true)
     var id: Long = 0L

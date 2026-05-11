@@ -14,15 +14,15 @@ import androidx.room.PrimaryKey
                 entity = Layer::class,
                 parentColumns = ["id"],
                 childColumns = ["layerId"],
-                onDelete = ForeignKey.CASCADE
+                onDelete = ForeignKey.CASCADE,
             )
-            )
-    ]
+        ),
+    ],
 )
 data class History(
     val layerId: Long,
     val index: Int,
-    val timestamp: Long
+    val timestamp: Long,
 ) {
     @PrimaryKey(autoGenerate = true)
     var id: Long = 0L

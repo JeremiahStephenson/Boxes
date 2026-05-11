@@ -6,8 +6,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Icon
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -33,35 +33,38 @@ fun ProjectImage(
     contentPadding: PaddingValues = PaddingValues(),
     contentScale: ContentScale = ContentScale.Crop,
     loadingContent: @Composable () -> Unit = { ProjectImageLoading() },
-    errorContent: @Composable () -> Unit = { ProjectImageError() }
+    errorContent: @Composable () -> Unit = { ProjectImageError() },
 ) {
     SubcomposeAsyncImage(
         model = imageRequest,
         contentDescription = null,
-        modifier = modifier
-            .padding(contentPadding),
-        contentScale = contentScale
+        modifier =
+            modifier
+                .padding(contentPadding),
+        contentScale = contentScale,
     ) {
         val state = painter.state
         val transition = updateTransition(state, label = imageRequest.data.toString())
-        val tween: TweenSpec<Float> = when {
-            crossFade &&
-                (transition.currentState is AsyncImagePainter.State.Loading && transition.targetState is AsyncImagePainter.State.Success) ||
-                (transition.currentState is AsyncImagePainter.State.Loading && transition.targetState is AsyncImagePainter.State.Error) -> {
-                tween()
+        val tween: TweenSpec<Float> =
+            when {
+                crossFade &&
+                    (transition.currentState is AsyncImagePainter.State.Loading && transition.targetState is AsyncImagePainter.State.Success) ||
+                    (transition.currentState is AsyncImagePainter.State.Loading && transition.targetState is AsyncImagePainter.State.Error) -> {
+                    tween()
+                }
+                else -> tween(0)
             }
-            else -> tween(0)
-        }
         Crossfade(
             targetState = state,
-            animationSpec = tween
+            animationSpec = tween,
         ) { painterState ->
             when (painterState) {
                 is AsyncImagePainter.State.Loading -> loadingContent()
                 is AsyncImagePainter.State.Error -> errorContent()
-                else -> SubcomposeAsyncImageContent(
-                    modifier = Modifier.fillMaxSize()
-                )
+                else ->
+                    SubcomposeAsyncImageContent(
+                        modifier = Modifier.fillMaxSize(),
+                    )
             }
         }
     }
@@ -72,15 +75,15 @@ fun ProjectImageLoading(
     modifier: Modifier = Modifier,
     backgroundColor: Color = MaterialTheme.colorScheme.secondaryContainer,
     color: Color = MaterialTheme.colorScheme.secondary,
-    size: Dp = 36.dp
+    size: Dp = 36.dp,
 ) {
     NonLoadedContainer(
         modifier = modifier,
-        backgroundColor = backgroundColor
+        backgroundColor = backgroundColor,
     ) {
         CircularProgressIndicator(
             color = color,
-            modifier = Modifier.size(size)
+            modifier = Modifier.size(size),
         )
     }
 }
@@ -89,16 +92,16 @@ fun ProjectImageLoading(
 fun ProjectImageError(
     modifier: Modifier = Modifier,
     backgroundColor: Color = MaterialTheme.colorScheme.secondaryContainer,
-    color: Color = MaterialTheme.colorScheme.secondary
+    color: Color = MaterialTheme.colorScheme.secondary,
 ) {
     NonLoadedContainer(
         modifier = modifier,
-        backgroundColor = backgroundColor
+        backgroundColor = backgroundColor,
     ) {
         Icon(
             painter = painterResource(R.drawable.ic_warning_24),
             tint = color,
-            contentDescription = stringResource(R.string.error)
+            contentDescription = stringResource(R.string.error),
         )
     }
 }
@@ -107,14 +110,15 @@ fun ProjectImageError(
 private fun NonLoadedContainer(
     modifier: Modifier = Modifier,
     backgroundColor: Color = MaterialTheme.colorScheme.secondaryContainer,
-    content: @Composable BoxScope.() -> Unit = {}
+    content: @Composable BoxScope.() -> Unit = {},
 ) {
     Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(backgroundColor),
+        modifier =
+            modifier
+                .fillMaxSize()
+                .background(backgroundColor),
         contentAlignment = Alignment.Center,
-        content = content
+        content = content,
     )
 }
 
@@ -127,14 +131,16 @@ fun ProjectImage(
     contentPadding: PaddingValues = PaddingValues(),
     contentScale: ContentScale = ContentScale.Crop,
     loadingContent: @Composable () -> Unit = { ProjectImageLoading() },
-    errorContent: @Composable () -> Unit = { ProjectImageError() }
+    errorContent: @Composable () -> Unit = { ProjectImageError() },
 ) {
     val context = LocalContext.current
-    val request = ImageRequest.Builder(context)
-        .diskCacheKey(memoryKey)
-        .data(imagePath)
-        .crossfade(true)
-        .build()
+    val request =
+        ImageRequest
+            .Builder(context)
+            .diskCacheKey(memoryKey)
+            .data(imagePath)
+            .crossfade(true)
+            .build()
 
     ProjectImage(
         imageRequest = request,
@@ -143,6 +149,6 @@ fun ProjectImage(
         contentPadding = contentPadding,
         contentScale = contentScale,
         loadingContent = loadingContent,
-        errorContent = errorContent
+        errorContent = errorContent,
     )
 }

@@ -8,7 +8,9 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 
-class LaunchViewModel(private val boxesRepository: BoxesRepository) : ViewModel() {
+class LaunchViewModel(
+    private val boxesRepository: BoxesRepository,
+) : ViewModel() {
     private val _initFinished = MutableSharedFlow<Unit>(0, 1, BufferOverflow.DROP_OLDEST)
     val initFinished = _initFinished.asSharedFlow()
 
