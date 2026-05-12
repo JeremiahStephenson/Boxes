@@ -33,6 +33,7 @@ fun DrawerContainer(
                     }
                 }
             },
+            gesturesEnabled = false,
             content = {
                 CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
                     content()

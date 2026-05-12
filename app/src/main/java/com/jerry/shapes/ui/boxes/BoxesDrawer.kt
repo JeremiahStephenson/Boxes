@@ -1,5 +1,9 @@
 package com.jerry.shapes.ui.boxes
 
+import android.content.Intent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -7,6 +11,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -15,9 +20,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.google.accompanist.flowlayout.FlowRow
 import com.jerry.shapes.R
 import com.jerry.shapes.cache.data.Project
 import com.jerry.shapes.ui.boxes.data.Action
@@ -67,7 +72,7 @@ fun DrawerMenu(
                     contentDescription = stringResource(R.string.edit_layer_options),
                 )
             }
-            Divider(modifier = Modifier.padding(horizontal = 16.dp))
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
         }
 
         items(
@@ -166,28 +171,28 @@ fun DrawerMenu(
             }
         }
 
-//        item {
-//            ButtonSection(R.string.experimental) {
-//                val context = LocalContext.current
-//                val launcher =
-//                    rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-//                        uri?.let {
-//                            context.contentResolver.takePersistableUriPermission(
-//                                uri,
-//                                Intent.FLAG_GRANT_READ_URI_PERMISSION
-//                            )
-//                            onAction(Action.ImageImport(it, canvasState.selectedLayer.id))
-//                        }
-//                    }
-//                IconMenuButton(
-//                    onClick = {
-//                        launcher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-//                    },
-//                    drawableRes = R.drawable.ic_upload_file_24,
-//                    contentDescription = ""
-//                )
-//            }
-//        }
+        item {
+            ButtonSection(R.string.experimental) {
+                val context = LocalContext.current
+                val launcher =
+                    rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+                        uri?.let {
+                            context.contentResolver.takePersistableUriPermission(
+                                uri,
+                                Intent.FLAG_GRANT_READ_URI_PERMISSION
+                            )
+                            onAction(Action.ImageImport(it, canvasState.selectedLayer.id))
+                        }
+                    }
+                IconMenuButton(
+                    onClick = {
+                        launcher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                    },
+                    drawableRes = R.drawable.ic_upload_file_24,
+                    contentDescription = ""
+                )
+            }
+        }
 
         item {
             ButtonSection(R.string.clear) {
@@ -286,13 +291,16 @@ private fun LayerItem(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ButtonSection(
     @StringRes title: Int,
     content: @Composable () -> Unit,
 ) {
     ButtonHeader(title = title)
-    FlowRow(content = content)
+    FlowRow(content = {
+        content()
+    })
 }
 
 @Composable
@@ -306,5 +314,5 @@ private fun ButtonHeader(
                 .padding(vertical = 8.dp),
         text = stringResource(title),
     )
-    Divider(modifier = Modifier.padding(horizontal = 16.dp))
+    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 }

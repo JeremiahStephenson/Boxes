@@ -6,7 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -26,7 +26,6 @@ import com.jerry.shapes.ui.common.*
 import com.jerry.shapes.ui.layers.data.LayerEditUi
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
-import org.burnoutcrew.reorderable.*
 import org.koin.androidx.compose.koinViewModel
 
 @Destination
@@ -58,32 +57,33 @@ fun LayersEditMain(
                 )
             },
         )
-        val state =
-            rememberReorderableLazyListState(
-                onMove = { from, to ->
-                    val item = list[from.index]
-                    list.remove(item)
-                    list.add(to.index, item)
-                },
-                onDragEnd = { _, _ ->
-                    viewModel.setLayerIndicies(list.map { it.id to ((list.size - 1) - list.indexOf(it)) })
-                },
-            )
+        // TODO Replace this!
+//        val state =
+//            rememberReorderableLazyListState(
+//                onMove = { from, to ->
+//                    val item = list[from.index]
+//                    list.remove(item)
+//                    list.add(to.index, item)
+//                },
+//                onDragEnd = { _, _ ->
+//                    viewModel.setLayerIndicies(list.map { it.id to ((list.size - 1) - list.indexOf(it)) })
+//                },
+//            )
         LazyColumn(
-            state = state.listState,
+            // state = state.listState,
             modifier =
                 Modifier
-                    .reorderable(state)
-                    .detectReorderAfterLongPress(state)
+                    // .reorderable(state)
+                    // .detectReorderAfterLongPress(state)
                     .fillMaxSize(),
         ) {
             itemsIndexed(
                 items = list,
                 key = { _, layer -> layer.id },
             ) { index, layer ->
-                ReorderableItem(state, key = layer.id) { isDragging ->
+                // ReorderableItem(state, key = layer.id) { isDragging ->
                     LayerItem(
-                        state = state,
+                        // state = state,
                         layer = layer,
                         showOpacity = { showOpacity },
                         showDivider = {
@@ -105,7 +105,7 @@ fun LayersEditMain(
                             list.size > 1
                         },
                     )
-                }
+                // }
             }
         }
         val projectNotNull by remember { derivedStateOf { projectState != null } }
@@ -124,7 +124,7 @@ fun LayersEditMain(
 @Composable
 private fun LazyItemScope.LayerItem(
     layer: LayerEditUi,
-    state: ReorderableLazyListState,
+    // state: ReorderableLazyListState,
     showOpacity: () -> Boolean,
     showReorderBtn: () -> Boolean,
     showDivider: () -> Boolean,
@@ -139,7 +139,7 @@ private fun LazyItemScope.LayerItem(
                 .animateItem(),
     ) {
         if (showDivider()) {
-            Divider()
+            HorizontalDivider()
         }
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -156,9 +156,9 @@ private fun LazyItemScope.LayerItem(
             )
             if (showReorderBtn()) {
                 IconMenuButton(
-                    modifier =
-                        Modifier
-                            .detectReorder(state),
+//                    modifier =
+//                        Modifier
+//                            .detectReorder(state),
                     onClick = { /* no op */ },
                     contentDescription = stringResource(R.string.drag_layer),
                     drawableRes = R.drawable.ic_drag_indicator_24,

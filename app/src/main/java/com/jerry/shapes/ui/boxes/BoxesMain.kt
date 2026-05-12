@@ -19,6 +19,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jerry.shapes.R
 import com.jerry.shapes.cache.data.ColorAndShape
@@ -256,9 +257,8 @@ private fun MainCanvas(
             )
         }
 
-        LifecycleEffect { _, event ->
-            Timber.d("LifecycleTest - $event")
-            if (event == Lifecycle.Event.ON_PAUSE) {
+        LifecycleResumeEffect(Unit) {
+            onPauseOrDispose {
                 onAction(Action.Save(true))
             }
         }
@@ -660,7 +660,7 @@ private fun handleAction(
         is Action.AddLayer ->
             viewModel.addLayer(
                 name = action.name,
-                index = (canvasState.layers.maxOf { it.index } ?: -1) + 1,
+                index = canvasState.layers.maxOf { it.index } + 1,
                 selections = canvasState.selections,
             )
         is Action.TurnOnOrOffLayer -> viewModel.setLayerOnOrOff(action.layerId, action.on)

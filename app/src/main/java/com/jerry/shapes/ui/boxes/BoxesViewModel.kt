@@ -151,7 +151,7 @@ class BoxesViewModel(
                         it.name,
                         on = isOn,
                         selected = selected == it.id,
-                        visibilityEnabled = !(isOn && state?.count { it.value } == 1),
+                        visibilityEnabled = !(isOn && state.count { it.value } == 1),
                         showControls = layers.size > 1,
                     )
                 }.onEach {

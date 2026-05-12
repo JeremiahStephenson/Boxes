@@ -1,7 +1,7 @@
 package com.jerry.shapes.extensions
 
 import com.google.firebase.analytics.FirebaseAnalytics
-import com.google.firebase.analytics.ktx.logEvent
+import com.google.firebase.analytics.logEvent
 
 fun FirebaseAnalytics.logError(t: Throwable) {
     logEvent("SaveError") {

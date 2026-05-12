@@ -7,6 +7,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.TransformableState
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -35,6 +36,7 @@ import com.jerry.shapes.ui.common.LocalAppBarHeight
 import com.jerry.shapes.ui.common.pngBackground
 import com.jerry.shapes.util.QUADRANT_SIZE
 import com.jerry.shapes.util.drawShapes
+import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.pow
@@ -75,6 +77,7 @@ fun BoxCanvas(
         )
     }
 
+    val scope = rememberCoroutineScope()
     Box(
         modifier =
             Modifier
@@ -94,7 +97,8 @@ fun BoxCanvas(
                                 onTap(it)
                             }
                     }
-                }.pointerInput(appBarExpanded) {
+                }
+                .pointerInput(appBarExpanded) {
                     detectDragGestures(
                         onDragStart = {
                             if (state.isTransformInProgress) return@detectDragGestures
@@ -109,6 +113,7 @@ fun BoxCanvas(
                                         rowsState,
                                         canvasState.boxes,
                                     )
+
                                 else -> onDragStart()
                             }
                         },
@@ -136,6 +141,7 @@ fun BoxCanvas(
                                         canvasState.boxes,
                                     )
                                 }
+
                                 else ->
                                     onDrag(
                                         getDragPoints(canvasState, change, position).findBoxes(
@@ -150,7 +156,8 @@ fun BoxCanvas(
                             }
                         },
                     )
-                }.transformable(
+                }
+                .transformable(
                     state = state,
                     canPan = { false },
                     lockRotationOnZoomPan = true,
@@ -414,9 +421,9 @@ private fun getDragPoints(
             val distance =
                 sqrt(
                     (position.position.x - position.previousPosition.x).pow(2) +
-                        (position.position.y - position.previousPosition.y).pow(
-                            2,
-                        ),
+                            (position.position.y - position.previousPosition.y).pow(
+                                2,
+                            ),
                 )
             for (i in 1..(distance / boxSize).toInt()) {
                 val t = (boxSize * i) / distance

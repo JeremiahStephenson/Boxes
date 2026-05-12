@@ -380,7 +380,7 @@ fun ExportDialog(
                     quality = XXLARGE,
                 ) { quality = XXLARGE }
             }
-            Divider(
+            HorizontalDivider(
                 modifier = Modifier.padding(vertical = 16.dp),
                 color = MaterialTheme.colorScheme.outline,
             )

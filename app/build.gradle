@@ -15,12 +15,12 @@ plugins {
 
 android {
     namespace 'com.jerry.shapes'
-    compileSdk 35
+    compileSdk 36
 
     defaultConfig {
         applicationId "com.jerry.shapes"
         minSdk 24
-        targetSdk 35
+        targetSdk 36
         versionCode 3
         versionName "1.02"
 
@@ -90,10 +90,9 @@ android {
 
 dependencies {
 
-    implementation platform('com.google.firebase:firebase-bom:33.7.0')
+    implementation platform('com.google.firebase:firebase-bom:34.13.0')
     implementation 'com.google.firebase:firebase-analytics'
-    implementation 'com.google.firebase:firebase-crashlytics-ktx'
-    implementation 'com.google.firebase:firebase-analytics-ktx'
+    implementation 'com.google.firebase:firebase-crashlytics'
 
     implementation "androidx.core:core-ktx:$coreKtx"
     implementation "androidx.activity:activity-compose:$composeActivity"
@@ -101,11 +100,10 @@ dependencies {
     implementation "androidx.compose.ui:ui-util:$compose"
     implementation "androidx.compose.ui:ui-tooling-preview:$compose"
     implementation "androidx.compose.material3:material3:$material3"
-    implementation "androidx.datastore:datastore-preferences:1.1.1"
-    implementation "androidx.core:core-splashscreen:1.0.1"
+    implementation "androidx.datastore:datastore-preferences:1.2.1"
+    implementation "androidx.core:core-splashscreen:1.2.0"
 
-    implementation "com.google.accompanist:accompanist-flowlayout:$accompianist"
-
+    // TODO replace with navigation 3
     implementation "io.github.raamcosta.compose-destinations:animations-core:$composeDestinations"
     ksp "io.github.raamcosta.compose-destinations:ksp:$composeDestinations"
 
@@ -129,7 +127,6 @@ dependencies {
     implementation "com.jakewharton.timber:timber:$timber"
 
     implementation 'com.godaddy.android.colorpicker:compose-color-picker-android:0.7.0'
-    implementation 'org.burnoutcrew.composereorderable:reorderable:0.9.6'
 
     coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$desugarJdkLib"
 
