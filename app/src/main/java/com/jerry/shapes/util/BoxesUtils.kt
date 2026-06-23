@@ -15,7 +15,7 @@ import com.jerry.shapes.cache.data.LayerAndPixel
 import com.jerry.shapes.cache.data.Pixel
 import com.jerry.shapes.extensions.asList
 import com.jerry.shapes.ui.boxes.data.LayerUi
-import com.jerry.shapes.ui.shapes.*
+import com.jerry.shapes.ui.shapes.ShapersInterface
 import timber.log.Timber
 import kotlin.math.ceil
 import kotlin.math.floor

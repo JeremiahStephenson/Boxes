@@ -5,7 +5,12 @@ import androidx.compose.animation.core.TweenSpec
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -48,10 +53,17 @@ fun ProjectImage(
         val tween: TweenSpec<Float> =
             when {
                 crossFade &&
-                    (transition.currentState is AsyncImagePainter.State.Loading && transition.targetState is AsyncImagePainter.State.Success) ||
-                    (transition.currentState is AsyncImagePainter.State.Loading && transition.targetState is AsyncImagePainter.State.Error) -> {
+                    (
+                        transition.currentState is AsyncImagePainter.State.Loading &&
+                            transition.targetState is AsyncImagePainter.State.Success
+                    ) ||
+                    (
+                        transition.currentState is AsyncImagePainter.State.Loading &&
+                            transition.targetState is AsyncImagePainter.State.Error
+                    ) -> {
                     tween()
                 }
+
                 else -> tween(0)
             }
         Crossfade(

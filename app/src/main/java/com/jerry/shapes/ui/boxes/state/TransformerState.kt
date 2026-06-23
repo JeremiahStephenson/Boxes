@@ -1,7 +1,10 @@
 package com.jerry.shapes.ui.boxes.state
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch

@@ -7,7 +7,12 @@ import androidx.room.withTransaction
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.jerry.shapes.cache.BoxesDao
 import com.jerry.shapes.cache.BoxesDatabase
-import com.jerry.shapes.cache.data.*
+import com.jerry.shapes.cache.data.ColorAndShape
+import com.jerry.shapes.cache.data.History
+import com.jerry.shapes.cache.data.HistoryItem
+import com.jerry.shapes.cache.data.Layer
+import com.jerry.shapes.cache.data.Pixel
+import com.jerry.shapes.cache.data.Project
 import com.jerry.shapes.extensions.logError
 import com.jerry.shapes.ui.boxes.data.LayerUi
 import com.jerry.shapes.ui.shapes.Shape

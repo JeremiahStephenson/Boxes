@@ -27,8 +27,8 @@ data class Project(
     }
 
     @Transient
-    private var _color: ColorAndShape? = null
+    private var _colorAndShape: ColorAndShape? = null
     val colorAndShape: ColorAndShape
         get() =
-            _color ?: ColorAndShape(Color(currentColor)).also { _color = it }
+            _colorAndShape ?: ColorAndShape(Color(currentColor)).also { _colorAndShape = it }
 }

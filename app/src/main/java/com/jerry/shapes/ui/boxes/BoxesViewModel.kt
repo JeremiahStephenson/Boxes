@@ -19,7 +19,16 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.jerry.shapes.cache.data.ColorAndShape
 import com.jerry.shapes.cache.data.Project
-import com.jerry.shapes.extensions.*
+import com.jerry.shapes.extensions.addIfNotFound
+import com.jerry.shapes.extensions.adjust
+import com.jerry.shapes.extensions.filterNotNullValues
+import com.jerry.shapes.extensions.findDominateColor
+import com.jerry.shapes.extensions.groupByQuadrant
+import com.jerry.shapes.extensions.isNotOutside
+import com.jerry.shapes.extensions.logError
+import com.jerry.shapes.extensions.quadrant
+import com.jerry.shapes.extensions.quadrants
+import com.jerry.shapes.extensions.safeLet
 import com.jerry.shapes.repository.BoxesRepository
 import com.jerry.shapes.ui.boxes.data.LayerUi
 import com.jerry.shapes.ui.boxes.data.UiEvent
@@ -27,15 +36,28 @@ import com.jerry.shapes.ui.boxes.history.UserHistory
 import com.jerry.shapes.ui.boxes.state.enums.Direction
 import com.jerry.shapes.ui.destinations.BoxesMainDestination
 import com.jerry.shapes.ui.shapes.Shape
-import com.jerry.shapes.util.*
+import com.jerry.shapes.util.CoroutineContextProvider
+import com.jerry.shapes.util.ExportType
+import com.jerry.shapes.util.ImmutableList
+import com.jerry.shapes.util.Resource
+import com.jerry.shapes.util.SavedHandle
+import com.jerry.shapes.util.generateBoxes
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeout
-import java.util.*
+import java.util.LinkedList
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
@@ -95,8 +117,8 @@ class BoxesViewModel(
                 Resource.loading(SnapshotStateMap()),
             )
 
-    private val _loading = MutableStateFlow(false)
-    val loadingState = _loading.asStateFlow()
+    private val _loadingState = MutableStateFlow(false)
+    val loadingState = _loadingState.asStateFlow()
 
     private val _uiEventFlow = MutableSharedFlow<UiEvent>(0, 1, BufferOverflow.DROP_OLDEST)
     val uiEventFlow = _uiEventFlow.asSharedFlow()
@@ -151,7 +173,7 @@ class BoxesViewModel(
                         it.name,
                         on = isOn,
                         selected = selected == it.id,
-                        visibilityEnabled = !(isOn && state.count { it.value } == 1),
+                        visibilityEnabled = !(isOn && state.values.count() == 1),
                         showControls = layers.size > 1,
                     )
                 }.onEach {
@@ -182,7 +204,7 @@ class BoxesViewModel(
     ) {
         if (!on && (layerStateHandle?.count { it.value } ?: 0) <= 1) return
         layerStateHandle =
-            (layerStateHandle?.toMutableMap() ?: mutableMapOf()).apply {
+            (layerStateHandle?.toMutableMap() ?: mutableMapOf<Long, Boolean>()).apply {
                 put(layerId, on)
             }
         if (!on && (layerId == selectedLayerStateHandle || selectedLayerStateHandle == null)) {
@@ -225,7 +247,7 @@ class BoxesViewModel(
         colorsMutex.withLock {
             usedColorsHandle?.addIfNotFound(color)
             if ((usedColorsHandle?.size ?: 0) > 10) {
-                usedColorsHandle?.removeFirst()
+                usedColorsHandle?.removeAt(0)
             }
         }
     }
@@ -233,10 +255,10 @@ class BoxesViewModel(
     private var undoJob: Job? = null
 
     fun onUndo(layerId: Long?) {
-        if (undoJob?.isActive == true || layerId == null || _loading.value) return
+        if (undoJob?.isActive == true || layerId == null || _loadingState.value) return
         undoJob =
             viewModelScope.launch(cc.io) {
-                _loading.value = true
+                _loadingState.value = true
                 try {
                     val layer = pixelsFlow.value.data?.getOrPut(layerId) { mutableStateMapOf() }
                     val quads = boxesRepository.getLastHistoryItem(layerId).quadrants
@@ -255,7 +277,7 @@ class BoxesViewModel(
                 } catch (t: Throwable) {
                     _uiEventFlow.emit(UiEvent.Error(t.message))
                 }
-                _loading.value = false
+                _loadingState.value = false
             }
     }
 
@@ -271,7 +293,7 @@ class BoxesViewModel(
         if (exportJob?.isActive == true) return
         exportJob =
             viewModelScope.launch(cc.io) {
-                _loading.value = true
+                _loadingState.value = true
                 try {
                     val path =
                         boxesRepository.export(
@@ -289,7 +311,7 @@ class BoxesViewModel(
                     _uiEventFlow.emit(UiEvent.Error(t.message))
                     analytics.logError(t)
                 }
-                _loading.value = false
+                _loadingState.value = false
             }
     }
 
@@ -318,14 +340,14 @@ class BoxesViewModel(
         if (fillJob?.isActive == true) return
         fillJob =
             viewModelScope.launch(cc.io) {
-                _loading.value = true
+                _loadingState.value = true
                 withTimeout(FILL_TIMEOUT) {
                     try {
                         fillInArea(point, layerId, currentColor, currentShape, columns, rows)
-                        _loading.value = false
+                        _loadingState.value = false
                     } catch (t: Throwable) {
                         _uiEventFlow.emit(UiEvent.Error(t.message))
-                        _loading.value = false
+                        _loadingState.value = false
                     }
                 }
             }
@@ -354,7 +376,7 @@ class BoxesViewModel(
     ) {
         if (uri.path.isNullOrEmpty() || columns == null || rows == null) return
         viewModelScope.launch(cc.io) {
-            _loading.value = true
+            _loadingState.value = true
             try {
                 val bitmap =
                     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
@@ -418,7 +440,7 @@ class BoxesViewModel(
             } catch (t: Throwable) {
                 _uiEventFlow.emit(UiEvent.Error(t.message))
             }
-            _loading.value = false
+            _loadingState.value = false
         }
     }
 
@@ -430,10 +452,10 @@ class BoxesViewModel(
         bottomRight: Point?,
         direction: Direction,
     ) {
-        if (moveJob?.isActive == true || _loading.value || topLeft == null || bottomRight == null) return
+        if (moveJob?.isActive == true || _loadingState.value || topLeft == null || bottomRight == null) return
         moveJob =
             viewModelScope.launch(cc.io) {
-                _loading.value = true
+                _loadingState.value = true
                 try {
                     val points = HashSet<Point>()
                     for (c in min(topLeft.x, bottomRight.x)..max(topLeft.x, bottomRight.x)) {
@@ -467,7 +489,7 @@ class BoxesViewModel(
                 } catch (t: Throwable) {
                     _uiEventFlow.emit(UiEvent.Error(t.message))
                 }
-                _loading.value = false
+                _loadingState.value = false
             }
     }
 

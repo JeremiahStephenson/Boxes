@@ -38,6 +38,7 @@ android {
     }
 
     signingConfigs {
+        // TODO create new keystore file for re-release and DO NOT COMMIT IT TO REPO!!!
         create("release") {
             keyAlias = "RouteSucks"
             keyPassword = "RouteSucks"

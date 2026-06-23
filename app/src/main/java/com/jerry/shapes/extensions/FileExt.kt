@@ -12,7 +12,8 @@ import com.jerry.shapes.ui.boxes.data.LayerUi
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 
 fun Context?.exportCanvas(
     name: String,
