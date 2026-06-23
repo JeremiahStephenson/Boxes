@@ -82,29 +82,29 @@ fun LayersEditMain(
                 key = { _, layer -> layer.id },
             ) { index, layer ->
                 // ReorderableItem(state, key = layer.id) { isDragging ->
-                    LayerItem(
-                        // state = state,
-                        layer = layer,
-                        showOpacity = { showOpacity },
-                        showDivider = {
-                            index > 0
-                        },
-                        onDeleteItem = {
-                            viewModel.deleteLayer(
-                                projectState!!.layers,
-                                layer.id,
-                            )
-                        },
-                        showDeleteBtn = {
-                            projectState!!.layers.size > 1
-                        },
-                        onLayerName = {
-                            viewModel.setLayerName(layer.id, it)
-                        },
-                        showReorderBtn = {
-                            list.size > 1
-                        },
-                    )
+                LayerItem(
+                    // state = state,
+                    layer = layer,
+                    showOpacity = { showOpacity },
+                    showDivider = {
+                        index > 0
+                    },
+                    onDeleteItem = {
+                        viewModel.deleteLayer(
+                            projectState!!.layers,
+                            layer.id,
+                        )
+                    },
+                    showDeleteBtn = {
+                        projectState!!.layers.size > 1
+                    },
+                    onLayerName = {
+                        viewModel.setLayerName(layer.id, it)
+                    },
+                    showReorderBtn = {
+                        list.size > 1
+                    },
+                )
                 // }
             }
         }

@@ -10,7 +10,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Divider
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -179,7 +178,7 @@ fun DrawerMenu(
                         uri?.let {
                             context.contentResolver.takePersistableUriPermission(
                                 uri,
-                                Intent.FLAG_GRANT_READ_URI_PERMISSION
+                                Intent.FLAG_GRANT_READ_URI_PERMISSION,
                             )
                             onAction(Action.ImageImport(it, canvasState.selectedLayer.id))
                         }
@@ -189,7 +188,7 @@ fun DrawerMenu(
                         launcher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                     },
                     drawableRes = R.drawable.ic_upload_file_24,
-                    contentDescription = ""
+                    contentDescription = "",
                 )
             }
         }
