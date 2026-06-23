@@ -57,10 +57,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeout
+import kotlin.time.Duration
 import java.util.LinkedList
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.time.Duration.Companion.seconds
 
 class BoxesViewModel(
     private val handle: SavedStateHandle,
@@ -341,15 +343,14 @@ class BoxesViewModel(
         fillJob =
             viewModelScope.launch(cc.io) {
                 _loadingState.value = true
-                withTimeout(FILL_TIMEOUT) {
-                    try {
+                withTimeout(timeout = FILL_TIMEOUT) {
+                    runCatching {
                         fillInArea(point, layerId, currentColor, currentShape, columns, rows)
-                        _loadingState.value = false
-                    } catch (t: Throwable) {
-                        _uiEventFlow.emit(UiEvent.Error(t.message))
-                        _loadingState.value = false
+                    }.onFailure { error ->
+                        _uiEventFlow.emit(UiEvent.Error(error.message))
                     }
                 }
+                _loadingState.value = false
             }
     }
 
@@ -550,6 +551,6 @@ class BoxesViewModel(
         private const val USED_COLORS_STATE = "USED_COLOR_STATE"
         private const val SELECTED_LAYER = "SELECTED_LAYER"
 
-        private const val FILL_TIMEOUT = 10000L
+        private val FILL_TIMEOUT = 10.seconds
     }
 }
