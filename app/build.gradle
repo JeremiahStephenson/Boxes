@@ -3,7 +3,6 @@ import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
 
 plugins {
     id 'com.android.application'
-    id 'org.jetbrains.kotlin.android'
     id 'org.jetbrains.kotlin.plugin.compose'
     id 'org.jetbrains.kotlin.plugin.parcelize'
     id 'com.google.devtools.ksp'
@@ -15,12 +14,12 @@ plugins {
 
 android {
     namespace 'com.jerry.shapes'
-    compileSdk 36
+    compileSdk 37
 
     defaultConfig {
         applicationId "com.jerry.shapes"
         minSdk 24
-        targetSdk 36
+        targetSdk 37
         versionCode 3
         versionName "1.02"
 
@@ -79,18 +78,18 @@ android {
         compose true
         buildConfig true
     }
-    packagingOptions {
+    packaging {
         resources {
-            excludes += '/META-INF/{AL2.0,LGPL2.1}'
-            excludes += 'META-INF/LICENSE.md'
-            excludes += 'META-INF/LICENSE-notice.md'
+            excludes.add('/META-INF/{AL2.0,LGPL2.1}')
+            excludes.add('META-INF/LICENSE.md')
+            excludes.add('META-INF/LICENSE-notice.md')
         }
     }
 }
 
 dependencies {
 
-    implementation platform('com.google.firebase:firebase-bom:34.13.0')
+    implementation platform('com.google.firebase:firebase-bom:34.15.0')
     implementation 'com.google.firebase:firebase-analytics'
     implementation 'com.google.firebase:firebase-crashlytics'
 
@@ -135,7 +134,7 @@ dependencies {
     testImplementation "app.cash.turbine:turbine:$turbine"
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines"
 
-    implementation("androidx.paging:paging-runtime:$paging")
+    implementation("androidx.paging:paging-runtime-ktx:$paging")
     implementation("androidx.paging:paging-compose:$composePaging")
 
     androidTestImplementation "androidx.test.ext:junit:$junitExt"
