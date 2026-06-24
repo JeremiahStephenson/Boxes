@@ -52,6 +52,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jerry.shapes.R
 import com.jerry.shapes.cache.data.ColorAndShape
 import com.jerry.shapes.cache.data.Project
+import com.jerry.shapes.navigation.Navigator
 import com.jerry.shapes.ui.boxes.data.Action
 import com.jerry.shapes.ui.boxes.data.UiEvent
 import com.jerry.shapes.ui.boxes.history.UserHistory
@@ -68,28 +69,29 @@ import com.jerry.shapes.ui.common.IconMenuButton
 import com.jerry.shapes.ui.common.LocalAppBarHeight
 import com.jerry.shapes.ui.common.ShapeOption
 import com.jerry.shapes.ui.common.unboundClickable
-import com.jerry.shapes.ui.destinations.CreateMainDestination
-import com.jerry.shapes.ui.destinations.LayersEditMainDestination
+import com.jerry.shapes.ui.create.CreateNavKey
+import com.jerry.shapes.ui.layers.LayersEditNavKey
 import com.jerry.shapes.ui.shapes.Shape
 import com.jerry.shapes.util.ExportType
 import com.jerry.shapes.util.ImmutableList
 import com.jerry.shapes.util.openImage
 import com.jerry.shapes.util.openShareSheet
-import com.ramcosta.composedestinations.annotation.Destination
-import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
-@Destination
 @Composable
 fun BoxesMain(
     projectId: Long,
     projectName: String?,
-    navController: DestinationsNavigator,
+    navigator: Navigator,
     viewModel: BoxesViewModel = koinViewModel(),
 ) {
+    LaunchedEffect(Unit) {
+        viewModel.init(projectId)
+    }
+
     val project by viewModel.projectFlow.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
@@ -123,7 +125,7 @@ fun BoxesMain(
                 modifier =
                     Modifier
                         .unboundClickable {
-                            navController.navigate(LayersEditMainDestination(projectId))
+                            navigator.navigate(LayersEditNavKey(projectId))
                         }.padding(16.dp),
                 painter = painterResource(R.drawable.ic_layers_24),
                 contentDescription = null,
@@ -158,7 +160,7 @@ fun BoxesMain(
                         viewModel,
                         scope,
                         context,
-                        navController,
+                        navigator,
                         it,
                     )
                 }
@@ -630,7 +632,7 @@ private fun handleAction(
     viewModel: BoxesViewModel,
     scope: CoroutineScope,
     context: Context,
-    navController: DestinationsNavigator,
+    navigator: Navigator,
     action: Action,
 ) {
     when (action) {
@@ -688,7 +690,7 @@ private fun handleAction(
         is Action.ResetZoom -> transformerState.reset(scope)
         is Action.Edit -> {
             scope.launch { drawerState.close() }
-            navController.navigate(CreateMainDestination(project?.id))
+            navigator.navigate(CreateNavKey(project?.id))
         }
         is Action.AddLayer ->
             viewModel.addLayer(
@@ -700,7 +702,7 @@ private fun handleAction(
         is Action.AddColorToUsedList -> scope.launch { viewModel.addUsedColor(action.color) }
         is Action.GoToLayerEdit ->
             project?.id?.let {
-                navController.navigate(LayersEditMainDestination(it))
+                navigator.navigate(LayersEditNavKey(it))
             }
         is Action.Export ->
             project?.let {

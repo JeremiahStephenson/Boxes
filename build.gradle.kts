@@ -10,4 +10,5 @@ plugins {
     alias(libs.plugins.crashlytics) apply false
     alias(libs.plugins.ben.manes.versions) apply false
     alias(libs.plugins.ktlint) apply false
+    alias(libs.plugins.kotlin.serialization) apply false
 }

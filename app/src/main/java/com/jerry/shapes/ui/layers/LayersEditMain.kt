@@ -19,6 +19,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -37,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.request.ImageRequest
 import com.jerry.shapes.R
+import com.jerry.shapes.navigation.Navigator
 import com.jerry.shapes.ui.common.AreYouSureDialog
 import com.jerry.shapes.ui.common.DefaultContainer
 import com.jerry.shapes.ui.common.IconMenuButton
@@ -45,17 +47,18 @@ import com.jerry.shapes.ui.common.ProjectImage
 import com.jerry.shapes.ui.common.SetNameDialog
 import com.jerry.shapes.ui.common.pngBackground
 import com.jerry.shapes.ui.layers.data.LayerEditUi
-import com.ramcosta.composedestinations.annotation.Destination
-import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import org.koin.androidx.compose.koinViewModel
 
-@Destination
 @Composable
 fun LayersEditMain(
     projectId: Long,
-    navController: DestinationsNavigator,
+    navigator: Navigator,
     viewModel: LayersEditViewModel = koinViewModel(),
 ) {
+    LaunchedEffect(Unit) {
+        viewModel.init(projectId)
+    }
+
     var showOpacity by rememberSaveable { mutableStateOf(false) }
     DefaultContainer(
         title = stringResource(R.string.edit_layers),

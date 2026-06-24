@@ -10,6 +10,7 @@ plugins {
     alias(libs.plugins.crashlytics)
     alias(libs.plugins.ben.manes.versions)
     alias(libs.plugins.ktlint)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 ktlint {
@@ -17,6 +18,19 @@ ktlint {
     ignoreFailures.set(false)
     reporters {
         reporter(ReporterType.PLAIN)
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_21)
+        freeCompilerArgs.addAll(
+            "-opt-in=kotlin.RequiresOptIn",
+            "-opt-in=androidx.compose.animation.ExperimentalAnimationApi",
+            "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
+            "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
+            "-jvm-default=enable",
+        )
     }
 }
 
@@ -62,20 +76,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_21
     }
 
-    kotlin {
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_21)
-            freeCompilerArgs.addAll(
-                "-opt-in=kotlin.RequiresOptIn",
-                "-opt-in=androidx.compose.animation.ExperimentalAnimationApi",
-                "-opt-in=androidx.lifecycle.compose.ExperimentalLifecycleComposeApi",
-                "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
-                "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
-                "-Xjvm-default=all-compatibility",
-            )
-        }
-    }
-
     buildFeatures {
         compose = true
         buildConfig = true
@@ -104,8 +104,12 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.core.splashscreen)
 
-    implementation(libs.compose.destinations.animations.core)
-    ksp(libs.compose.destinations.ksp)
+    // TODO figure out if I need all of these
+    implementation(libs.androidx.navigation3.ui)
+    implementation(libs.androidx.navigation3.runtime)
+    implementation(libs.androidx.lifecycle.viewmodel.navigation3)
+    implementation(libs.androidx.material3.adaptive.navigation3)
+    implementation(libs.kotlinx.serialization.core)
 
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)

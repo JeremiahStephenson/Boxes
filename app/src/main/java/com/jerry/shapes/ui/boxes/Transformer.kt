@@ -12,7 +12,7 @@ fun Transformer(
     content: @Composable (Float, Offset, TransformableState) -> Unit,
 ) {
     val state =
-        rememberTransformableState { zoomChange, offsetChange, _ ->
+        rememberTransformableState { _, zoomChange, offsetChange, _ ->
             transformerState.setChanges(zoomChange, offsetChange)
         }
     content(transformerState.scale, transformerState.offset, state)

@@ -2,13 +2,10 @@ package com.jerry.shapes
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkOut
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -29,7 +26,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,52 +40,36 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import com.jerry.shapes.ui.NavGraphs
-import com.jerry.shapes.ui.appCurrentDestinationAsState
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
+import androidx.navigation3.runtime.NavEntry
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
+import androidx.navigation3.ui.NavDisplay
+import com.jerry.shapes.navigation.Navigator
+import com.jerry.shapes.ui.boxes.BoxesMain
+import com.jerry.shapes.ui.boxes.BoxesNavKey
 import com.jerry.shapes.ui.common.FloatButtonProperties
 import com.jerry.shapes.ui.common.LocalAppBarActions
 import com.jerry.shapes.ui.common.LocalAppBarHeight
 import com.jerry.shapes.ui.common.LocalAppBarTitle
 import com.jerry.shapes.ui.common.LocalFloatingActionBarButton
 import com.jerry.shapes.ui.common.unboundClickable
-import com.ramcosta.composedestinations.DestinationsNavHost
-import com.ramcosta.composedestinations.animations.defaults.RootNavGraphDefaultAnimations
-import com.ramcosta.composedestinations.animations.rememberAnimatedNavHostEngine
+import com.jerry.shapes.ui.create.CreateMain
+import com.jerry.shapes.ui.create.CreateNavKey
+import com.jerry.shapes.ui.home.HomeMain
+import com.jerry.shapes.ui.home.HomeNavKey
+import com.jerry.shapes.ui.layers.LayersEditMain
+import com.jerry.shapes.ui.layers.LayersEditNavKey
+import org.koin.compose.koinInject
 
-@OptIn(
-    ExperimentalLayoutApi::class,
-)
 @Composable
 fun MainContent(onBackPressed: () -> Unit) {
     var fab by remember { mutableStateOf<FloatButtonProperties?>(null) }
     var title by remember { mutableStateOf<Pair<String?, Boolean>>(null to false) }
     var actions by remember { mutableStateOf<(@Composable RowScope.() -> Unit)?>(null) }
 
-    // todo figure out how to fix the issue of the appbar scrolling itself
-    val scrollBehavior =
-        TopAppBarDefaults.pinnedScrollBehavior()
-//        TopAppBarDefaults.enterAlwaysScrollBehavior(
-//            state = rememberTopAppBarState(),
-//            canScroll = { !title.second }
-//        )
-
-    val engine =
-        rememberAnimatedNavHostEngine(
-            rootDefaultAnimations =
-                RootNavGraphDefaultAnimations(
-                    enterTransition = { fadeIn(animationSpec = tween(ANIM_DURATION)) },
-                    exitTransition = { fadeOut(animationSpec = tween(ANIM_DURATION)) },
-                ),
-        )
-    val navController = engine.rememberNavController()
-
-    val showToolbarAnimator = remember { Animatable(0F) }
-    LaunchedEffect(navController.appCurrentDestinationAsState().value) {
-        showToolbarAnimator.snapTo(scrollBehavior.state.heightOffset)
-        showToolbarAnimator.animateTo(0F) {
-            scrollBehavior.state.heightOffset = this.value
-        }
-    }
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val navigator = koinInject<Navigator>()
+    navigator.Init()
 
     CompositionLocalProvider(
         LocalAppBarTitle provides { title = it },
@@ -100,8 +80,8 @@ fun MainContent(onBackPressed: () -> Unit) {
         Scaffold(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {
-                val showBackArrow by remember(navController.appCurrentDestinationAsState().value) {
-                    derivedStateOf { navController.previousBackStackEntry != null }
+                val showBackArrow by remember {
+                    derivedStateOf { !navigator.isAtRoot }
                 }
                 Toolbar(
                     scrollBehavior = scrollBehavior,
@@ -130,16 +110,54 @@ fun MainContent(onBackPressed: () -> Unit) {
             },
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
         ) { innerPadding ->
-            DestinationsNavHost(
+            NavDisplay(
                 modifier =
                     Modifier
                         .padding(innerPadding)
                         .consumeWindowInsets(innerPadding)
                         .systemBarsPadding(),
-                engine = engine,
-                navGraph = NavGraphs.root,
-                navController = navController,
-                startRoute = NavGraphs.root.startRoute,
+                backStack = navigator.backStack,
+                onBack = { navigator.popBackstack() },
+                entryDecorators =
+                    listOf(
+                        rememberSaveableStateHolderNavEntryDecorator(),
+                        rememberViewModelStoreNavEntryDecorator(),
+                    ),
+                entryProvider = { key ->
+                    when (key) {
+                        is HomeNavKey ->
+                            NavEntry(key) {
+                                HomeMain(navigator = navigator)
+                            }
+
+                        is BoxesNavKey ->
+                            NavEntry(key) {
+                                BoxesMain(
+                                    projectId = key.projectId,
+                                    projectName = key.projectName,
+                                    navigator = navigator,
+                                )
+                            }
+
+                        is LayersEditNavKey ->
+                            NavEntry(key) {
+                                LayersEditMain(
+                                    projectId = key.projectId,
+                                    navigator = navigator,
+                                )
+                            }
+
+                        is CreateNavKey ->
+                            NavEntry(key) {
+                                CreateMain(
+                                    projectId = key.projectId,
+                                    navigator = navigator,
+                                )
+                            }
+
+                        else -> error("Unknown route: $key")
+                    }
+                },
             )
         }
     }
@@ -200,5 +218,3 @@ fun Toolbar(
         scrollBehavior = scrollBehavior,
     )
 }
-
-private const val ANIM_DURATION = 300

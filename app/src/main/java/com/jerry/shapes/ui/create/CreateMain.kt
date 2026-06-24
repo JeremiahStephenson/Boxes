@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -46,26 +45,27 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jerry.shapes.R
 import com.jerry.shapes.cache.data.Project
+import com.jerry.shapes.navigation.Navigator
 import com.jerry.shapes.repository.BoxesRepository
+import com.jerry.shapes.ui.boxes.BoxesNavKey
 import com.jerry.shapes.ui.common.DefaultContainer
 import com.jerry.shapes.ui.common.FadeAnimatedVisibility
-import com.jerry.shapes.ui.destinations.BoxesMainDestination
-import com.jerry.shapes.ui.destinations.CreateMainDestination
 import com.jerry.shapes.util.ImmutableList
-import com.ramcosta.composedestinations.annotation.Destination
-import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import kotlin.math.min
 
-@Destination
 @Composable
 fun CreateMain(
     projectId: Long? = null,
-    navController: DestinationsNavigator,
+    navigator: Navigator,
     viewModel: CreateViewModel = koinViewModel(),
 ) {
+    LaunchedEffect(Unit) {
+        viewModel.init(projectId)
+    }
+
     val projectState by viewModel.projectFlow.collectAsStateWithLifecycle(null)
     DefaultContainer(
         title =
@@ -83,13 +83,21 @@ fun CreateMain(
                     true -> Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
                     else ->
                         when (viewModel.isSave) {
-                            true -> navController.popBackStack()
+                            true -> navigator.popBackstack()
                             else ->
-                                navController.navigate(BoxesMainDestination(it.data!!, null)) {
-                                    popUpTo(CreateMainDestination) {
-                                        inclusive = true
-                                    }
-                                }
+                                navigator.navigate(
+                                    navKey =
+                                        BoxesNavKey(
+                                            projectId = it.data!!,
+                                            projectName = null,
+                                        ),
+                                    builder = {
+                                        popUpTo(
+                                            navKey = CreateNavKey::class.java,
+                                            inclusive = true,
+                                        )
+                                    },
+                                )
                         }
                 }
             }
@@ -161,7 +169,10 @@ private fun CreateForm(
 
             item {
                 Row(
-                    modifier = Modifier.padding(bottom = 32.dp).fillMaxWidth(),
+                    modifier =
+                        Modifier
+                            .padding(bottom = 32.dp)
+                            .fillMaxWidth(),
                 ) {
                     ProjectNumberPicker(
                         modifier = Modifier.padding(end = 8.dp),
@@ -182,7 +193,7 @@ private fun CreateForm(
                 }
             }
 
-            items(sizes.items) { value ->
+            items(items = sizes.items) { value ->
                 LayerItem(
                     value = value,
                     columnValue = columnValue,
@@ -208,6 +219,7 @@ private fun CreateForm(
                             scrollState.animateScrollToItem(0)
                         }
                     }
+
                     else ->
                         if (columnValue in 1..BoxesRepository.MAX_SIDE_SIZE && rowValue in 1..BoxesRepository.MAX_SIDE_SIZE) {
                             onSave(text.trim(), columnValue, rowValue)

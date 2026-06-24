@@ -15,6 +15,7 @@ After getting the code up to date here are some ideas I would like to explore wi
 Once I get the code looking better I will expand more here and add screenshots.
 
 ### Current known bugs
-1. Pinch to zoom is broken on the main canvas. This worked as expected when I wrote this intially but something changed internally with Compose and now this is a bit janky and unreliable. Two finger pinch often doesn't initiate zoom and instead one of the two fingers draws on the canvas.
+1. Pinch to zoom is broken on the main canvas. This worked as expected when I wrote this initially but something changed internally with Compose and now this is a bit janky and unreliable. Two finger pinch often doesn't initiate zoom and instead one of the two fingers draws on the canvas.
 2. Drag to re-order on the layers edit screen isn't working. This is another thing that was working when I wrote this 3 years ago. I previously used a third party dependency that wasn't kept up to date and isn't compatible with AGP 9 and all the other things I've been updating so I removed it.
-3. Bottom insets on the canvas seem to get messed up after configuration changes. 
+3. Bottom insets on the canvas seem to get messed up after configuration changes.
+4. Predictive back is now enabled but the animation is funky. It causes issues with the app bar title and buttons.

@@ -40,27 +40,23 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jerry.shapes.R
 import com.jerry.shapes.cache.data.Project
 import com.jerry.shapes.extensions.readableDateAndTime
+import com.jerry.shapes.navigation.Navigator
+import com.jerry.shapes.ui.boxes.BoxesNavKey
 import com.jerry.shapes.ui.common.AreYouSureDialog
 import com.jerry.shapes.ui.common.DefaultContainer
 import com.jerry.shapes.ui.common.ProjectImage
 import com.jerry.shapes.ui.common.unboundClickable
-import com.jerry.shapes.ui.destinations.BoxesMainDestination
-import com.jerry.shapes.ui.destinations.CreateMainDestination
+import com.jerry.shapes.ui.create.CreateNavKey
 import com.jerry.shapes.util.thumbnailLocation
-import com.ramcosta.composedestinations.annotation.Destination
-import com.ramcosta.composedestinations.annotation.RootNavGraph
-import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.flow.collectLatest
 import org.koin.androidx.compose.koinViewModel
 import java.io.File
 import java.time.Instant
 
 @OptIn(ExperimentalFoundationApi::class)
-@RootNavGraph(start = true)
-@Destination
 @Composable
 fun HomeMain(
-    navController: DestinationsNavigator,
+    navigator: Navigator,
     viewModel: HomeViewModel = koinViewModel(),
 ) {
     val items by viewModel.projectsFlow.collectAsStateWithLifecycle(null)
@@ -68,7 +64,7 @@ fun HomeMain(
     DefaultContainer(
         title = stringResource(R.string.app_name),
         fabListener = {
-            navController.navigate(CreateMainDestination())
+            navigator.navigate(CreateNavKey())
         },
         appBarActions = {
             val emptyList by remember { derivedStateOf { items?.isEmpty() ?: true } }
@@ -83,8 +79,8 @@ fun HomeMain(
         // ahead and send to the create project screen
         LaunchedEffect(Unit) {
             viewModel.hasLaunchedBefore.collectLatest {
-                if (it == null || it == false) {
-                    navController.navigate(CreateMainDestination())
+                if (it == null || !it) {
+                    navigator.navigate(CreateNavKey())
                     viewModel.setHasLaunched()
                 }
             }
@@ -109,8 +105,8 @@ fun HomeMain(
                     editMode = editMode,
                     onGoToProject = {
                         editMode = false
-                        navController.navigate(
-                            BoxesMainDestination(it, item.name),
+                        navigator.navigate(
+                            BoxesNavKey(projectId = it, projectName = item.name),
                         )
                     },
                     onDeleteProject = {

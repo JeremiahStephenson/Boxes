@@ -34,7 +34,6 @@ import com.jerry.shapes.ui.boxes.data.LayerUi
 import com.jerry.shapes.ui.boxes.data.UiEvent
 import com.jerry.shapes.ui.boxes.history.UserHistory
 import com.jerry.shapes.ui.boxes.state.enums.Direction
-import com.jerry.shapes.ui.destinations.BoxesMainDestination
 import com.jerry.shapes.ui.shapes.Shape
 import com.jerry.shapes.util.CoroutineContextProvider
 import com.jerry.shapes.util.ExportType
@@ -51,13 +50,13 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeout
-import kotlin.time.Duration
 import java.util.LinkedList
 import kotlin.math.ceil
 import kotlin.math.max
@@ -96,24 +95,29 @@ class BoxesViewModel(
         mutableListOf(),
     )
 
-    private val projectId = BoxesMainDestination.argsFrom(handle).projectId
+    private val projectId = MutableStateFlow<Long?>(null)
 
     private val colorsMutex = Mutex()
     val usedColors get() = ImmutableList(usedColorsHandle as List<ColorAndShape>)
 
     val projectFlow =
-        boxesRepository
-            .getProjectFlowById(projectId)
-            .stateIn(
+        projectId
+            .filterNotNull()
+            .flatMapLatest { projectId ->
+                boxesRepository.getProjectFlowById(projectId)
+            }.stateIn(
                 viewModelScope,
                 SharingStarted.WhileSubscribed(1000),
                 null,
             )
 
     val pixelsFlow =
-        boxesRepository
-            .getPixelsFlow(projectId)
-            .stateIn(
+        projectId
+            .filterNotNull()
+            .flatMapLatest { projectId ->
+                boxesRepository
+                    .getPixelsFlow(projectId)
+            }.stateIn(
                 viewModelScope,
                 SharingStarted.Eagerly,
                 Resource.loading(SnapshotStateMap()),
@@ -130,7 +134,12 @@ class BoxesViewModel(
     val layersVisibilityList = mutableStateMapOf<Long, MutableState<Boolean>>()
     val layersOrderStateList = mutableStateListOf<Long>()
 
-    private val layerFlow = boxesRepository.getLayersFlow(projectId)
+    private val layerFlow =
+        projectId
+            .filterNotNull()
+            .flatMapLatest { projectId ->
+                boxesRepository.getLayersFlow(projectId)
+            }
     val layerStateFlow =
         combine(layerState, layerFlow, selectedLayerStateFlow) { state, layers, selectedLayer ->
             if (layerStateHandle == null) {
@@ -200,6 +209,10 @@ class BoxesViewModel(
                 ?: emptyFlow()
         }
 
+    fun init(projectId: Long) {
+        this.projectId.value = projectId
+    }
+
     fun setLayerOnOrOff(
         layerId: Long,
         on: Boolean,
@@ -216,25 +229,25 @@ class BoxesViewModel(
 
     fun updateProjectShape(shape: Shape) {
         viewModelScope.launch {
-            boxesRepository.updateProjectShape(projectId, shape)
+            projectId.value?.let { boxesRepository.updateProjectShape(it, shape) }
         }
     }
 
     fun updateProjectColor(color: ColorAndShape) {
         viewModelScope.launch {
-            boxesRepository.updateProjectColor(projectId, color)
+            projectId.value?.let { boxesRepository.updateProjectColor(it, color) }
         }
     }
 
     fun updateProjectShowGrid(showGrid: Boolean) {
         viewModelScope.launch {
-            boxesRepository.updateProjectShowGrid(projectId, showGrid)
+            projectId.value?.let { boxesRepository.updateProjectShowGrid(it, showGrid) }
         }
     }
 
     fun updateProjectShowPngBg(showPngBg: Boolean) {
         viewModelScope.launch {
-            boxesRepository.updateProjectShowPngBg(projectId, showPngBg)
+            projectId.value?.let { boxesRepository.updateProjectShowPngBg(it, showPngBg) }
         }
     }
 
@@ -270,7 +283,10 @@ class BoxesViewModel(
                             it.value.associate { historyItem ->
                                 Point(historyItem.x, historyItem.y) to
                                     historyItem.color?.let { color ->
-                                        ColorAndShape(Color(color), historyItem.shape ?: Shape.Box)
+                                        ColorAndShape(
+                                            Color(color),
+                                            historyItem.shape ?: Shape.Box,
+                                        )
                                     }
                             }
                         quad?.keys?.removeAll(map.keys)
@@ -327,7 +343,7 @@ class BoxesViewModel(
         selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
     ) {
         viewModelScope.launch {
-            selectLayer(boxesRepository.addLayer(projectId, name, index, selections))
+            projectId.value?.let { selectLayer(boxesRepository.addLayer(it, name, index, selections)) }
         }
     }
 
@@ -381,6 +397,7 @@ class BoxesViewModel(
             try {
                 val bitmap =
                     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+                        @Suppress("DEPRECATION")
                         MediaStore.Images.Media.getBitmap(
                             context.contentResolver,
                             uri,
@@ -393,21 +410,28 @@ class BoxesViewModel(
                 val dimens =
                     when {
                         columns < rows -> {
-                            val newRows = ceil((columns.toFloat() / bitmap.width.toFloat()) * bitmap.height.toFloat())
+                            val newRows =
+                                ceil((columns.toFloat() / bitmap.width.toFloat()) * bitmap.height.toFloat())
                             columns to newRows.toInt()
                         }
+
                         rows < columns -> {
-                            val newCols = ceil((rows.toFloat() / bitmap.height.toFloat()) * bitmap.width.toFloat())
+                            val newCols =
+                                ceil((rows.toFloat() / bitmap.height.toFloat()) * bitmap.width.toFloat())
                             newCols.toInt() to rows
                         }
+
                         else -> {
                             when (bitmap.height <= bitmap.width) {
                                 true -> {
-                                    val newRows = ceil((columns.toFloat() / bitmap.width.toFloat()) * bitmap.height.toFloat())
+                                    val newRows =
+                                        ceil((columns.toFloat() / bitmap.width.toFloat()) * bitmap.height.toFloat())
                                     columns to newRows.toInt()
                                 }
+
                                 else -> {
-                                    val newCols = ceil((rows.toFloat() / bitmap.height.toFloat()) * bitmap.width.toFloat())
+                                    val newCols =
+                                        ceil((rows.toFloat() / bitmap.height.toFloat()) * bitmap.width.toFloat())
                                     newCols.toInt() to rows
                                 }
                             }
@@ -475,7 +499,8 @@ class BoxesViewModel(
                             }?.toMap() ?: emptyMap()
                     val merged = list?.union(adjusted.keys)?.toSet() ?: emptySet()
                     val currentSelection =
-                        layer?.let { l -> merged.associateWith { l[it.quadrant]?.get(it) } } ?: emptyMap()
+                        layer?.let { l -> merged.associateWith { l[it.quadrant]?.get(it) } }
+                            ?: emptyMap()
                     history.putAll(currentSelection)
 
                     adjusted.keys.groupByQuadrant.forEach { (t, u) ->

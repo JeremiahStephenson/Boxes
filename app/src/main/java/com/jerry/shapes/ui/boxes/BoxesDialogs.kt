@@ -34,7 +34,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -59,7 +58,6 @@ import com.jerry.shapes.ui.shapes.ShapeGroup
 import com.jerry.shapes.util.ExportType
 import com.jerry.shapes.util.ImmutableList
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ColorPickerDialog(
     color: ColorAndShape,
@@ -160,7 +158,7 @@ fun ColorPickerDialog(
                                 .height(16.dp),
                     )
                     ClassicColorPicker(
-                        color = color.color,
+                        color = HsvColor.from(color.color),
                         modifier =
                             Modifier
                                 .height(height)

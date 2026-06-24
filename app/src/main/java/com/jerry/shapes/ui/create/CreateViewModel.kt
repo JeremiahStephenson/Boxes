@@ -2,36 +2,41 @@ package com.jerry.shapes.ui.create
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jerry.shapes.cache.BoxesDao
 import com.jerry.shapes.cache.data.Layer
 import com.jerry.shapes.cache.data.Project
-import com.jerry.shapes.ui.destinations.CreateMainDestination
 import com.jerry.shapes.ui.shapes.Shape
 import com.jerry.shapes.util.Resource
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import java.time.Instant
 
 class CreateViewModel(
-    handle: SavedStateHandle,
     private val boxesDao: BoxesDao,
 ) : ViewModel() {
     private val _uiState = MutableSharedFlow<Resource<Long>>(0, 1, BufferOverflow.DROP_OLDEST)
     val uiState = _uiState.asSharedFlow()
 
-    private val projectId = CreateMainDestination.argsFrom(handle).projectId
+    private val projectId = MutableStateFlow<Long?>(null)
 
-    val isSave get() = projectId != null
+    val isSave get() = projectId.value != null
 
     val projectFlow =
-        boxesDao.takeIf { projectId != null }?.getProjectFlowById(projectId!!) ?: emptyFlow()
+        projectId.flatMapLatest { projectId ->
+            boxesDao.takeIf { projectId != null }?.getProjectFlowById(projectId!!) ?: emptyFlow()
+        }
+
+    fun init(projectId: Long?) {
+        this.projectId.value = projectId
+    }
 
     fun saveProject(
         name: String,
@@ -44,7 +49,7 @@ class CreateViewModel(
             },
         ) {
             val id =
-                when (projectId) {
+                when (projectId.value) {
                     null -> {
                         val projectId =
                             boxesDao.insertProject(
@@ -63,8 +68,8 @@ class CreateViewModel(
                         projectId
                     }
                     else -> {
-                        boxesDao.updateProject(name, columns, rows, projectId)
-                        projectId
+                        boxesDao.updateProject(name, columns, rows, projectId.value!!)
+                        projectId.value
                     }
                 }
             _uiState.tryEmit(Resource.done(id))
