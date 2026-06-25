@@ -275,15 +275,17 @@ private fun MainCanvas(
     getUsedColorList: () -> ImmutableList<ColorAndShape>,
     onAction: (Action) -> Unit,
 ) {
+    // TODO look for alternative to BoxWithConstraints
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val density = LocalDensity.current
         val strokeWidth = remember { with(density) { 2.dp.toPx() } }
         val buttonBarOffset = remember { with(density) { 56.dp.toPx() } }
 
         val size = this.constraints
+
         val contentOffset = LocalAppBarHeight.current
         val appBarExpanded by remember { derivedStateOf { contentOffset.value == 0F } }
-        LaunchedEffect(project.rows, project.columns, appBarExpanded) {
+        LaunchedEffect(project.rows, project.columns, appBarExpanded, size) {
             canvasState.fillInBoxes(
                 size,
                 buttonBarOffset,

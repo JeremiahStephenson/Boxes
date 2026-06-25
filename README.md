@@ -16,5 +16,4 @@ Once I get the code looking better I will expand more here and add screenshots.
 
 ### Current known bugs
 1. Pinch to zoom is broken on the main canvas. This worked as expected when I wrote this initially but something changed internally with Compose and now this is a bit janky and unreliable. Two finger pinch often doesn't initiate zoom and instead one of the two fingers draws on the canvas.
-2. Bottom insets on the canvas seem to get messed up after configuration changes.
-3. Predictive back is now enabled but the animation is funky. It causes issues with the app bar title and buttons.
+2. Predictive back is now enabled but the animation is funky. It causes issues with the app bar title and buttons.

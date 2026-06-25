@@ -1,6 +1,5 @@
 package com.jerry.shapes.ui.home
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -12,10 +11,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -44,6 +45,7 @@ import com.jerry.shapes.navigation.Navigator
 import com.jerry.shapes.ui.boxes.BoxesNavKey
 import com.jerry.shapes.ui.common.AreYouSureDialog
 import com.jerry.shapes.ui.common.DefaultContainer
+import com.jerry.shapes.ui.common.FadeAnimatedVisibility
 import com.jerry.shapes.ui.common.ProjectImage
 import com.jerry.shapes.ui.common.unboundClickable
 import com.jerry.shapes.ui.create.CreateNavKey
@@ -53,13 +55,13 @@ import org.koin.androidx.compose.koinViewModel
 import java.io.File
 import java.time.Instant
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeMain(
     navigator: Navigator,
     viewModel: HomeViewModel = koinViewModel(),
 ) {
-    val items by viewModel.projectsFlow.collectAsStateWithLifecycle(null)
+    val itemsFlow by viewModel.projectsFlow.collectAsStateWithLifecycle(null)
+    val isLoading by remember { derivedStateOf { itemsFlow?.isLoading ?: false } }
     var editMode by rememberSaveable { mutableStateOf(false) }
     DefaultContainer(
         title = stringResource(R.string.app_name),
@@ -67,7 +69,11 @@ fun HomeMain(
             navigator.navigate(CreateNavKey())
         },
         appBarActions = {
-            val emptyList by remember { derivedStateOf { items?.isEmpty() ?: true } }
+            val emptyList by remember {
+                derivedStateOf {
+                    itemsFlow?.isSuccessful == true && (itemsFlow?.data?.isEmpty() ?: true)
+                }
+            }
             if (!emptyList) {
                 EditMenu(editMode) {
                     editMode = !editMode
@@ -99,7 +105,7 @@ fun HomeMain(
             verticalItemSpacing = 16.dp,
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            itemsIndexed(items ?: emptyList()) { _, item ->
+            itemsIndexed(itemsFlow?.data ?: emptyList()) { _, item ->
                 ProjectItem(
                     item = item,
                     editMode = editMode,
@@ -116,7 +122,11 @@ fun HomeMain(
             }
         }
 
-        val areItemsEmpty by remember { derivedStateOf { items != null && items!!.isEmpty() } }
+        val areItemsEmpty by remember {
+            derivedStateOf {
+                itemsFlow?.isSuccessful == true && itemsFlow?.data != null && itemsFlow!!.data!!.isEmpty()
+            }
+        }
         if (areItemsEmpty) {
             Column(
                 modifier = Modifier.fillMaxSize(),
@@ -137,6 +147,13 @@ fun HomeMain(
                     contentDescription = null,
                 )
             }
+        }
+
+        FadeAnimatedVisibility(
+            modifier = Modifier.fillMaxSize().wrapContentSize(Alignment.Center),
+            visible = isLoading,
+        ) {
+            CircularProgressIndicator()
         }
     }
 }
@@ -194,7 +211,11 @@ private fun ProjectItem(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp)
                         .padding(bottom = 16.dp),
-                text = stringResource(R.string.last_edited, Instant.ofEpochMilli(item.timestamp).readableDateAndTime),
+                text =
+                    stringResource(
+                        R.string.last_edited,
+                        Instant.ofEpochMilli(item.timestamp).readableDateAndTime,
+                    ),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

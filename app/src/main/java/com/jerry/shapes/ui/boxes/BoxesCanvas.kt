@@ -2,8 +2,8 @@ package com.jerry.shapes.ui.boxes
 
 import android.graphics.Point
 import android.graphics.RectF
+import android.util.Log
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.TransformableState
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -16,7 +16,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -46,7 +45,6 @@ import kotlin.math.ceil
 import kotlin.math.pow
 import kotlin.math.sqrt
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun BoxCanvas(
     canvasState: CanvasState,
@@ -81,7 +79,6 @@ fun BoxCanvas(
         )
     }
 
-    val scope = rememberCoroutineScope()
     Box(
         modifier =
             Modifier
@@ -366,6 +363,7 @@ private fun Grid(
                     canvasState.boxes[Point(0, i)],
                     canvasState.boxes[Point(columns - 1, i)],
                 ) { start, end ->
+                    Log.d("InsetTest", "$start - $end")
                     drawLine(
                         strokeWidth = stroke,
                         color = strokeColor,

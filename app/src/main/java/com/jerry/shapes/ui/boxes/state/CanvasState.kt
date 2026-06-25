@@ -159,6 +159,7 @@ class CanvasState(
                 (((size.maxHeight - offset) - (min * rows)) / 2),
                 0F,
             )
+
         val xOffSet =
             max(((size.maxWidth - (min * columns)) / 2), 0F)
 
