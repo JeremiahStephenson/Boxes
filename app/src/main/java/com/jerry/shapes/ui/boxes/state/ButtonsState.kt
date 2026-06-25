@@ -1,30 +1,21 @@
 package com.jerry.shapes.ui.boxes.state
 
-import android.os.Parcelable
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.listSaver
 import com.jerry.shapes.ui.boxes.state.enums.TapType
-import kotlinx.parcelize.IgnoredOnParcel
-import kotlinx.parcelize.Parcelize
+import com.jerry.shapes.util.StateValue
 
-@Parcelize
 @Stable
 class ButtonsState(
     private val eraserSelected: Boolean = false,
     private val selectToolSelected: Boolean = false,
-) : Parcelable {
-    @IgnoredOnParcel
-    var eraserSelectedState by mutableStateOf(eraserSelected)
-        private set
+    private val tapType: TapType = TapType.TAP,
+) {
+    var eraserSelectedState by StateValue(eraserSelected)
 
-    @IgnoredOnParcel
-    var selectToolSelectedState by mutableStateOf(selectToolSelected)
-        private set
+    var selectToolSelectedState by StateValue(selectToolSelected)
 
-    @IgnoredOnParcel
-    var tapTypeState by mutableStateOf(TapType.TAP)
+    var tapTypeState by StateValue(tapType)
         private set
 
     fun toggleEraserSelected() {
@@ -35,14 +26,6 @@ class ButtonsState(
     fun toggleSelectTool() {
         selectToolSelectedState = !selectToolSelectedState
         eraserSelectedState = false
-    }
-
-    fun turnOffEraser() {
-        eraserSelectedState = false
-    }
-
-    fun turnOffSelectionTool() {
-        selectToolSelectedState = false
     }
 
     fun setTapType(tapType: TapType) {
@@ -61,5 +44,21 @@ class ButtonsState(
                 else -> TapType.TAP
             }
         setTapType(newType)
+    }
+
+    companion object {
+        val SAVER =
+            listSaver<ButtonsState, Any>(
+                save = { item ->
+                    listOf(item.eraserSelectedState, item.selectToolSelectedState, item.tapTypeState)
+                },
+                restore = { state ->
+                    ButtonsState(
+                        eraserSelected = state[0] as Boolean,
+                        selectToolSelected = state[1] as Boolean,
+                        tapType = state[2] as TapType,
+                    )
+                },
+            )
     }
 }

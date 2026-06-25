@@ -30,7 +30,7 @@ import com.jerry.shapes.extensions.quadrant
 import com.jerry.shapes.extensions.quadrants
 import com.jerry.shapes.extensions.safeLet
 import com.jerry.shapes.repository.BoxesRepository
-import com.jerry.shapes.ui.boxes.data.LayerUi
+import com.jerry.shapes.ui.boxes.data.LayerState
 import com.jerry.shapes.ui.boxes.data.UiEvent
 import com.jerry.shapes.ui.boxes.history.UserHistory
 import com.jerry.shapes.ui.boxes.state.enums.Direction
@@ -177,7 +177,7 @@ class BoxesViewModel(
             layers
                 .map {
                     val isOn = state?.getOrDefault(it.id, it.on) == true
-                    LayerUi(
+                    LayerState(
                         it.id,
                         it.projectId,
                         it.index,
@@ -274,7 +274,7 @@ class BoxesViewModel(
         undoJob =
             viewModelScope.launch(cc.io) {
                 _loadingState.value = true
-                try {
+                runCatching {
                     val layer = pixelsFlow.value.data?.getOrPut(layerId) { mutableStateMapOf() }
                     val quads = boxesRepository.getLastHistoryItem(layerId).quadrants
                     quads.forEach {
@@ -292,8 +292,8 @@ class BoxesViewModel(
                         quad?.keys?.removeAll(map.keys)
                         quad?.putAll(map.filterNotNullValues())
                     }
-                } catch (t: Throwable) {
-                    _uiEventFlow.emit(UiEvent.Error(t.message))
+                }.onFailure { error ->
+                    _uiEventFlow.emit(UiEvent.Error(error.message))
                 }
                 _loadingState.value = false
             }
@@ -304,7 +304,7 @@ class BoxesViewModel(
     fun export(
         project: Project,
         selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
-        layers: Collection<LayerUi>,
+        layers: Collection<LayerState>,
         imageSize: Int,
         exportType: ExportType,
     ) {
@@ -312,7 +312,7 @@ class BoxesViewModel(
         exportJob =
             viewModelScope.launch(cc.io) {
                 _loadingState.value = true
-                try {
+                runCatching {
                     val path =
                         boxesRepository.export(
                             project,
@@ -325,9 +325,9 @@ class BoxesViewModel(
                     path?.let {
                         _uiEventFlow.emit(UiEvent.Export(it, exportType))
                     }
-                } catch (t: Throwable) {
-                    _uiEventFlow.emit(UiEvent.Error(t.message))
-                    analytics.logError(t)
+                }.onFailure { error ->
+                    _uiEventFlow.emit(UiEvent.Error(error.message))
+                    analytics.logError(error)
                 }
                 _loadingState.value = false
             }
@@ -374,13 +374,13 @@ class BoxesViewModel(
         project: Project,
         boxes: List<Point>? = null,
         selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
-        layers: Collection<LayerUi>,
+        layers: Collection<LayerState>,
     ) {
-        try {
+        runCatching {
             boxesRepository.save(project, boxes, selections, layers)
-        } catch (t: Throwable) {
-            analytics.logError(t)
-            _uiEventFlow.tryEmit(UiEvent.Error(t.message))
+        }.onFailure { error ->
+            analytics.logError(error)
+            _uiEventFlow.tryEmit(UiEvent.Error(error.message))
         }
     }
 
@@ -394,7 +394,7 @@ class BoxesViewModel(
         if (uri.path.isNullOrEmpty() || columns == null || rows == null) return
         viewModelScope.launch(cc.io) {
             _loadingState.value = true
-            try {
+            runCatching {
                 val bitmap =
                     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
                         @Suppress("DEPRECATION")
@@ -462,8 +462,8 @@ class BoxesViewModel(
                             .let { l.getOrPut(quad) { mutableStateMapOf() }.putAll(it) }
                     }
                 }
-            } catch (t: Throwable) {
-                _uiEventFlow.emit(UiEvent.Error(t.message))
+            }.onFailure { error ->
+                _uiEventFlow.emit(UiEvent.Error(error.message))
             }
             _loadingState.value = false
         }
@@ -481,7 +481,7 @@ class BoxesViewModel(
         moveJob =
             viewModelScope.launch(cc.io) {
                 _loadingState.value = true
-                try {
+                runCatching {
                     val points = HashSet<Point>()
                     for (c in min(topLeft.x, bottomRight.x)..max(topLeft.x, bottomRight.x)) {
                         for (r in min(topLeft.y, bottomRight.y)..max(topLeft.y, bottomRight.y)) {
@@ -512,8 +512,8 @@ class BoxesViewModel(
                     }
                     addToHistory(UserHistory(layerId, history))
                     _uiEventFlow.emit(UiEvent.MoveSelection(direction))
-                } catch (t: Throwable) {
-                    _uiEventFlow.emit(UiEvent.Error(t.message))
+                }.onFailure { error ->
+                    _uiEventFlow.emit(UiEvent.Error(error.message))
                 }
                 _loadingState.value = false
             }

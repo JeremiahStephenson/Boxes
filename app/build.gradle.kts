@@ -104,12 +104,11 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.core.splashscreen)
 
-    // TODO figure out if I need all of these
     implementation(libs.androidx.navigation3.ui)
     implementation(libs.androidx.navigation3.runtime)
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
-    implementation(libs.androidx.material3.adaptive.navigation3)
     implementation(libs.kotlinx.serialization.core)
+    // implementation(libs.androidx.material3.adaptive.navigation3)
 
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)

@@ -9,81 +9,81 @@ import com.jerry.shapes.ui.boxes.state.enums.TapType
 import com.jerry.shapes.ui.shapes.Shape
 import com.jerry.shapes.util.ExportType
 
-sealed class Action {
-    object Clear : Action()
+sealed interface Action {
+    data object Clear : Action
 
-    object Eraser : Action()
+    data object Eraser : Action
 
-    object ResetZoom : Action()
+    data object ResetZoom : Action
 
-    object ShowPngBackground : Action()
+    data object ShowPngBackground : Action
 
-    object ShowGrid : Action()
+    data object ShowGrid : Action
 
-    object SelectTool : Action()
+    data object SelectTool : Action
 
-    object Edit : Action()
+    data object Edit : Action
 
-    object Undo : Action()
+    data object Undo : Action
 
-    object GoToLayerEdit : Action()
+    data object GoToLayerEdit : Action
 
-    object ClearSelect : Action()
+    data object ClearSelect : Action
 
     data class ImageImport(
         val uri: Uri,
         val layerId: Long,
-    ) : Action()
+    ) : Action
 
     data class SetColor(
         val color: ColorAndShape,
-    ) : Action()
+    ) : Action
 
     data class SetShape(
         val shape: Shape,
-    ) : Action()
+    ) : Action
 
     data class Move(
         val layerId: Long,
         val direction: Direction,
-    ) : Action()
+    ) : Action
 
     data class Fill(
         val point: Point,
         val layerId: Long,
-    ) : Action()
+    ) : Action
 
     data class SetTapType(
         val tapType: TapType,
-    ) : Action()
+    ) : Action
 
     data class Export(
         val size: Int,
         val exportType: ExportType,
-    ) : Action()
+    ) : Action
 
     data class AddLayer(
         val name: String,
-    ) : Action()
+    ) : Action
 
     data class SelectLayer(
         val layerId: Long,
-    ) : Action()
+    ) : Action
 
     data class AddColorToUsedList(
         val color: ColorAndShape,
-    ) : Action()
+    ) : Action
 
     data class AddToHistory(
         val historyItem: UserHistory,
-    ) : Action()
+    ) : Action
 
     data class TurnOnOrOffLayer(
         val on: Boolean,
         val layerId: Long,
-    ) : Action()
+    ) : Action
 
     data class Save(
         val autoSave: Boolean,
-    ) : Action()
+    ) : Action
 }

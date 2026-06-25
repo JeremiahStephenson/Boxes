@@ -1,6 +1,6 @@
 package com.jerry.shapes.ui.boxes.data
 
-data class LayerUi(
+data class LayerState(
     val id: Long,
     val projectId: Long,
     val index: Int,

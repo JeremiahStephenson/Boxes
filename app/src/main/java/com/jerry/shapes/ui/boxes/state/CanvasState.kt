@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.Constraints
 import com.jerry.shapes.cache.data.ColorAndShape
 import com.jerry.shapes.extensions.groupByQuadrant
 import com.jerry.shapes.extensions.quadrant
-import com.jerry.shapes.ui.boxes.data.LayerUi
+import com.jerry.shapes.ui.boxes.data.LayerState
 import com.jerry.shapes.ui.boxes.history.UserHistory
 import com.jerry.shapes.ui.shapes.Shape
 import com.jerry.shapes.util.Resource
@@ -23,7 +23,7 @@ import kotlin.math.min
 
 @Stable
 class CanvasState(
-    layersState: State<List<LayerUi>>,
+    layersState: State<List<LayerState>>,
     private val layerVisibilityState: SnapshotStateMap<Long, MutableState<Boolean>>,
     private val layerOrderState: SnapshotStateList<Long>,
     private val loadingState: State<Boolean>,

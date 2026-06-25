@@ -14,7 +14,7 @@ import com.jerry.shapes.cache.data.ColorAndShape
 import com.jerry.shapes.cache.data.LayerAndPixel
 import com.jerry.shapes.cache.data.Pixel
 import com.jerry.shapes.extensions.asList
-import com.jerry.shapes.ui.boxes.data.LayerUi
+import com.jerry.shapes.ui.boxes.data.LayerState
 import com.jerry.shapes.ui.shapes.ShapersInterface
 import timber.log.Timber
 import kotlin.math.ceil
@@ -87,7 +87,7 @@ fun generateBoxes(
 }
 
 fun Canvas.drawShapes(
-    layers: Collection<LayerUi>,
+    layers: Collection<LayerState>,
     selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
     boxes: Map<Point, RectF>,
 ) {
@@ -106,7 +106,7 @@ fun Canvas.drawShapes(
 }
 
 fun DrawScope.drawShapes(
-    layers: List<LayerUi>,
+    layers: List<LayerState>,
     selections: Map<Long, Map<Point, ColorAndShape>>,
     boxes: Map<Point, RectF>,
 ) {
@@ -197,7 +197,7 @@ fun generateBitmap(
     rows: Int,
     columns: Int,
     imageSize: Int,
-    layers: Collection<LayerUi>,
+    layers: Collection<LayerState>,
     selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
 ): Bitmap {
     val boxSize = ceil(min(imageSize / columns.toFloat(), imageSize / rows.toFloat())).toInt()
@@ -225,7 +225,7 @@ fun generateBitmap(
         rows,
         columns,
         imageSize,
-        LayerUi(
+        LayerState(
             layerId,
             0L,
             1,

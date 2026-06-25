@@ -15,5 +15,5 @@ fun Transformer(
         rememberTransformableState { _, zoomChange, offsetChange, _ ->
             transformerState.setChanges(zoomChange, offsetChange)
         }
-    content(transformerState.scale, transformerState.offset, state)
+    content(transformerState.scaleState, transformerState.offsetState, state)
 }

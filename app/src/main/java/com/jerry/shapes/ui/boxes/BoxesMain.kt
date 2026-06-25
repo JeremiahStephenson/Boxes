@@ -109,14 +109,14 @@ fun BoxesMain(
     val canvasState = rememberCanvasState(viewModel)
 
     val buttonsState =
-        rememberSaveable {
+        rememberSaveable(saver = ButtonsState.SAVER) {
             ButtonsState(
                 eraserSelected = false,
                 selectToolSelected = false,
             )
         }
 
-    val selectionState = rememberSaveable { SelectionState() }
+    val selectionState = rememberSaveable(saver = SelectionState.SAVER) { SelectionState() }
     DefaultContainer(
         title = project?.name ?: projectName ?: "",
         disableAppbarScroll = true,
@@ -146,7 +146,7 @@ fun BoxesMain(
             )
         },
     ) {
-        val transformerState = remember { TransformerState() }
+        val transformerState = rememberSaveable(saver = TransformerState.SAVER) { TransformerState() }
         val handleAction: (Action) -> Unit =
             remember {
                 {
@@ -374,12 +374,12 @@ private fun MainCanvas(
             canvasState = canvasState,
             transformerState = transformerState,
             onColorChosen = {
-                buttonsState.turnOffEraser()
+                buttonsState.eraserSelectedState = false
                 onAction(Action.SetColor(it))
                 onAction(Action.AddColorToUsedList(it))
             },
             onShapeChosen = {
-                buttonsState.turnOffEraser()
+                buttonsState.eraserSelectedState = false
                 onAction(Action.SetShape(it))
             },
             onAction = onAction,
@@ -481,7 +481,7 @@ private fun ButtonBar(
 
         Spacer(modifier = Modifier.weight(1F))
 
-        val isTransformed by remember { derivedStateOf { transformerState.scale > 1F || transformerState.offset != Offset.Zero } }
+        val isTransformed by remember { derivedStateOf { transformerState.scaleState > 1F || transformerState.offsetState != Offset.Zero } }
         IconMenuButton(
             enabled = isTransformed,
             onClick = { onAction(Action.ResetZoom) },
@@ -673,7 +673,7 @@ private fun handleAction(
             }
         is Action.Undo ->
             scope.launch {
-                buttonsState.turnOffSelectionTool()
+                buttonsState.selectToolSelectedState = false
                 viewModel.onUndo(canvasState.selectedLayer.id)
             }
         is Action.AddToHistory ->

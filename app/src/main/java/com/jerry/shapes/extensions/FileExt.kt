@@ -8,7 +8,7 @@ import android.os.Environment
 import androidx.core.content.FileProvider
 import com.jerry.shapes.R
 import com.jerry.shapes.cache.data.ColorAndShape
-import com.jerry.shapes.ui.boxes.data.LayerUi
+import com.jerry.shapes.ui.boxes.data.LayerState
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -21,7 +21,7 @@ fun Context?.exportCanvas(
     rows: Int,
     columns: Int,
     imageSize: Int,
-    layers: Collection<LayerUi>,
+    layers: Collection<LayerState>,
     selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
 ): String? {
     val context = this ?: return null

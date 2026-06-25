@@ -14,7 +14,7 @@ import com.jerry.shapes.cache.data.Layer
 import com.jerry.shapes.cache.data.Pixel
 import com.jerry.shapes.cache.data.Project
 import com.jerry.shapes.extensions.logError
-import com.jerry.shapes.ui.boxes.data.LayerUi
+import com.jerry.shapes.ui.boxes.data.LayerState
 import com.jerry.shapes.ui.shapes.Shape
 import com.jerry.shapes.util.CoroutineContextProvider
 import com.jerry.shapes.util.ExportType
@@ -92,12 +92,12 @@ class BoxesRepository(
         project: Project,
         boxes: List<Point>? = null,
         selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
-        layers: Collection<LayerUi>,
+        layers: Collection<LayerState>,
     ) {
         if (saveJob?.isActive == true) return
         saveJob =
             applicationScope.launch(cc.io) {
-                try {
+                runCatching {
                     export(
                         project = project,
                         fileName = project.id.toString(),
@@ -106,8 +106,8 @@ class BoxesRepository(
                         selections = selections,
                         exportType = ExportType.THUMBNAIL,
                     )
-                } catch (t: Throwable) {
-                    analytics.logError(t)
+                }.onFailure { error ->
+                    analytics.logError(error)
                 }
                 boxesDatabase.withTransaction {
                     saveProject(project.id, boxes, selections)
@@ -122,7 +122,7 @@ class BoxesRepository(
         project: Project,
         fileName: String,
         selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
-        layers: Collection<LayerUi>,
+        layers: Collection<LayerState>,
         imageSize: Int,
         exportType: ExportType,
     ): String? =

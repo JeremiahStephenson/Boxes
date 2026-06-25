@@ -2,10 +2,10 @@ package com.jerry.shapes.ui.boxes.state
 
 import android.graphics.Point
 import android.graphics.RectF
-import android.os.Parcelable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.Constraints
@@ -14,27 +14,27 @@ import com.jerry.shapes.extensions.findBox
 import com.jerry.shapes.extensions.safeLet
 import com.jerry.shapes.ui.boxes.state.enums.Direction
 import com.jerry.shapes.ui.boxes.state.enums.SelectionType
-import kotlinx.parcelize.IgnoredOnParcel
-import kotlinx.parcelize.Parcelize
 import kotlin.math.max
 import kotlin.math.min
 
-@Parcelize
 @Stable
-class SelectionState(
+class SelectionState private constructor(
     private val topLeft: Point? = null,
     private val bottomRight: Point? = null,
-) : Parcelable {
-    @IgnoredOnParcel
+    private val mode: SelectionType? = null,
+) {
+    constructor(
+        topLeft: Point? = null,
+        bottomRight: Point? = null,
+    ) : this(topLeft = topLeft, bottomRight = bottomRight, mode = null)
+
     var topLeftState by mutableStateOf(topLeft)
         private set
 
-    @IgnoredOnParcel
     var bottomRightState by mutableStateOf(bottomRight)
         private set
 
-    @IgnoredOnParcel
-    private var mode: SelectionType? = null
+    private var modeState: SelectionType? = mode
 
     fun startSelection(
         area: Offset,
@@ -56,7 +56,7 @@ class SelectionState(
             )
         when (topLeftState == null || bottomRightState == null) {
             true -> {
-                mode = SelectionType.FREE
+                modeState = SelectionType.FREE
                 setTopLeft(position)
             }
             else -> {
@@ -79,7 +79,7 @@ class SelectionState(
                     val nearTop = it.y >= tl.y - 1 && it.y <= tl.y + 1
                     val nearBottom = it.y <= br.y + 1 && it.y >= br.y - 1
 
-                    mode =
+                    modeState =
                         when {
                             nearLeft && nearTop -> SelectionType.TOP_LEFT
                             nearLeft && nearBottom -> SelectionType.BOTTOM_LEFT
@@ -114,7 +114,7 @@ class SelectionState(
                 rows,
                 boxes,
             )
-        when (mode) {
+        when (modeState) {
             SelectionType.FREE -> setBottomRight(position)
             SelectionType.TOP ->
                 safeLet(topLeftState, position) { tl, point ->
@@ -191,5 +191,21 @@ class SelectionState(
     fun move(direction: Direction) {
         topLeftState = topLeftState?.adjust(direction)
         bottomRightState = bottomRightState?.adjust(direction)
+    }
+
+    companion object {
+        val SAVER =
+            listSaver<SelectionState, Any?>(
+                save = { item ->
+                    listOf(item.topLeftState, item.bottomRightState, item.modeState)
+                },
+                restore = { state ->
+                    SelectionState(
+                        topLeft = state[0] as? Point,
+                        bottomRight = state[1] as? Point,
+                        mode = state[2] as? SelectionType,
+                    )
+                },
+            )
     }
 }
