@@ -130,6 +130,7 @@ dependencies {
     implementation(libs.timber)
 
     implementation(libs.compose.color.picker)
+    implementation(libs.reorderable)
 
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 

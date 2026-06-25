@@ -11,8 +11,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LocalContentColor
@@ -46,8 +46,14 @@ import com.jerry.shapes.ui.common.IconSelectableMenuButton
 import com.jerry.shapes.ui.common.ProjectImage
 import com.jerry.shapes.ui.common.SetNameDialog
 import com.jerry.shapes.ui.common.pngBackground
+import com.jerry.shapes.ui.layers.data.LayerDialogState
 import com.jerry.shapes.ui.layers.data.LayerEditUi
+import com.jerry.shapes.ui.layers.data.LayerItemAction
+import com.jerry.shapes.ui.layers.data.LayerUiAction
 import org.koin.androidx.compose.koinViewModel
+import sh.calvin.reorderable.ReorderableCollectionItemScope
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
 
 @Composable
 fun LayersEditMain(
@@ -81,55 +87,67 @@ fun LayersEditMain(
                 )
             },
         )
-        // TODO Replace this!
-//        val state =
-//            rememberReorderableLazyListState(
-//                onMove = { from, to ->
-//                    val item = list[from.index]
-//                    list.remove(item)
-//                    list.add(to.index, item)
-//                },
-//                onDragEnd = { _, _ ->
-//                    viewModel.setLayerIndicies(list.map { it.id to ((list.size - 1) - list.indexOf(it)) })
-//                },
-//            )
+        val lazyListState = rememberLazyListState()
+        val state =
+            rememberReorderableLazyListState(
+                lazyListState = lazyListState,
+                onMove = { from, to ->
+                    val item = list[from.index]
+                    list.remove(item)
+                    list.add(to.index, item)
+                },
+            )
+
         LazyColumn(
-            // state = state.listState,
-            modifier =
-                Modifier
-                    // .reorderable(state)
-                    // .detectReorderAfterLongPress(state)
-                    .fillMaxSize(),
+            state = lazyListState,
+            modifier = Modifier.fillMaxSize(),
         ) {
             itemsIndexed(
                 items = list,
                 key = { _, layer -> layer.id },
             ) { index, layer ->
-                // ReorderableItem(state, key = layer.id) { isDragging ->
-                LayerItem(
-                    // state = state,
-                    layer = layer,
-                    showOpacity = { showOpacity },
-                    showDivider = {
-                        index > 0
-                    },
-                    onDeleteItem = {
-                        viewModel.deleteLayer(
-                            projectState!!.layers,
-                            layer.id,
-                        )
-                    },
-                    showDeleteBtn = {
-                        projectState!!.layers.size > 1
-                    },
-                    onLayerName = {
-                        viewModel.setLayerName(layer.id, it)
-                    },
-                    showReorderBtn = {
-                        list.size > 1
-                    },
-                )
-                // }
+                ReorderableItem(state = state, key = layer.id) { _ ->
+                    LayerItem(
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .animateItem(),
+                        layer = layer,
+                        onLayerUiAction = { action ->
+                            when (action) {
+                                LayerUiAction.ShowDivider -> index > 0
+                                LayerUiAction.ShowDeleteBtn -> projectState!!.layers.size > 1
+                                LayerUiAction.ShowReorderBtn -> list.size > 1
+                                LayerUiAction.ShowOpacity -> showOpacity
+                            }
+                        },
+                        onLayerItemAction = { action ->
+                            when (action) {
+                                is LayerItemAction.OnLayerName -> {
+                                    viewModel.setLayerName(layer.id, action.name)
+                                }
+                                LayerItemAction.OnDeleteItem -> {
+                                    viewModel.deleteLayer(
+                                        projectState!!.layers,
+                                        layer.id,
+                                    )
+                                }
+                                LayerItemAction.OnDragEnd -> {
+                                    viewModel.setLayerIndicies(
+                                        list.map {
+                                            it.id to (
+                                                (list.size - 1) -
+                                                    list.indexOf(
+                                                        it,
+                                                    )
+                                            )
+                                        },
+                                    )
+                                }
+                            }
+                        },
+                    )
+                }
             }
         }
         val projectNotNull by remember { derivedStateOf { projectState != null } }
@@ -146,23 +164,14 @@ fun LayersEditMain(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun LazyItemScope.LayerItem(
+private fun ReorderableCollectionItemScope.LayerItem(
+    modifier: Modifier = Modifier,
     layer: LayerEditUi,
-    // state: ReorderableLazyListState,
-    showOpacity: () -> Boolean,
-    showReorderBtn: () -> Boolean,
-    showDivider: () -> Boolean,
-    showDeleteBtn: () -> Boolean,
-    onDeleteItem: () -> Unit,
-    onLayerName: (String) -> Unit,
+    onLayerUiAction: (LayerUiAction) -> Boolean,
+    onLayerItemAction: (LayerItemAction) -> Unit,
 ) {
-    Column(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .animateItem(),
-    ) {
-        if (showDivider()) {
+    Column(modifier = modifier) {
+        if (onLayerUiAction(LayerUiAction.ShowDivider)) {
             HorizontalDivider()
         }
         Row(
@@ -178,11 +187,9 @@ private fun LazyItemScope.LayerItem(
                 style = MaterialTheme.typography.titleLarge,
                 color = LocalContentColor.current,
             )
-            if (showReorderBtn()) {
+            if (onLayerUiAction(LayerUiAction.ShowReorderBtn)) {
                 IconMenuButton(
-//                    modifier =
-//                        Modifier
-//                            .detectReorder(state),
+                    modifier = Modifier.draggableHandle(onDragStopped = { onLayerItemAction(LayerItemAction.OnDragEnd) }),
                     onClick = { /* no op */ },
                     contentDescription = stringResource(R.string.drag_layer),
                     drawableRes = R.drawable.ic_drag_indicator_24,
@@ -208,36 +215,53 @@ private fun LazyItemScope.LayerItem(
                         .padding(horizontal = 16.dp)
                         .size(CANVAS_SIZE)
                         .pngBackground(
-                            visible = showOpacity(),
+                            visible = onLayerUiAction(LayerUiAction.ShowOpacity),
                             size = with(LocalDensity.current) { 10.dp.toPx() },
                         ),
                 imageRequest = request,
                 contentScale = ContentScale.Fit,
             )
-            var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
-            var showNameDialog by rememberSaveable { mutableStateOf(false) }
+
+            val layerDialogState =
+                rememberSaveable(saver = LayerDialogState.SAVER) {
+                    LayerDialogState()
+                }
+
             ButtonRow(
-                onShowDeleteDialog = { showDeleteDialog = true },
-                onShowNameDialog = { showNameDialog = true },
-                showDeleteBtn = showDeleteBtn,
+                onShowDeleteDialog = { layerDialogState.setShowDeleteDialog(true) },
+                onShowNameDialog = { layerDialogState.setShowNameDialog(true) },
+                showDeleteBtn = { onLayerUiAction(LayerUiAction.ShowDeleteBtn) },
             )
 
-            if (showDeleteDialog) {
-                AreYouSureDialog(
-                    title = stringResource(R.string.are_you_sure_layer, layer.name),
-                    dismiss = { showDeleteDialog = false },
-                    onDelete = onDeleteItem,
-                )
-            }
-
-            if (showNameDialog) {
-                SetNameDialog(
-                    existingName = layer.name,
-                    dismiss = { showNameDialog = false },
-                    onName = onLayerName,
-                )
-            }
+            LayerDialogs(
+                state = layerDialogState,
+                layerName = { layer.name },
+                onLayerItemAction = onLayerItemAction,
+            )
         }
+    }
+}
+
+@Composable
+private fun LayerDialogs(
+    state: LayerDialogState,
+    layerName: () -> String,
+    onLayerItemAction: (LayerItemAction) -> Unit,
+) {
+    if (state.showDeleteDialogState) {
+        AreYouSureDialog(
+            title = stringResource(R.string.are_you_sure_layer, layerName()),
+            dismiss = { state.setShowDeleteDialog(false) },
+            onDelete = { onLayerItemAction(LayerItemAction.OnDeleteItem) },
+        )
+    }
+
+    if (state.showNameDialogState) {
+        SetNameDialog(
+            existingName = layerName(),
+            dismiss = { state.setShowNameDialog(false) },
+            onName = { onLayerItemAction(LayerItemAction.OnLayerName(it)) },
+        )
     }
 }
 
