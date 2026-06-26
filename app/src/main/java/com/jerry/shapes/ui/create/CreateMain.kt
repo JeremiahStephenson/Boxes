@@ -120,6 +120,7 @@ private fun CreateForm(
         modifier =
             Modifier
                 .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
                 .imePadding()
                 .padding(horizontal = 16.dp),
         contentAlignment = Alignment.BottomCenter,

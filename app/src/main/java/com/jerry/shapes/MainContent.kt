@@ -2,10 +2,15 @@ package com.jerry.shapes
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.unveilIn
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -158,6 +163,24 @@ fun MainContent(onBackPressed: () -> Unit) {
                         else -> error("Unknown route: $key")
                     }
                 },
+                predictivePopTransitionSpec = {
+                    val enterTransition =
+                        slideInHorizontally(
+                            initialOffsetX = { fullWidth ->
+                                (fullWidth * -PARALLAX_OFFSET_FACTOR).toInt()
+                            },
+                            animationSpec = tween(ANIM_DURATION),
+                        ) + unveilIn(animationSpec = tween(ANIM_DURATION))
+
+                    // Define the exit transition for the outgoing screen
+                    val exitTransition =
+                        slideOutHorizontally(
+                            targetOffsetX = { it },
+                            animationSpec = tween(ANIM_DURATION),
+                        )
+
+                    enterTransition togetherWith exitTransition
+                },
             )
         }
     }
@@ -218,3 +241,6 @@ fun Toolbar(
         scrollBehavior = scrollBehavior,
     )
 }
+
+private const val ANIM_DURATION = 700
+private const val PARALLAX_OFFSET_FACTOR = 0.25F

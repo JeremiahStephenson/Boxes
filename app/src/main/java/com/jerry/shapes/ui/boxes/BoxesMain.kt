@@ -166,7 +166,10 @@ fun BoxesMain(
                 }
             }
         Box(
-            modifier = Modifier.fillMaxSize(),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background),
         ) {
             DrawerContainer(
                 drawerState = drawerState,
