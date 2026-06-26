@@ -2,12 +2,11 @@ package com.jerry.shapes.ui.boxes
 
 import android.graphics.Point
 import android.graphics.RectF
-import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.TransformableState
-import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -16,6 +15,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -40,6 +40,7 @@ import com.jerry.shapes.ui.common.LocalAppBarHeight
 import com.jerry.shapes.ui.common.pngBackground
 import com.jerry.shapes.util.QUADRANT_SIZE
 import com.jerry.shapes.util.drawShapes
+import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.pow
@@ -79,6 +80,7 @@ fun BoxCanvas(
         )
     }
 
+    val scope = rememberCoroutineScope()
     Box(
         modifier =
             Modifier
@@ -98,69 +100,199 @@ fun BoxCanvas(
                                 onTap(it)
                             }
                     }
-                }.pointerInput(appBarExpanded) {
-                    detectDragGestures(
-                        onDragStart = {
-                            if (state.isTransformInProgress) return@detectDragGestures
-                            when (buttonsState.selectToolSelectedState) {
-                                true ->
-                                    selectionState.startSelection(
-                                        it,
-                                        scaleState,
-                                        offsetState,
-                                        sizeState,
-                                        columnsState,
-                                        rowsState,
-                                        canvasState.boxes,
-                                    )
+                }
+                .pointerInput(Unit) {
+                    awaitEachGesture {
+                        // 1. Wait for the initial touch down event
+                        awaitFirstDown()
 
-                                else -> onDragStart()
-                            }
-                        },
-                        onDragEnd = {
-                            if (!buttonsState.selectToolSelectedState) {
-                                onDragEnd()
-                            }
-                        },
-                        onDragCancel = {
-                            if (!buttonsState.selectToolSelectedState) {
-                                onDragEnd()
-                            }
-                        },
-                        onDrag = { position, change ->
-                            if (state.isTransformInProgress) return@detectDragGestures
-                            when (buttonsState.selectToolSelectedState) {
-                                true -> {
-                                    selectionState.updateSelection(
-                                        position.position,
-                                        scaleState,
-                                        offsetState,
-                                        sizeState,
-                                        columnsState,
-                                        rowsState,
-                                        canvasState.boxes,
-                                    )
+                        // Keep track of previous positions to calculate custom deltas
+                        var previousCentroid = Offset.Unspecified
+                        var isDragging = false
+                        var isTransforming = false
+
+                        do {
+                            val event = awaitPointerEvent()
+                            // Check the live number of active fingers
+                            val activePointers = event.changes.filter { it.pressed }
+                            val pointerCount = activePointers.size
+
+                            if (pointerCount == 1 && !isTransforming) {
+                                // --- SINGLE FINGER: DRAG ONLY ---
+                                val change = activePointers.first()
+                                val dragAmount = change.position - change.previousPosition
+
+                                change.consume() // Consume the event so parent views don't steal it
+
+                                if (!isDragging) {
+                                    when (buttonsState.selectToolSelectedState) {
+                                        true ->
+                                            selectionState.startSelection(
+                                                change.position,
+                                                scaleState,
+                                                offsetState,
+                                                sizeState,
+                                                columnsState,
+                                                rowsState,
+                                                canvasState.boxes,
+                                            )
+
+                                        else -> onDragStart()
+                                    }
+                                    isDragging = true
                                 }
 
-                                else ->
-                                    onDrag(
-                                        getDragPoints(canvasState, change, position).findBoxes(
+                                // if (state.isTransformInProgress) return@awaitEachGesture
+                                when (buttonsState.selectToolSelectedState) {
+                                    true -> {
+                                        selectionState.updateSelection(
+                                            change.position,
                                             scaleState,
                                             offsetState,
                                             sizeState,
                                             columnsState,
                                             rowsState,
                                             canvasState.boxes,
-                                        ),
-                                    )
+                                        )
+                                    }
+
+                                    else ->
+                                        onDrag(
+                                            getDragPoints(
+                                                canvasState,
+                                                dragAmount,
+                                                change
+                                            ).findBoxes(
+                                                scaleState,
+                                                offsetState,
+                                                sizeState,
+                                                columnsState,
+                                                rowsState,
+                                                canvasState.boxes,
+                                            ),
+                                        )
+                                }
+
+                                // Reset multi-finger tracking state
+                                previousCentroid = Offset.Unspecified
+                            } else if (pointerCount >= 2) {
+                                isTransforming = true
+                                // --- MULTI FINGER: TRANSFORM (ZOOM/PAN) ---
+                                // Calculate the centroid (midpoint) of all fingers
+                                val currentCentroid = activePointers
+                                    .map { it.position }
+                                    .reduce { acc, offset -> acc + offset } / pointerCount.toFloat()
+
+                                if (previousCentroid != Offset.Unspecified) {
+                                    // 1. Calculate Multi-finger Pan
+                                    val panDelta = currentCentroid - previousCentroid
+
+                                    // 2. Calculate Pinch-to-Zoom (Using distance changes between fingers)
+                                    val previousDistance =
+                                        calculateAverageDistance(activePointers, isCurrent = false)
+                                    val currentDistance =
+                                        calculateAverageDistance(activePointers, isCurrent = true)
+
+                                    scope.launch {
+                                        if (previousDistance > 0f) {
+                                            val zoomFactor = currentDistance / previousDistance
+                                            state.transform {
+                                                transformBy(
+                                                    panChange = panDelta,
+                                                    zoomChange = (scale * zoomFactor).coerceIn(
+                                                        0.5f,
+                                                        5f
+                                                    )
+                                                )
+                                            }
+                                        } else {
+                                            state.transform {
+                                                transformBy(panChange = panDelta)
+                                            }
+                                        }
+                                    }
+                                }
+
+                                previousCentroid = currentCentroid
+                                // Consume all active changes to mark the gesture as handled
+                                event.changes.forEach { it.consume() }
                             }
-                        },
-                    )
-                }.transformable(
-                    state = state,
-                    canPan = { false },
-                    lockRotationOnZoomPan = true,
-                ),
+
+                        } while (event.changes.any { it.pressed })
+
+                        if (isDragging) {
+                            if (!buttonsState.selectToolSelectedState) {
+                                onDragEnd()
+                            }
+                        }
+                    }
+                }
+// TODO Delete the following once I'm confident that the above solution is fool-proof //
+
+//                .pointerInput(appBarExpanded) {
+//                    detectDragGestures(
+//                        onDragStart = {
+//                            if (state.isTransformInProgress) return@detectDragGestures
+//                            when (buttonsState.selectToolSelectedState) {
+//                                true ->
+//                                    selectionState.startSelection(
+//                                        it,
+//                                        scaleState,
+//                                        offsetState,
+//                                        sizeState,
+//                                        columnsState,
+//                                        rowsState,
+//                                        canvasState.boxes,
+//                                    )
+//
+//                                else -> onDragStart()
+//                            }
+//                        },
+//                        onDragEnd = {
+//                            if (!buttonsState.selectToolSelectedState) {
+//                                onDragEnd()
+//                            }
+//                        },
+//                        onDragCancel = {
+//                            if (!buttonsState.selectToolSelectedState) {
+//                                onDragEnd()
+//                            }
+//                        },
+//                        onDrag = { position, change ->
+//                            if (state.isTransformInProgress) return@detectDragGestures
+//                            when (buttonsState.selectToolSelectedState) {
+//                                true -> {
+//                                    selectionState.updateSelection(
+//                                        position.position,
+//                                        scaleState,
+//                                        offsetState,
+//                                        sizeState,
+//                                        columnsState,
+//                                        rowsState,
+//                                        canvasState.boxes,
+//                                    )
+//                                }
+//
+//                                else ->
+//                                    onDrag(
+//                                        getDragPoints(canvasState, change, position).findBoxes(
+//                                            scaleState,
+//                                            offsetState,
+//                                            sizeState,
+//                                            columnsState,
+//                                            rowsState,
+//                                            canvasState.boxes,
+//                                        ),
+//                                    )
+//                            }
+//                        },
+//                    )
+//                }
+//                .transformable(
+//                    state = state,
+//                    canPan = { false },
+//                    lockRotationOnZoomPan = true,
+//                ),
     ) {
         val quadrantXSize by remember {
             derivedStateOf {
@@ -217,6 +349,19 @@ fun BoxCanvas(
             )
         }
     }
+}
+
+// Helper to find the average distance from the center of the touch group
+private fun calculateAverageDistance(changes: List<PointerInputChange>, isCurrent: Boolean): Float {
+    if (changes.size < 2) return 0f
+    val centroid = changes
+        .map { if (isCurrent) it.position else it.previousPosition }
+        .reduce { acc, offset -> acc + offset } / changes.size.toFloat()
+
+    return changes.sumOf { change ->
+        val pos = if (isCurrent) change.position else change.previousPosition
+        (pos - centroid).getDistance().toDouble()
+    }.toFloat() / changes.size
 }
 
 @Composable
@@ -363,7 +508,6 @@ private fun Grid(
                     canvasState.boxes[Point(0, i)],
                     canvasState.boxes[Point(columns - 1, i)],
                 ) { start, end ->
-                    Log.d("InsetTest", "$start - $end")
                     drawLine(
                         strokeWidth = stroke,
                         color = strokeColor,
@@ -421,9 +565,9 @@ private fun getDragPoints(
             val distance =
                 sqrt(
                     (position.position.x - position.previousPosition.x).pow(2) +
-                        (position.position.y - position.previousPosition.y).pow(
-                            2,
-                        ),
+                            (position.position.y - position.previousPosition.y).pow(
+                                2,
+                            ),
                 )
             for (i in 1..(distance / boxSize).toInt()) {
                 val t = (boxSize * i) / distance
