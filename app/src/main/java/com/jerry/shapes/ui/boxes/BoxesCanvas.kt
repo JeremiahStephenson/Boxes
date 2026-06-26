@@ -27,7 +27,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import com.jerry.shapes.cache.data.Project
 import com.jerry.shapes.extensions.findBox
@@ -54,7 +53,7 @@ fun BoxCanvas(
     selectionState: SelectionState,
     project: Project,
     scale: Float,
-    size: Constraints,
+    size: Size,
     offset: Offset,
     strokeWidth: Float,
     state: TransformableState,
@@ -292,7 +291,7 @@ fun BoxCanvas(
 fun SelectionsBoxes(
     scale: Float,
     offset: Offset,
-    size: Constraints,
+    size: Size,
     quadrantXSize: Int,
     quadrantYSize: Int,
     canvasState: CanvasState,
@@ -307,8 +306,8 @@ fun SelectionsBoxes(
                             .graphicsLayer {
                                 transformOrigin =
                                     TransformOrigin(
-                                        ((size.maxWidth / 2F) - offset.x) / size.maxWidth,
-                                        ((size.maxHeight / 2F) - offset.y) / size.maxHeight,
+                                        ((size.width / 2F) - offset.x) / size.width,
+                                        ((size.height / 2F) - offset.y) / size.height,
                                     )
                                 scaleX = scale
                                 scaleY = scale
@@ -334,7 +333,7 @@ fun SelectionsBoxes(
 fun SelectionTool(
     scale: Float,
     offset: Offset,
-    size: Constraints,
+    size: Size,
     boxes: Map<Point, RectF>,
     selectionState: SelectionState,
 ) {
@@ -347,8 +346,8 @@ fun SelectionTool(
                 .graphicsLayer {
                     transformOrigin =
                         TransformOrigin(
-                            ((size.maxWidth / 2F) - offset.x) / size.maxWidth,
-                            ((size.maxHeight / 2F) - offset.y) / size.maxHeight,
+                            ((size.width / 2F) - offset.x) / size.width,
+                            ((size.height / 2F) - offset.y) / size.height,
                         )
                     scaleX = scale
                     scaleY = scale
@@ -405,7 +404,7 @@ private fun Grid(
     strokeColor: Color,
     scale: Float,
     offset: Offset,
-    size: Constraints,
+    size: Size,
     canvasState: CanvasState,
 ) {
     Canvas(
@@ -414,8 +413,8 @@ private fun Grid(
             .graphicsLayer {
                 transformOrigin =
                     TransformOrigin(
-                        ((size.maxWidth / 2F) - offset.x) / size.maxWidth,
-                        ((size.maxHeight / 2F) - offset.y) / size.maxHeight,
+                        ((size.width / 2F) - offset.x) / size.width,
+                        ((size.height / 2F) - offset.y) / size.height,
                     )
                 scaleX = scale
                 scaleY = scale

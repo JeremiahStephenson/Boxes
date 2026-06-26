@@ -8,7 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.geometry.Size
 import com.jerry.shapes.extensions.adjust
 import com.jerry.shapes.extensions.findBox
 import com.jerry.shapes.extensions.safeLet
@@ -40,7 +40,7 @@ class SelectionState private constructor(
         area: Offset,
         scale: Float,
         offset: Offset,
-        size: Constraints,
+        size: Size,
         columns: Int,
         rows: Int,
         boxes: Map<Point, RectF>,
@@ -100,7 +100,7 @@ class SelectionState private constructor(
         area: Offset,
         scale: Float,
         offset: Offset,
-        size: Constraints,
+        size: Size,
         columns: Int,
         rows: Int,
         boxes: Map<Point, RectF>,

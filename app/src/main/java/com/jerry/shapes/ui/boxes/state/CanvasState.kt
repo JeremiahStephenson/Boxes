@@ -9,7 +9,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.snapshots.SnapshotStateMap
-import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.geometry.Size
 import com.jerry.shapes.cache.data.ColorAndShape
 import com.jerry.shapes.extensions.groupByQuadrant
 import com.jerry.shapes.extensions.quadrant
@@ -143,25 +143,25 @@ class CanvasState(
     }
 
     fun fillInBoxes(
-        size: Constraints,
+        size: Size,
         offset: Float,
         columns: Int,
         rows: Int,
     ) {
         val maxWidth =
-            size.maxWidth / columns.toFloat()
+            size.width / columns.toFloat()
         val maxHeight =
-            (size.maxHeight - offset) / rows.toFloat()
+            (size.height - offset) / rows.toFloat()
         val min = min(maxWidth, maxHeight)
 
         val yOffSet =
             max(
-                (((size.maxHeight - offset) - (min * rows)) / 2),
+                (((size.height - offset) - (min * rows)) / 2),
                 0F,
             )
 
         val xOffSet =
-            max(((size.maxWidth - (min * columns)) / 2), 0F)
+            max(((size.width - (min * columns)) / 2), 0F)
 
         _boxes.clear()
         _boxes.putAll(

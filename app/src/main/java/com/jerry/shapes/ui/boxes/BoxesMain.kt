@@ -7,7 +7,6 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -41,7 +40,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onLayoutRectChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -278,13 +279,18 @@ private fun MainCanvas(
     getUsedColorList: () -> ImmutableList<ColorAndShape>,
     onAction: (Action) -> Unit,
 ) {
-    // TODO look for alternative to BoxWithConstraints
-    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+    var size by remember { mutableStateOf(Size(0F, 0F)) }
+    Box(
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .onLayoutRectChanged(callback = { bounds ->
+                    size = Size(bounds.width.toFloat(), bounds.height.toFloat())
+                }),
+    ) {
         val density = LocalDensity.current
         val strokeWidth = remember { with(density) { 2.dp.toPx() } }
         val buttonBarOffset = remember { with(density) { 56.dp.toPx() } }
-
-        val size = this.constraints
 
         val contentOffset = LocalAppBarHeight.current
         val appBarExpanded by remember { derivedStateOf { contentOffset.value == 0F } }

@@ -3,16 +3,16 @@ package com.jerry.shapes.extensions
 import android.graphics.Point
 import android.graphics.RectF
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.geometry.Size
 import kotlin.math.floor
 
 private fun Offset.convert(
     scale: Float,
     offset: Offset,
-    size: Constraints,
+    size: Size,
 ): Offset {
-    val centerX = ((size.maxWidth / 2F) - offset.x)
-    val centerY = ((size.maxHeight / 2F) - offset.y)
+    val centerX = ((size.width / 2F) - offset.x)
+    val centerY = ((size.height / 2F) - offset.y)
     val point =
         Offset(((x - centerX) * (1F / scale)) + centerX, ((y - centerY) * (1F / scale)) + centerY)
     return point - (offset / scale)
@@ -21,7 +21,7 @@ private fun Offset.convert(
 fun Offset.findBox(
     scale: Float,
     offset: Offset,
-    size: Constraints,
+    size: Size,
     columns: Int,
     rows: Int,
     boxes: Map<Point, RectF>,
@@ -44,7 +44,7 @@ fun Offset.findBox(
 fun HashSet<Offset>.findBoxes(
     scale: Float,
     offset: Offset,
-    size: Constraints,
+    size: Size,
     columns: Int,
     rows: Int,
     boxes: Map<Point, RectF>,
