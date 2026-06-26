@@ -33,6 +33,7 @@ import com.jerry.shapes.cache.data.Project
 import com.jerry.shapes.extensions.findBox
 import com.jerry.shapes.extensions.findBoxes
 import com.jerry.shapes.extensions.safeLet
+import com.jerry.shapes.ui.boxes.data.DragMode
 import com.jerry.shapes.ui.boxes.state.ButtonsState
 import com.jerry.shapes.ui.boxes.state.CanvasState
 import com.jerry.shapes.ui.boxes.state.SelectionState
@@ -100,135 +101,71 @@ fun BoxCanvas(
                                 onTap(it)
                             }
                     }
-                }
-                .pointerInput(Unit) {
-                    awaitEachGesture {
-                        // 1. Wait for the initial touch down event
-                        awaitFirstDown()
+                }.gesturePointer(
+                    state = state,
+                    onDragStart = { change ->
+                        when (buttonsState.selectToolSelectedState) {
+                            true ->
+                                selectionState.startSelection(
+                                    change.position,
+                                    scaleState,
+                                    offsetState,
+                                    sizeState,
+                                    columnsState,
+                                    rowsState,
+                                    canvasState.boxes,
+                                )
 
-                        // Keep track of previous positions to calculate custom deltas
-                        var previousCentroid = Offset.Unspecified
-                        var isDragging = false
-                        var isTransforming = false
+                            else -> onDragStart()
+                        }
+                    },
+                    onDrag = { change, dragAmount ->
+                        when (buttonsState.selectToolSelectedState) {
+                            true ->
+                                selectionState.updateSelection(
+                                    change.position,
+                                    scaleState,
+                                    offsetState,
+                                    sizeState,
+                                    columnsState,
+                                    rowsState,
+                                    canvasState.boxes,
+                                )
 
-                        do {
-                            val event = awaitPointerEvent()
-                            // Check the live number of active fingers
-                            val activePointers = event.changes.filter { it.pressed }
-                            val pointerCount = activePointers.size
-
-                            if (pointerCount == 1 && !isTransforming) {
-                                // --- SINGLE FINGER: DRAG ONLY ---
-                                val change = activePointers.first()
-                                val dragAmount = change.position - change.previousPosition
-
-                                change.consume() // Consume the event so parent views don't steal it
-
-                                if (!isDragging) {
-                                    when (buttonsState.selectToolSelectedState) {
-                                        true ->
-                                            selectionState.startSelection(
-                                                change.position,
-                                                scaleState,
-                                                offsetState,
-                                                sizeState,
-                                                columnsState,
-                                                rowsState,
-                                                canvasState.boxes,
-                                            )
-
-                                        else -> onDragStart()
-                                    }
-                                    isDragging = true
-                                }
-
-                                // if (state.isTransformInProgress) return@awaitEachGesture
-                                when (buttonsState.selectToolSelectedState) {
-                                    true -> {
-                                        selectionState.updateSelection(
-                                            change.position,
-                                            scaleState,
-                                            offsetState,
-                                            sizeState,
-                                            columnsState,
-                                            rowsState,
-                                            canvasState.boxes,
-                                        )
-                                    }
-
-                                    else ->
-                                        onDrag(
-                                            getDragPoints(
-                                                canvasState,
-                                                dragAmount,
-                                                change
-                                            ).findBoxes(
-                                                scaleState,
-                                                offsetState,
-                                                sizeState,
-                                                columnsState,
-                                                rowsState,
-                                                canvasState.boxes,
-                                            ),
-                                        )
-                                }
-
-                                // Reset multi-finger tracking state
-                                previousCentroid = Offset.Unspecified
-                            } else if (pointerCount >= 2) {
-                                isTransforming = true
-                                // --- MULTI FINGER: TRANSFORM (ZOOM/PAN) ---
-                                // Calculate the centroid (midpoint) of all fingers
-                                val currentCentroid = activePointers
-                                    .map { it.position }
-                                    .reduce { acc, offset -> acc + offset } / pointerCount.toFloat()
-
-                                if (previousCentroid != Offset.Unspecified) {
-                                    // 1. Calculate Multi-finger Pan
-                                    val panDelta = currentCentroid - previousCentroid
-
-                                    // 2. Calculate Pinch-to-Zoom (Using distance changes between fingers)
-                                    val previousDistance =
-                                        calculateAverageDistance(activePointers, isCurrent = false)
-                                    val currentDistance =
-                                        calculateAverageDistance(activePointers, isCurrent = true)
-
-                                    scope.launch {
-                                        if (previousDistance > 0f) {
-                                            val zoomFactor = currentDistance / previousDistance
-                                            state.transform {
-                                                transformBy(
-                                                    panChange = panDelta,
-                                                    zoomChange = (scale * zoomFactor).coerceIn(
-                                                        0.5f,
-                                                        5f
-                                                    )
-                                                )
-                                            }
-                                        } else {
-                                            state.transform {
-                                                transformBy(panChange = panDelta)
-                                            }
-                                        }
-                                    }
-                                }
-
-                                previousCentroid = currentCentroid
-                                // Consume all active changes to mark the gesture as handled
-                                event.changes.forEach { it.consume() }
-                            }
-
-                        } while (event.changes.any { it.pressed })
-
-                        if (isDragging) {
-                            if (!buttonsState.selectToolSelectedState) {
-                                onDragEnd()
+                            else ->
+                                onDrag(
+                                    getDragPoints(
+                                        canvasState,
+                                        dragAmount,
+                                        change,
+                                    ).findBoxes(
+                                        scaleState,
+                                        offsetState,
+                                        sizeState,
+                                        columnsState,
+                                        rowsState,
+                                        canvasState.boxes,
+                                    ),
+                                )
+                        }
+                    },
+                    onDragEnd = {
+                        if (!buttonsState.selectToolSelectedState) {
+                            onDragEnd()
+                        }
+                    },
+                    onTransform = { panDelta, previousDistance, currentDistance ->
+                        scope.launch {
+                            state.transform {
+                                transformBy(
+                                    panChange = panDelta,
+                                    zoomChange = if (previousDistance > 0F) currentDistance / previousDistance else 1F,
+                                )
                             }
                         }
-                    }
-                }
+                    },
+                ),
 // TODO Delete the following once I'm confident that the above solution is fool-proof //
-
 //                .pointerInput(appBarExpanded) {
 //                    detectDragGestures(
 //                        onDragStart = {
@@ -349,19 +286,6 @@ fun BoxCanvas(
             )
         }
     }
-}
-
-// Helper to find the average distance from the center of the touch group
-private fun calculateAverageDistance(changes: List<PointerInputChange>, isCurrent: Boolean): Float {
-    if (changes.size < 2) return 0f
-    val centroid = changes
-        .map { if (isCurrent) it.position else it.previousPosition }
-        .reduce { acc, offset -> acc + offset } / changes.size.toFloat()
-
-    return changes.sumOf { change ->
-        val pos = if (isCurrent) change.position else change.previousPosition
-        (pos - centroid).getDistance().toDouble()
-    }.toFloat() / changes.size
 }
 
 @Composable
@@ -549,6 +473,107 @@ private fun Grid(
     }
 }
 
+private fun Modifier.gesturePointer(
+    state: TransformableState,
+    onDragStart: (PointerInputChange) -> Unit,
+    onDrag: (PointerInputChange, Offset) -> Unit,
+    onDragEnd: () -> Unit,
+    onTransform: (Offset, Float, Float) -> Unit,
+): Modifier =
+    pointerInput(Unit) {
+        awaitEachGesture {
+            awaitFirstDown()
+
+            // Keep track of previous positions to calculate custom deltas
+            var previousCentroid = Offset.Unspecified
+            var dragMode: DragMode = DragMode.NONE
+
+            do {
+                val event = awaitPointerEvent()
+                // Check the live number of active fingers
+                val activePointers = event.changes.filter { it.pressed }
+                val pointerCount = activePointers.size
+
+                when {
+                    // Drawing with single finger
+                    pointerCount == 1 && !dragMode.isTransforming && !state.isTransformInProgress -> {
+                        val change = activePointers.first()
+                        val dragAmount = change.position - change.previousPosition
+
+                        change.consume() // Consume the event so parent views don't steal it
+
+                        if (!dragMode.isDrawing) {
+                            onDragStart(change)
+                            dragMode = DragMode.DRAW
+                        }
+
+                        onDrag(change, dragAmount)
+
+                        // Reset multi-finger tracking state
+                        previousCentroid = Offset.Unspecified
+                    }
+
+                    // Pinch to zoom gesture
+                    pointerCount >= 2 -> {
+                        dragMode = DragMode.TRANSFORM
+                        // Calculate the centroid (midpoint) of all fingers
+                        val currentCentroid =
+                            activePointers
+                                .asSequence()
+                                .map { it.position }
+                                .reduce { acc, offset -> acc + offset } / pointerCount.toFloat()
+
+                        if (previousCentroid != Offset.Unspecified) {
+                            // 1. Calculate Multi-finger Pan
+                            val panDelta = currentCentroid - previousCentroid
+
+                            // 2. Calculate Pinch-to-Zoom (Using distance changes between fingers)
+                            val previousDistance =
+                                calculateAverageDistance(
+                                    activePointers,
+                                    isCurrent = false,
+                                )
+                            val currentDistance =
+                                calculateAverageDistance(
+                                    activePointers,
+                                    isCurrent = true,
+                                )
+
+                            onTransform(panDelta, previousDistance, currentDistance)
+                        }
+
+                        previousCentroid = currentCentroid
+                        // Consume all active changes to mark the gesture as handled
+                        event.changes.forEach { it.consume() }
+                    }
+                }
+            } while (event.changes.any { it.pressed })
+
+            if (dragMode.isDrawing) {
+                onDragEnd()
+            }
+        }
+    }
+
+// Helper to find the average distance from the center of the touch group
+private fun calculateAverageDistance(
+    changes: List<PointerInputChange>,
+    isCurrent: Boolean,
+): Float {
+    if (changes.size < 2) return 0F
+    val centroid =
+        changes
+            .asSequence()
+            .map { if (isCurrent) it.position else it.previousPosition }
+            .reduce { acc, offset -> acc + offset } / changes.size.toFloat()
+
+    return changes
+        .sumOf { change ->
+            val pos = if (isCurrent) change.position else change.previousPosition
+            (pos - centroid).getDistance().toDouble()
+        }.toFloat() / changes.size
+}
+
 private fun getDragPoints(
     canvasState: CanvasState,
     change: Offset,
@@ -565,9 +590,9 @@ private fun getDragPoints(
             val distance =
                 sqrt(
                     (position.position.x - position.previousPosition.x).pow(2) +
-                            (position.position.y - position.previousPosition.y).pow(
-                                2,
-                            ),
+                        (position.position.y - position.previousPosition.y).pow(
+                            2,
+                        ),
                 )
             for (i in 1..(distance / boxSize).toInt()) {
                 val t = (boxSize * i) / distance
