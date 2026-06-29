@@ -134,17 +134,15 @@ dependencies {
 
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 
-    testImplementation(libs.junit)
     testImplementation(libs.io.mockk)
     testImplementation(libs.turbine)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.kotlin.test)
 
     implementation(libs.androidx.paging.runtime.ktx)
     implementation(libs.androidx.paging.compose)
 
-    androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.espresso.core)
-    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.turbine)
 
     debugImplementation(libs.androidx.compose.ui.tooling)
