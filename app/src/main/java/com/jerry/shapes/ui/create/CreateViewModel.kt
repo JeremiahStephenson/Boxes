@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
-import java.time.Instant
+import kotlin.time.Clock
 
 class CreateViewModel(
     private val boxesDao: BoxesDao,
@@ -54,14 +54,14 @@ class CreateViewModel(
                         val projectId =
                             boxesDao.insertProject(
                                 Project(
-                                    name,
-                                    columns,
-                                    rows,
-                                    Color.Green.toArgb(),
-                                    Shape.Box,
+                                    name = name,
+                                    columns = columns,
+                                    rows = rows,
+                                    currentColor = Color.Green.toArgb(),
+                                    currentShape = Shape.Box,
                                     showGrid = true,
                                     showPngBg = false,
-                                    timestamp = Instant.now().toEpochMilli(),
+                                    timestamp = Clock.System.now().toEpochMilliseconds(),
                                 ),
                             )
                         boxesDao.insertLayer(Layer(projectId, 0, "Layer 1", true))

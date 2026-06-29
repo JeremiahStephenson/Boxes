@@ -28,8 +28,8 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import java.time.Instant
 import kotlin.math.max
+import kotlin.time.Clock
 
 class BoxesRepository(
     private val boxesDatabase: BoxesDatabase,
@@ -155,7 +155,7 @@ class BoxesRepository(
             val index = boxesDao.findMaxIndexForHistory(layerId)
             val historyId =
                 boxesDao.insertHistory(
-                    History(layerId, index + 1, Instant.now().toEpochMilli()),
+                    History(layerId, index + 1, Clock.System.now().toEpochMilliseconds()),
                 )
             boxesDao.insertHistoryItems(
                 points.map { (point, color) ->
@@ -195,7 +195,7 @@ class BoxesRepository(
         boxes: List<Point>? = null,
         selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
     ) {
-        val now = Instant.now().toEpochMilli()
+        val now = Clock.System.now().toEpochMilliseconds()
         val list =
             selections.flatMap { (layer, quad) ->
                 quad.flatMap { q ->

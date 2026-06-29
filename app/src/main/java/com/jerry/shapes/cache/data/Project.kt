@@ -1,15 +1,20 @@
 package com.jerry.shapes.cache.data
 
+import android.os.Parcelable
 import androidx.compose.ui.graphics.Color
 import androidx.room.Entity
+import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import com.jerry.shapes.ui.shapes.Shape
-import java.io.Serializable
+import kotlinx.parcelize.IgnoredOnParcel
+import kotlinx.parcelize.Parcelize
 
+@Parcelize
 @Entity(
     tableName = Project.TABLE_NAME,
 )
 data class Project(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0L,
     val name: String,
     val columns: Int,
     val rows: Int,
@@ -18,15 +23,13 @@ data class Project(
     val showGrid: Boolean,
     val showPngBg: Boolean,
     val timestamp: Long,
-) : Serializable {
-    @PrimaryKey(autoGenerate = true)
-    var id: Long = 0L
-
+) : Parcelable {
     companion object {
         const val TABLE_NAME = "project"
     }
 
-    @Transient
+    @Ignore
+    @IgnoredOnParcel
     private var _colorAndShape: ColorAndShape? = null
     val colorAndShape: ColorAndShape
         get() =

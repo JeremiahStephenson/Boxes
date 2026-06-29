@@ -53,7 +53,7 @@ import com.jerry.shapes.util.thumbnailLocation
 import kotlinx.coroutines.flow.collectLatest
 import org.koin.androidx.compose.koinViewModel
 import java.io.File
-import java.time.Instant
+import kotlin.time.Instant
 
 @Composable
 fun HomeMain(
@@ -214,7 +214,7 @@ private fun ProjectItem(
                 text =
                     stringResource(
                         R.string.last_edited,
-                        Instant.ofEpochMilli(item.timestamp).readableDateAndTime,
+                        Instant.fromEpochMilliseconds(item.timestamp).readableDateAndTime,
                     ),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,

@@ -14,7 +14,7 @@ import com.jerry.shapes.cache.data.Project
 import com.jerry.shapes.cache.data.ProjectAndLayers
 import com.jerry.shapes.ui.shapes.Shape
 import kotlinx.coroutines.flow.Flow
-import java.time.Instant
+import kotlin.time.Clock
 
 @Dao
 interface BoxesDao {
@@ -78,7 +78,7 @@ interface BoxesDao {
     @Query("UPDATE project SET timestamp = :timeStamp WHERE id = :id")
     suspend fun updateProjectTimestamp(
         id: Long,
-        timeStamp: Long = Instant.now().toEpochMilli(),
+        timeStamp: Long = Clock.System.now().toEpochMilliseconds(),
     )
 
     @Query("UPDATE project SET currentColor = :color WHERE id = :id")

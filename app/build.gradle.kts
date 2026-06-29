@@ -132,6 +132,8 @@ dependencies {
     implementation(libs.compose.color.picker)
     implementation(libs.reorderable)
 
+    implementation(libs.kotlinx.datetime)
+
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 
     testImplementation(libs.io.mockk)

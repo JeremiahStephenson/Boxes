@@ -8,12 +8,10 @@ import android.os.Environment
 import androidx.core.content.FileProvider
 import com.jerry.shapes.R
 import com.jerry.shapes.cache.data.ColorAndShape
+import com.jerry.shapes.extensions.currentFileTimeStamp
 import com.jerry.shapes.ui.boxes.data.LayerState
 import java.io.File
 import java.io.FileOutputStream
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 fun Context?.exportCanvas(
     name: String,
@@ -70,14 +68,14 @@ private fun getOutputMediaFile(
         }
     }
     // Create a media file name
-    val timeStamp: String = SimpleDateFormat("ddMMyyyy_HHmm", Locale.getDefault()).format(Date())
+    val timeStamp = currentFileTimeStamp
     val mediaFile: File
     val mImageName =
         when (exportType == ExportType.FILE) {
             true -> "${if (name != null) name + "_" else ""}MI_$timeStamp.png"
             else -> (if (name != null) "$name.png" else "MI_$timeStamp.png")
         }
-    mediaFile = File(mediaStorageDir.getPath() + File.separator.toString() + mImageName)
+    mediaFile = File(mediaStorageDir.path + File.separator.toString() + mImageName)
     return mediaFile
 }
 

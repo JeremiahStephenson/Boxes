@@ -57,7 +57,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeout
-import java.util.LinkedList
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
@@ -528,7 +527,7 @@ class BoxesViewModel(
         rows: Int,
     ) {
         val fillMap = HashSet<Point>()
-        val iterator = LinkedList<Point>().apply { add(point) }
+        val iterator = ArrayDeque<Point>().apply { add(point) }
         val newColor = color.copy(shape = shape)
         val currentColor =
             pixelsFlow.value.data
@@ -537,7 +536,7 @@ class BoxesViewModel(
                 ?.get(point)
         if (currentColor == newColor) return
         while (iterator.isNotEmpty()) {
-            iterator.peek()?.let { p ->
+            iterator.firstOrNull()?.let { p ->
                 if (p.isNotOutside(columns, rows) &&
                     !fillMap.contains(p) &&
                     pixelsFlow.value.data
@@ -552,7 +551,7 @@ class BoxesViewModel(
                     iterator.add(Point(p.x, p.y + 1))
                 }
             }
-            iterator.pop()
+            iterator.removeFirstOrNull()
         }
         val layer = pixelsFlow.value.data?.getOrPut(layerId) { SnapshotStateMap() }
         val currentSelection =

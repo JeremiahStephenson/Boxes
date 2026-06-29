@@ -5,7 +5,6 @@ import android.graphics.Color
 import android.graphics.RectF
 import com.godaddy.android.colorpicker.HsvColor
 import com.jerry.shapes.cache.data.ColorAndShape
-import java.util.ArrayList
 
 val HsvColor.asColorAndShape get() =
     ColorAndShape(this.toColor())
