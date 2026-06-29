@@ -15,6 +15,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,10 +25,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImagePainter
-import coil.compose.SubcomposeAsyncImage
-import coil.compose.SubcomposeAsyncImageContent
-import coil.request.ImageRequest
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil3.compose.AsyncImagePainter
+import coil3.compose.SubcomposeAsyncImage
+import coil3.compose.SubcomposeAsyncImageContent
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.jerry.shapes.R
 
 @Composable
@@ -48,7 +51,7 @@ fun ProjectImage(
                 .padding(contentPadding),
         contentScale = contentScale,
     ) {
-        val state = painter.state
+        val state by painter.state.collectAsStateWithLifecycle()
         val transition = updateTransition(state, label = imageRequest.data.toString())
         val tween: TweenSpec<Float> =
             when {
@@ -150,6 +153,7 @@ fun ProjectImage(
         ImageRequest
             .Builder(context)
             .diskCacheKey(memoryKey)
+            .memoryCacheKey(memoryKey)
             .data(imagePath)
             .crossfade(true)
             .build()

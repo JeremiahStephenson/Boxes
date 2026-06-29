@@ -10,7 +10,7 @@ moshi = "1.15.2"
 desugarJdkLib = "2.1.5"
 timber = "5.0.1"
 room = "2.8.4"
-coil = "2.7.0"
+coil = "3.5.0"
 coroutines = "1.11.0"
 paging = "3.5.0"
 junit = "4.13.2"
@@ -57,7 +57,7 @@ androidx-room-runtime = { group = "androidx.room", name = "room-runtime", versio
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 androidx-room-paging = { group = "androidx.room", name = "room-paging", version.ref = "room" }
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
-coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
+coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
 timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
 compose-color-picker = { group = "com.godaddy.android.colorpicker", name = "compose-color-picker-android", version = "0.7.0" }
 desugar-jdk-libs = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugarJdkLib" }

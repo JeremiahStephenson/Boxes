@@ -37,7 +37,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.request.ImageRequest
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.jerry.shapes.R
 import com.jerry.shapes.navigation.Navigator
 import com.jerry.shapes.ui.common.AreYouSureDialog
