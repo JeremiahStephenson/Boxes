@@ -64,7 +64,7 @@ class CreateViewModel(
                                     timestamp = Clock.System.now().toEpochMilliseconds(),
                                 ),
                             )
-                        boxesDao.insertLayer(Layer(projectId, 0, "Layer 1", true))
+                        boxesDao.insertLayer(Layer(projectId = projectId, index = 0, name = "Layer 1", on = true))
                         projectId
                     }
                     else -> {

@@ -3,7 +3,6 @@ package com.jerry.shapes.ui.common
 import android.graphics.RectF
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
@@ -38,8 +37,8 @@ import com.jerry.shapes.ui.shapes.Shape
 import com.jerry.shapes.util.TooltipPositionProvider
 import com.jerry.shapes.util.drawCustomShape
 import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.seconds
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun IconMenuButton(
     modifier: Modifier = Modifier,
@@ -164,7 +163,7 @@ fun ShapeOption(
     Box(modifier) {
         var popupControl by remember { mutableStateOf(false) }
         val onSurface = MaterialTheme.colorScheme.onSurface
-        val shapeColor = (color ?: ColorAndShape(onSurface)).copy(shape = shape)
+        val shapeColor = (color ?: ColorAndShape(onSurface.value)).copy(shape = shape)
         val size = with(LocalDensity.current) { (shapeSize - 2.dp).toPx() }
         val stroke = with(LocalDensity.current) { 1.dp.toPx() }
         Canvas(
@@ -206,7 +205,7 @@ private fun ToolTip(
         onDismissRequest = onDismiss,
     ) {
         LaunchedEffect(Unit) {
-            delay(5000L)
+            delay(5.seconds)
             onDismiss()
         }
         Box(

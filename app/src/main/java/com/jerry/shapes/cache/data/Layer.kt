@@ -20,14 +20,12 @@ import androidx.room.PrimaryKey
     ],
 )
 data class Layer(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0L,
     val projectId: Long,
     val index: Int,
     val name: String,
     val on: Boolean,
 ) {
-    @PrimaryKey(autoGenerate = true)
-    var id: Long = 0L
-
     companion object {
         const val TABLE_NAME = "layer"
     }

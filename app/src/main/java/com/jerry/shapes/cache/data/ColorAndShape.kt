@@ -1,10 +1,21 @@
 package com.jerry.shapes.cache.data
 
+import android.os.Parcelable
 import androidx.compose.ui.graphics.Color
 import com.jerry.shapes.ui.shapes.Shape
-import java.io.Serializable
+import kotlinx.parcelize.IgnoredOnParcel
+import kotlinx.parcelize.Parcelize
 
+@Parcelize
 data class ColorAndShape(
-    val color: Color,
+    val colorValue: ULong,
     val shape: Shape = Shape.Box,
-) : Serializable
+) : Parcelable {
+    constructor(
+        colorValue: Int,
+        shape: Shape = Shape.Box,
+    ) : this(Color(colorValue).value, shape)
+
+    @IgnoredOnParcel
+    val color = Color(colorValue)
+}

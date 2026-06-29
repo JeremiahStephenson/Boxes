@@ -651,7 +651,7 @@ private fun handleAction(
             viewModel.fill(
                 action.point,
                 action.layerId,
-                ColorAndShape(project?.currentColor?.run { Color(this) } ?: Color.Green),
+                ColorAndShape(project?.currentColor ?: Color.Green.value.toInt()),
                 project?.currentShape ?: Shape.Box,
                 project?.columns ?: 0,
                 project?.rows ?: 0,

@@ -12,7 +12,6 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateMap
-import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -283,7 +282,7 @@ class BoxesViewModel(
                                 Point(historyItem.x, historyItem.y) to
                                     historyItem.color?.let { color ->
                                         ColorAndShape(
-                                            Color(color),
+                                            color,
                                             historyItem.shape ?: Shape.Box,
                                         )
                                     }
@@ -447,7 +446,7 @@ class BoxesViewModel(
                     val region = it.value
                     val point = it.key
                     bitmap.findDominateColor(region).let { color ->
-                        points[point] = ColorAndShape(Color(color))
+                        points[point] = ColorAndShape(color)
                     }
                 }
                 val layer = pixelsFlow.value.data?.getOrPut(layerId) { mutableStateMapOf() }

@@ -7,7 +7,7 @@ import com.godaddy.android.colorpicker.HsvColor
 import com.jerry.shapes.cache.data.ColorAndShape
 
 val HsvColor.asColorAndShape get() =
-    ColorAndShape(this.toColor())
+    ColorAndShape(this.toColor().value)
 
 fun Bitmap.findDominateColor(region: RectF): Int {
     val pixels = IntArray(region.width().toInt() * region.height().toInt())

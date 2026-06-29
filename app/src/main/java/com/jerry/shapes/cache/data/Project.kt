@@ -1,7 +1,6 @@
 package com.jerry.shapes.cache.data
 
 import android.os.Parcelable
-import androidx.compose.ui.graphics.Color
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
@@ -33,5 +32,5 @@ data class Project(
     private var _colorAndShape: ColorAndShape? = null
     val colorAndShape: ColorAndShape
         get() =
-            _colorAndShape ?: ColorAndShape(Color(currentColor)).also { _colorAndShape = it }
+            _colorAndShape ?: ColorAndShape(currentColor).also { _colorAndShape = it }
 }

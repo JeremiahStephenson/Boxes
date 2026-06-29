@@ -1,13 +1,14 @@
 package com.jerry.shapes.cache.data
 
-import androidx.compose.ui.graphics.Color
+import android.os.Parcelable
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.jerry.shapes.ui.shapes.Shape
-import java.io.Serializable
+import kotlinx.parcelize.Parcelize
 
+@Parcelize
 @Entity(
     tableName = Pixel.TABLE_NAME,
     indices = [(Index(value = ["layerId", "x", "y"], unique = true))],
@@ -23,19 +24,17 @@ import java.io.Serializable
     ],
 )
 data class Pixel(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0L,
     val layerId: Long,
     val x: Int,
     val y: Int,
     val color: Int,
     val shape: Shape,
     val timestamp: Long,
-) : Serializable {
-    @PrimaryKey(autoGenerate = true)
-    var id: Long = 0L
-
+) : Parcelable {
     companion object {
         const val TABLE_NAME = "pixel"
     }
 
-    val asColorAndShape get() = ColorAndShape(Color(color), shape)
+    val asColorAndShape get() = ColorAndShape(color, shape)
 }

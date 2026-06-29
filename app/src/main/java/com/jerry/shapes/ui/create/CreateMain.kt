@@ -26,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -126,8 +127,8 @@ private fun CreateForm(
         contentAlignment = Alignment.BottomCenter,
     ) {
         var text by rememberSaveable(project) { mutableStateOf(project?.name.orEmpty()) }
-        var columnValue by remember(project) { mutableStateOf(project?.columns ?: 16) }
-        var rowValue by remember(project) { mutableStateOf(project?.rows ?: 16) }
+        var columnValue by remember(project) { mutableIntStateOf(project?.columns ?: 16) }
+        var rowValue by remember(project) { mutableIntStateOf(project?.rows ?: 16) }
         var nameError by remember { mutableStateOf(false) }
         var columnError by remember { mutableStateOf(false) }
         var rowError by remember { mutableStateOf(false) }

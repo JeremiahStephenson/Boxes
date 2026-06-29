@@ -144,7 +144,7 @@ class BoxesRepository(
     ): Long =
         boxesDatabase.withTransaction {
             saveProject(projectId, selections = selections)
-            boxesDao.insertLayer(Layer(projectId, index, name, true))
+            boxesDao.insertLayer(Layer(projectId = projectId, index = index, name = name, on = true))
         }
 
     suspend fun updateHistory(
@@ -201,12 +201,12 @@ class BoxesRepository(
                 quad.flatMap { q ->
                     q.value.filterKeys { boxes?.contains(it) ?: true }.map {
                         Pixel(
-                            layer,
-                            it.key.x,
-                            it.key.y,
-                            it.value.color.toArgb(),
-                            it.value.shape,
-                            now,
+                            layerId = layer,
+                            x = it.key.x,
+                            y = it.key.y,
+                            color = it.value.color.toArgb(),
+                            shape = it.value.shape,
+                            timestamp = now,
                         )
                     }
                 }
