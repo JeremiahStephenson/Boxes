@@ -133,6 +133,7 @@ dependencies {
     implementation(libs.reorderable)
 
     implementation(libs.kotlinx.datetime)
+    implementation(libs.kotlin.io)
 
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 

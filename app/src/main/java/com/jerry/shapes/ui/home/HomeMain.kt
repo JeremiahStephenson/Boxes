@@ -41,6 +41,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jerry.shapes.R
 import com.jerry.shapes.cache.data.Project
 import com.jerry.shapes.extensions.readableDateAndTime
+import com.jerry.shapes.extensions.thumbnailLocation
 import com.jerry.shapes.navigation.Navigator
 import com.jerry.shapes.ui.boxes.BoxesNavKey
 import com.jerry.shapes.ui.common.AreYouSureDialog
@@ -49,10 +50,9 @@ import com.jerry.shapes.ui.common.FadeAnimatedVisibility
 import com.jerry.shapes.ui.common.ProjectImage
 import com.jerry.shapes.ui.common.unboundClickable
 import com.jerry.shapes.ui.create.CreateNavKey
-import com.jerry.shapes.util.thumbnailLocation
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.io.files.SystemPathSeparator
 import org.koin.androidx.compose.koinViewModel
-import java.io.File
 import kotlin.time.Instant
 
 @Composable
@@ -237,7 +237,7 @@ private fun BoxWithConstraintsScope.ProjectImageItem(
 ) {
     val context = LocalContext.current
     val imagePath =
-        remember(projectId) { context.thumbnailLocation.path + File.separator.toString() + "$projectId.png" }
+        remember(projectId) { context.thumbnailLocation.path + SystemPathSeparator + "$projectId.png" }
     ProjectImage(
         modifier =
             Modifier

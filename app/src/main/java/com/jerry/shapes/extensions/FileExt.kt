@@ -1,17 +1,18 @@
-package com.jerry.shapes.util
+package com.jerry.shapes.extensions
 
 import android.content.Context
-import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Point
 import android.os.Environment
-import androidx.core.content.FileProvider
 import com.jerry.shapes.R
 import com.jerry.shapes.cache.data.ColorAndShape
-import com.jerry.shapes.extensions.currentFileTimeStamp
 import com.jerry.shapes.ui.boxes.data.LayerState
-import java.io.File
-import java.io.FileOutputStream
+import com.jerry.shapes.util.ExportType
+import com.jerry.shapes.util.generateBitmap
+import kotlinx.io.asOutputStream
+import kotlinx.io.buffered
+import kotlinx.io.files.Path
+import kotlinx.io.files.SystemFileSystem
 
 fun Context?.exportCanvas(
     name: String,
@@ -31,16 +32,18 @@ fun Bitmap.storeImage(
     context: Context,
     exportType: ExportType,
     name: String? = null,
-): String? {
+): String {
     val pictureFile =
         getOutputMediaFile(context, exportType, name)
             ?: throw (Throwable(context.getString(R.string.error_export)))
 
-    val fos = FileOutputStream(pictureFile)
-    compress(Bitmap.CompressFormat.PNG, 90, fos)
-    fos.close()
+    SystemFileSystem.sink(pictureFile).use { sink ->
+        val outputStream = sink.buffered().asOutputStream()
+        compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+        outputStream.flush()
+    }
 
-    return pictureFile.path
+    return pictureFile.toString()
 }
 
 /** Create a File for saving an image or video  */
@@ -48,65 +51,30 @@ private fun getOutputMediaFile(
     context: Context,
     exportType: ExportType,
     name: String? = null,
-): File? {
-    // To be safe, you should check that the SDCard is mounted
-    // using Environment.getExternalStorageState() before doing this.
+): Path? {
     val mediaStorageDir =
         when (exportType) {
-            ExportType.FILE -> Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES + "/Pixels")
-            ExportType.SHARE -> File(context.cacheDir, "pixels")
-            else -> File(context.filesDir, "pixels")
+            ExportType.FILE -> Path(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES + "/Pixels").path)
+            ExportType.SHARE -> Path(context.cacheDir.path, "pixels")
+            else -> Path(context.filesDir.path, "pixels")
         }
 
-    // This location works best if you want the created images to be shared
-    // between applications and persist after your app has been uninstalled.
-
     // Create the storage directory if it does not exist
-    if (!mediaStorageDir.exists()) {
-        if (!mediaStorageDir.mkdirs()) {
+    if (!SystemFileSystem.exists(mediaStorageDir)) {
+        runCatching {
+            SystemFileSystem.createDirectories(mediaStorageDir)
+        }.onFailure {
             return null
         }
     }
     // Create a media file name
     val timeStamp = currentFileTimeStamp
-    val mediaFile: File
+    val mediaFile: Path
     val mImageName =
         when (exportType == ExportType.FILE) {
             true -> "${if (name != null) name + "_" else ""}MI_$timeStamp.png"
             else -> (if (name != null) "$name.png" else "MI_$timeStamp.png")
         }
-    mediaFile = File(mediaStorageDir.path + File.separator.toString() + mImageName)
+    mediaFile = Path(mediaStorageDir.toString(), mImageName)
     return mediaFile
 }
-
-private fun Context.fileIntent(
-    path: String,
-    export: Boolean,
-): Intent =
-    Intent(
-        when (export) {
-            true -> Intent.ACTION_VIEW
-            else -> Intent.ACTION_SEND
-        },
-    ).apply {
-        val file = File(path)
-        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        val photoURI =
-            FileProvider.getUriForFile(
-                this@fileIntent,
-                this@fileIntent.applicationContext.packageName + ".provider",
-                file,
-            )
-        putExtra(Intent.EXTRA_STREAM, photoURI)
-        setDataAndType(photoURI, "image/png")
-    }
-
-fun Context.openImage(path: String) {
-    startActivity(fileIntent(path, true))
-}
-
-fun Context.openShareSheet(path: String) {
-    startActivity(Intent.createChooser(fileIntent(path, false), null))
-}
-
-val Context.thumbnailLocation get() = File(filesDir, "pixels")

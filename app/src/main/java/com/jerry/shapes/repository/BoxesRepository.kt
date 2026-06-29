@@ -13,13 +13,13 @@ import com.jerry.shapes.cache.data.HistoryItem
 import com.jerry.shapes.cache.data.Layer
 import com.jerry.shapes.cache.data.Pixel
 import com.jerry.shapes.cache.data.Project
+import com.jerry.shapes.extensions.exportCanvas
 import com.jerry.shapes.extensions.logError
 import com.jerry.shapes.ui.boxes.data.LayerState
 import com.jerry.shapes.ui.shapes.Shape
 import com.jerry.shapes.util.CoroutineContextProvider
 import com.jerry.shapes.util.ExportType
 import com.jerry.shapes.util.Resource
-import com.jerry.shapes.util.exportCanvas
 import com.jerry.shapes.util.generateSelections
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
