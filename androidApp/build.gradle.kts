@@ -90,6 +90,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":shared"))
     implementation(platform(libs.compose.bom))
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)

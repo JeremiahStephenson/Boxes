@@ -14,4 +14,5 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "Boxes"
-include(":app")
+include(":androidApp")
+include(":shared")
