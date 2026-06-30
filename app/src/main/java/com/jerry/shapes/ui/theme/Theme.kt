@@ -3,13 +3,18 @@ package com.jerry.shapes.ui.theme
 import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material.ripple.RippleAlpha
+import androidx.compose.material3.LocalRippleConfiguration
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RippleConfiguration
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
@@ -26,15 +31,15 @@ private val LightColorScheme =
         primary = Purple40,
         secondary = PurpleGrey40,
         tertiary = Pink40,
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-     */
+        /* Other default colors to override
+        background = Color(0xFFFFFBFE),
+        surface = Color(0xFFFFFBFE),
+        onPrimary = Color.White,
+        onSecondary = Color.White,
+        onTertiary = Color.White,
+        onBackground = Color(0xFF1C1B1F),
+        onSurface = Color(0xFF1C1B1F),
+         */
     )
 
 @Composable
@@ -50,6 +55,7 @@ fun BoxesTheme(
                 val context = LocalContext.current
                 if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
             }
+
             darkTheme -> DarkColorScheme
             else -> LightColorScheme
         }
@@ -65,6 +71,26 @@ fun BoxesTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
-        content = content,
+        content = {
+            val onSurface = MaterialTheme.colorScheme.onSurface
+            val customRippleConfig =
+                remember {
+                    val alpha = 0.25F
+                    RippleConfiguration(
+                        color = onSurface,
+                        rippleAlpha =
+                            RippleAlpha(
+                                draggedAlpha = alpha,
+                                focusedAlpha = alpha,
+                                hoveredAlpha = alpha,
+                                pressedAlpha = alpha,
+                            ),
+                    )
+                }
+            CompositionLocalProvider(
+                LocalRippleConfiguration provides customRippleConfig,
+                content = content,
+            )
+        },
     )
 }
