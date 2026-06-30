@@ -442,7 +442,7 @@ private fun ButtonBar(
         if (shapePicker) {
             ShapePickerDialog(
                 color = getColor(),
-                numberOfBoxes = canvasState.boxes.size,
+                numberOfBoxes = canvasState.numberOfBoxes,
                 onShapeChosen = onShapeChosen,
             ) {
                 shapePicker = false
@@ -707,7 +707,7 @@ private fun handleAction(
             viewModel.addLayer(
                 name = action.name,
                 index = canvasState.layers.maxOf { it.index } + 1,
-                selections = canvasState.selections,
+                canvasState = canvasState,
             )
         is Action.TurnOnOrOffLayer -> viewModel.setLayerOnOrOff(action.layerId, action.on)
         is Action.AddColorToUsedList -> scope.launch { viewModel.addUsedColor(action.color) }
@@ -754,9 +754,8 @@ private fun saveProject(
 ) {
     viewModel.saveProject(
         project,
-        if (autoSave) null else canvasState.boxes.keys.toList(),
-        canvasState.selections,
-        canvasState.layers,
+        canvasState,
+        autoSave,
     )
 }
 

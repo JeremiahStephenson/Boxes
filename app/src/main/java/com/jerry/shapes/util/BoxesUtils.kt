@@ -10,6 +10,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.core.graphics.applyCanvas
+import androidx.core.graphics.createBitmap
 import com.jerry.shapes.cache.data.ColorAndShape
 import com.jerry.shapes.cache.data.LayerAndPixel
 import com.jerry.shapes.cache.data.Pixel
@@ -123,14 +124,13 @@ fun DrawScope.drawShapes(
 }
 
 fun DrawScope.drawShapes(
-    layerId: Long,
     selections: Map<Point, ColorAndShape>?,
-    boxes: Map<Point, RectF>,
+    findCoordinate: (Point) -> RectF?,
 ) {
-    if (boxes.isEmpty() || selections.isNullOrEmpty()) return
+    if (selections.isNullOrEmpty()) return
     Timber.d("DrawTest - drawing: ${selections.size}")
     selections.forEach {
-        val position = boxes[it.key]
+        val position = findCoordinate(it.key)
         position?.let { pos ->
             drawCustomShape(pos, it.value)
         }
@@ -202,13 +202,7 @@ fun generateBitmap(
 ): Bitmap {
     val boxSize = ceil(min(imageSize / columns.toFloat(), imageSize / rows.toFloat())).toInt()
     val newBoxes = generateBoxes(columns, rows, boxSize.toFloat(), 0F, 0F)
-    val bitmap =
-        Bitmap.createBitmap(
-            columns * boxSize,
-            rows * boxSize,
-            Bitmap.Config.ARGB_8888,
-        )
-
+    val bitmap = createBitmap(columns * boxSize, rows * boxSize)
     return bitmap.applyCanvas {
         drawShapes(layers, selections, newBoxes)
     }

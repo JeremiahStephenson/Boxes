@@ -1,7 +1,6 @@
 package com.jerry.shapes.ui.boxes
 
 import android.graphics.Point
-import android.graphics.RectF
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.TransformableState
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -95,7 +94,7 @@ fun BoxCanvas(
                                 sizeState,
                                 columnsState,
                                 rowsState,
-                                canvasState.boxes,
+                                canvasState.findCoordinates(0, 0),
                             )?.let {
                                 onTap(it)
                             }
@@ -112,7 +111,7 @@ fun BoxCanvas(
                                     sizeState,
                                     columnsState,
                                     rowsState,
-                                    canvasState.boxes,
+                                    canvasState.findCoordinates(0, 0),
                                 )
 
                             else -> onDragStart()
@@ -128,7 +127,7 @@ fun BoxCanvas(
                                     sizeState,
                                     columnsState,
                                     rowsState,
-                                    canvasState.boxes,
+                                    canvasState.findCoordinates(0, 0),
                                 )
 
                             else ->
@@ -143,7 +142,7 @@ fun BoxCanvas(
                                         sizeState,
                                         columnsState,
                                         rowsState,
-                                        canvasState.boxes,
+                                        canvasState.findCoordinates(0, 0),
                                     ),
                                 )
                         }
@@ -164,7 +163,7 @@ fun BoxCanvas(
                         }
                     },
                 ),
-// TODO Delete the following once I'm confident that the above solution is fool-proof //
+// TODO Delete the following once I'm confident that the above solution is fool-proof
 //                .pointerInput(appBarExpanded) {
 //                    detectDragGestures(
 //                        onDragStart = {
@@ -280,7 +279,7 @@ fun BoxCanvas(
                 scale = scale,
                 offset = offset,
                 size = size,
-                boxes = canvasState.boxes,
+                canvasState = canvasState,
                 selectionState = selectionState,
             )
         }
@@ -316,11 +315,10 @@ fun SelectionsBoxes(
                             },
                 ) {
                     val id = canvasState.layersOrder[layerIndex]
-                    if (canvasState.layersVisibility[id]?.value == true) {
+                    if (canvasState.layersVisibility[id]?.value == true && !canvasState.isEmpty) {
                         drawShapes(
-                            id,
-                            canvasState.selections[id]?.get(Point(x, y)),
-                            canvasState.boxes,
+                            selections = canvasState.selections[id]?.get(Point(x, y)),
+                            findCoordinate = { point -> canvasState.findCoordinates(point) },
                         )
                     }
                 }
@@ -334,7 +332,7 @@ fun SelectionTool(
     scale: Float,
     offset: Offset,
     size: Size,
-    boxes: Map<Point, RectF>,
+    canvasState: CanvasState,
     selectionState: SelectionState,
 ) {
     val highlightColor = MaterialTheme.colorScheme.primary
@@ -357,8 +355,8 @@ fun SelectionTool(
     ) {
         if (selectionState.topLeftState == null || selectionState.bottomRightState == null) return@Canvas
         safeLet(
-            boxes[selectionState.topLeftState],
-            boxes[selectionState.bottomRightState],
+            canvasState.findCoordinates(selectionState.topLeftState),
+            canvasState.findCoordinates(selectionState.bottomRightState),
         ) { tl, br ->
             val adjustmentTopLeft =
                 Offset(
@@ -422,14 +420,14 @@ private fun Grid(
                 translationY = offset.y
             },
     ) {
-        val boxSize = (canvasState.boxes[Point(0, 0)]?.width() ?: 0F) * scale
+        val boxSize = (canvasState.findCoordinates(0, 0).width()) * scale
         val stroke = strokeWidth / scale
         val strokeSpace = stroke * 2
         if (boxSize > strokeSpace) {
             for (i in 0 until rows) {
                 safeLet(
-                    canvasState.boxes[Point(0, i)],
-                    canvasState.boxes[Point(columns - 1, i)],
+                    canvasState.findCoordinates(0, i),
+                    canvasState.findCoordinates(columns - 1, i),
                 ) { start, end ->
                     drawLine(
                         strokeWidth = stroke,
@@ -449,8 +447,8 @@ private fun Grid(
             }
             for (i in 0 until columns) {
                 safeLet(
-                    canvasState.boxes[Point(i, 0)],
-                    canvasState.boxes[Point(i, rows - 1)],
+                    canvasState.findCoordinates(i, 0),
+                    canvasState.findCoordinates(i, rows - 1),
                 ) { start, end ->
                     drawLine(
                         strokeWidth = stroke,
@@ -579,11 +577,7 @@ private fun getDragPoints(
     position: PointerInputChange,
 ): HashSet<Offset> =
     HashSet<Offset>().apply {
-        val boxSize =
-            canvasState.boxes.values
-                .first()
-                .width()
-                .toInt()
+        val boxSize = canvasState.boxSize.toInt()
 
         if (abs(change.x) > boxSize || abs(change.y) > boxSize) {
             val distance =

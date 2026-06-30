@@ -16,6 +16,7 @@ import com.jerry.shapes.cache.data.Project
 import com.jerry.shapes.extensions.exportCanvas
 import com.jerry.shapes.extensions.logError
 import com.jerry.shapes.ui.boxes.data.LayerState
+import com.jerry.shapes.ui.boxes.state.CanvasState
 import com.jerry.shapes.ui.shapes.Shape
 import com.jerry.shapes.util.CoroutineContextProvider
 import com.jerry.shapes.util.ExportType
@@ -90,9 +91,8 @@ class BoxesRepository(
 
     fun save(
         project: Project,
-        boxes: List<Point>? = null,
-        selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
-        layers: Collection<LayerState>,
+        canvasState: CanvasState,
+        autoSave: Boolean,
     ) {
         if (saveJob?.isActive == true) return
         saveJob =
@@ -102,16 +102,16 @@ class BoxesRepository(
                         project = project,
                         fileName = project.id.toString(),
                         imageSize = 200,
-                        layers = layers,
-                        selections = selections,
+                        layers = canvasState.layers,
+                        selections = canvasState.selections,
                         exportType = ExportType.THUMBNAIL,
                     )
                 }.onFailure { error ->
                     analytics.logError(error)
                 }
                 boxesDatabase.withTransaction {
-                    saveProject(project.id, boxes, selections)
-                    layers.forEach {
+                    saveProject(projectId = project.id, canvasState = canvasState, autoSave = autoSave)
+                    canvasState.layers.forEach {
                         boxesDao.turnOnOrOffLayer(it.on, it.id)
                     }
                 }
@@ -140,11 +140,18 @@ class BoxesRepository(
         projectId: Long,
         name: String,
         index: Int,
-        selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
+        canvasState: CanvasState,
     ): Long =
         boxesDatabase.withTransaction {
-            saveProject(projectId, selections = selections)
-            boxesDao.insertLayer(Layer(projectId = projectId, index = index, name = name, on = true))
+            saveProject(projectId = projectId, canvasState = canvasState, autoSave = false)
+            boxesDao.insertLayer(
+                Layer(
+                    projectId = projectId,
+                    index = index,
+                    name = name,
+                    on = true,
+                ),
+            )
         }
 
     suspend fun updateHistory(
@@ -192,14 +199,14 @@ class BoxesRepository(
 
     private suspend fun saveProject(
         projectId: Long,
-        boxes: List<Point>? = null,
-        selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
+        canvasState: CanvasState,
+        autoSave: Boolean,
     ) {
         val now = Clock.System.now().toEpochMilliseconds()
         val list =
-            selections.flatMap { (layer, quad) ->
+            canvasState.selections.flatMap { (layer, quad) ->
                 quad.flatMap { q ->
-                    q.value.filterKeys { boxes?.contains(it) ?: true }.map {
+                    q.value.filterKeys { if (autoSave) true else canvasState.containsPosition(it) }.map {
                         Pixel(
                             layerId = layer,
                             x = it.key.x,

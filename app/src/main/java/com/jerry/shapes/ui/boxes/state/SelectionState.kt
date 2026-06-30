@@ -43,7 +43,7 @@ class SelectionState private constructor(
         size: Size,
         columns: Int,
         rows: Int,
-        boxes: Map<Point, RectF>,
+        topLeft: RectF,
     ) {
         val position =
             area.findBox(
@@ -52,7 +52,7 @@ class SelectionState private constructor(
                 size,
                 columns,
                 rows,
-                boxes,
+                topLeft,
             )
         when (topLeftState == null || bottomRightState == null) {
             true -> {
@@ -103,7 +103,7 @@ class SelectionState private constructor(
         size: Size,
         columns: Int,
         rows: Int,
-        boxes: Map<Point, RectF>,
+        topLeft: RectF,
     ) {
         val position =
             area.findBox(
@@ -112,7 +112,7 @@ class SelectionState private constructor(
                 size,
                 columns,
                 rows,
-                boxes,
+                topLeft,
             )
         when (modeState) {
             SelectionType.FREE -> setBottomRight(position)

@@ -6,9 +6,13 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.snapshots.SnapshotStateMap
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import com.jerry.shapes.cache.data.ColorAndShape
 import com.jerry.shapes.extensions.groupByQuadrant
@@ -17,7 +21,6 @@ import com.jerry.shapes.ui.boxes.data.LayerState
 import com.jerry.shapes.ui.boxes.history.UserHistory
 import com.jerry.shapes.ui.shapes.Shape
 import com.jerry.shapes.util.Resource
-import com.jerry.shapes.util.generateBoxes
 import kotlin.math.max
 import kotlin.math.min
 
@@ -30,8 +33,6 @@ class CanvasState(
     private val historyCountState: State<Int>,
     private val snapShot: State<Resource<SnapshotStateMap<Long, SnapshotStateMap<Point, SnapshotStateMap<Point, ColorAndShape>>>>>,
 ) {
-    private val _boxes = mutableStateMapOf<Point, RectF>()
-
     private val _selections get() = snapShot.value.data!!
     val selections get() = snapShot.value.data as Map<Long, Map<Point, Map<Point, ColorAndShape>>>
 
@@ -43,8 +44,6 @@ class CanvasState(
     val layersOrder get() = layerOrderState as List<Long>
     val historyCount by historyCountState
 
-    val boxes = _boxes as Map<Point, RectF>
-
     val selectedLayer
         get() =
             layers.firstOrNull { it.selected }
@@ -52,6 +51,14 @@ class CanvasState(
     val hasLayersTurnedOn get() = layers.any { it.on }
 
     private var currentDragHistory: MutableMap<Point, ColorAndShape?> = mutableMapOf()
+
+    private var rows: Int by mutableIntStateOf(0)
+    private var columns: Int by mutableIntStateOf(0)
+    private var yOffSet: Float by mutableFloatStateOf(0F)
+    private var xOffSet: Float by mutableFloatStateOf(0F)
+
+    var boxSize: Float by mutableFloatStateOf(0F)
+        private set
 
     fun clear() {
         if (isLoading) return
@@ -142,6 +149,10 @@ class CanvasState(
         }
     }
 
+    val isEmpty get() = rows == 0 || columns == 0 || boxSize == 0F
+
+    val numberOfBoxes get() = rows * columns
+
     fun fillInBoxes(
         size: Size,
         offset: Float,
@@ -163,15 +174,31 @@ class CanvasState(
         val xOffSet =
             max(((size.width - (min * columns)) / 2), 0F)
 
-        _boxes.clear()
-        _boxes.putAll(
-            generateBoxes(
-                columns,
-                rows,
-                min,
-                xOffSet,
-                (offset + yOffSet),
-            ),
+        this.columns = columns
+        this.rows = rows
+        this.xOffSet = xOffSet
+        this.yOffSet = (offset + yOffSet)
+        this.boxSize = min
+    }
+
+    fun containsPosition(point: Point) = point.x <= columns && point.y <= rows
+
+    fun findCoordinates(point: Point?): RectF? = point?.let { findCoordinates(it.x, it.y) }
+
+    fun findCoordinates(
+        x: Int,
+        y: Int,
+    ): RectF {
+        val topLeft =
+            Offset(
+                (boxSize * x) + xOffSet,
+                (boxSize * y) + yOffSet,
+            )
+        return RectF(
+            topLeft.x,
+            topLeft.y,
+            (topLeft.x + boxSize),
+            (topLeft.y + boxSize),
         )
     }
 

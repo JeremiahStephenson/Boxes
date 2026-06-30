@@ -32,6 +32,7 @@ import com.jerry.shapes.repository.BoxesRepository
 import com.jerry.shapes.ui.boxes.data.LayerState
 import com.jerry.shapes.ui.boxes.data.UiEvent
 import com.jerry.shapes.ui.boxes.history.UserHistory
+import com.jerry.shapes.ui.boxes.state.CanvasState
 import com.jerry.shapes.ui.boxes.state.enums.Direction
 import com.jerry.shapes.ui.shapes.Shape
 import com.jerry.shapes.util.CoroutineContextProvider
@@ -338,10 +339,14 @@ class BoxesViewModel(
     fun addLayer(
         name: String,
         index: Int,
-        selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
+        canvasState: CanvasState,
     ) {
         viewModelScope.launch {
-            projectId.value?.let { selectLayer(boxesRepository.addLayer(it, name, index, selections)) }
+            projectId.value?.let {
+                selectLayer(
+                    boxesRepository.addLayer(projectId = it, name = name, index = index, canvasState = canvasState),
+                )
+            }
         }
     }
 
@@ -370,12 +375,11 @@ class BoxesViewModel(
 
     fun saveProject(
         project: Project,
-        boxes: List<Point>? = null,
-        selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
-        layers: Collection<LayerState>,
+        canvasState: CanvasState,
+        autoSave: Boolean,
     ) {
         runCatching {
-            boxesRepository.save(project, boxes, selections, layers)
+            boxesRepository.save(project = project, canvasState = canvasState, autoSave = autoSave)
         }.onFailure { error ->
             analytics.logError(error)
             _uiEventFlow.tryEmit(UiEvent.Error(error.message))

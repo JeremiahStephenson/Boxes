@@ -254,8 +254,7 @@ fun ShapePickerDialog(
     Dialog(onDismissRequest = onDismiss) {
         val shapes =
             remember {
-                Shape
-                    .values()
+                Shape.entries
                     .groupBy { it.group }
                     .flatMap { it.value }
                     .sortedBy { it.group.ordinal }
