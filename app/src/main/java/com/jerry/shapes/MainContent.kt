@@ -15,12 +15,13 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.add
-import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.displayCutout
+import androidx.compose.foundation.layout.minus
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -103,7 +104,6 @@ fun MainContent(onBackPressed: () -> Unit) {
                     enter = fadeIn() + expandIn { IntSize(width = 1, height = 1) },
                 ) {
                     FloatingActionButton(
-                        modifier = Modifier.systemBarsPadding(),
                         onClick = fab?.onClick ?: {},
                     ) {
                         Icon(
@@ -113,14 +113,15 @@ fun MainContent(onBackPressed: () -> Unit) {
                     }
                 }
             },
-            contentWindowInsets = WindowInsets(0, 0, 0, 0),
         ) { innerPadding ->
             NavDisplay(
                 modifier =
                     Modifier
-                        .padding(innerPadding)
-                        .consumeWindowInsets(innerPadding)
-                        .systemBarsPadding(),
+                        .padding(
+                            innerPadding.minus(
+                                WindowInsets.displayCutout.only(WindowInsetsSides.Horizontal).asPaddingValues(),
+                            ),
+                        ),
                 backStack = navigator.backStack,
                 onBack = { navigator.popBackstack() },
                 entryDecorators =
