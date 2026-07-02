@@ -1,0 +1,94 @@
+<resources>
+    <string name="app_name">BitShape</string>
+
+    <string name="back">Back</string>
+
+    <string name="set_name">Set a name for your project</string>
+
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="close">Close</string>
+    <string name="edit">Edit</string>
+    <string name="done">Done</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="clear">Clear Layer</string>
+    <string name="layers">Layers</string>
+    <string name="error">Error</string>
+    <string name="edit_layers">Layers Edit</string>
+
+    <string name="image_size">Image Size:</string>
+    <string name="extra_small">X Small</string>
+    <string name="small">Small</string>
+    <string name="medium">Medium</string>
+    <string name="large">Large</string>
+    <string name="extra_large">X Large</string>
+    <string name="extra_extra_large">XX Large</string>
+    <string name="add_layer">Add Layer</string>
+    <string name="layer_hint">Layer %1$d</string>
+    <string name="are_you_sure_layer">Are you sure you want to delete the layer: %1$s?</string>
+
+    <string name="name">Name</string>
+    <string name="columns">Columns</string>
+    <string name="rows">Rows</string>
+    <string name="add_new_project">Add new project</string>
+    <string name="editing_project">Editing: %1$s</string>
+    <string name="are_you_sure_project">Are you sure you want to delete the project: %1$s?</string>
+
+    <string name="project_range">Between %1$d and %2$d</string>
+
+    <string name="set_color">Set Color</string>
+    <string name="error_save">There was a problem creating your project. Please try again.</string>
+
+    <string name="error_message">Error! %1$s</string>
+    <string name="error_export">Error creating media file, check storage permissions</string>
+    <string name="generic_error">Something went wrong, please try again.</string>
+
+    <string name="project">Project</string>
+    <string name="tools">Tools</string>
+    <string name="export">Export</string>
+    <string name="share">Share</string>
+    <string name="view">View</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="other">Other</string>
+
+    <string name="name_required">A name is required</string>
+    <string name="value_too_high">The value is too large</string>
+    <string name="value_too_low">The value is too small</string>
+
+    <string name="empty_list_title">You don\'t have any projects yet.\nClick on the plus button below to start your first project!</string>
+    <string name="last_edited">Last edited: %1$s</string>
+
+    <string name="experimental">Experimental</string>
+
+    <string name="edit_layer_options">Edit Layer Options</string>
+    <string name="save_project">Save Project</string>
+    <string name="edit_project">Edit Project Details</string>
+    <string name="save_to_png">Save to PNG File</string>
+    <string name="share_with_people">Share Your Creation</string>
+    <string name="clear_layer">Clear the Selected Layer</string>
+    <string name="toggle_layer_visibility">Toggle Layer Visibility</string>
+    <string name="select_and_move">Toggles Select and Move</string>
+    <string name="turn_off_select_and_move">Turn Off Select and Move</string>
+    <string name="toggle_opacity_bg">Toggles Opacity Background Visibility</string>
+    <string name="toggle_grid_visibility">Toggles the Grid Visibility</string>
+    <string name="toggle_eraser">Toggles the Eraser</string>
+    <string name="turn_off_eraser">Turn off Eraser</string>
+    <string name="toggle_fill">Toggles the Fill Bucket</string>
+    <string name="toggle_color_picker">Toggles the Color Picker</string>
+    <string name="color_selector">Color Selector</string>
+    <string name="toggle_tap_tool">Switch Tap Tool</string>
+    <string name="undo_history">Undo</string>
+    <string name="re_center">Center the Canvas</string>
+    <string name="move_left">Move Left</string>
+    <string name="move_right">Move Right</string>
+    <string name="move_up">Move Up</string>
+    <string name="move_down">Move Down</string>
+    <string name="move_layer_up">Move Layer Up</string>
+    <string name="move_layer_down">Move Layer Down</string>
+    <string name="un_select">Un-select Current Selection</string>
+    <string name="change_layer_name">Change Layer Name</string>
+    <string name="delete_layer">Delete Layer</string>
+    <string name="select_shape">Select Shape</string>
+    <string name="drag_layer">Drag this to reorder layer</string>
+</resources>

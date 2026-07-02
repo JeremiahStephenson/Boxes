@@ -1,0 +1,230 @@
+package com.jerry.shapes.ui.boxes.state
+
+import com.jerry.shapes.util.Point
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.snapshots.SnapshotStateMap
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.Size
+import com.jerry.shapes.cache.data.ColorAndShape
+import com.jerry.shapes.extensions.groupByQuadrant
+import com.jerry.shapes.extensions.quadrant
+import com.jerry.shapes.ui.boxes.data.LayerState
+import com.jerry.shapes.ui.boxes.history.UserHistory
+import com.jerry.shapes.ui.shapes.Shape
+import com.jerry.shapes.util.Resource
+import kotlin.math.max
+import kotlin.math.min
+
+@Stable
+class CanvasState(
+    layersState: State<List<LayerState>>,
+    private val layerVisibilityState: SnapshotStateMap<Long, MutableState<Boolean>>,
+    private val layerOrderState: SnapshotStateList<Long>,
+    private val loadingState: State<Boolean>,
+    private val historyCountState: State<Int>,
+    private val snapShot: State<Resource<SnapshotStateMap<Long, SnapshotStateMap<Point, SnapshotStateMap<Point, ColorAndShape>>>>>,
+) {
+    private val _selections get() = snapShot.value.data!!
+    val selections get() = snapShot.value.data as Map<Long, Map<Point, Map<Point, ColorAndShape>>>
+
+    val isLoading get() = snapShot.value.isLoading || loadingState.value
+
+    val layers by layersState
+
+    val layersVisibility get() = layerVisibilityState as Map<Long, State<Boolean>>
+    val layersOrder get() = layerOrderState as List<Long>
+    val historyCount by historyCountState
+
+    val selectedLayer
+        get() =
+            layers.firstOrNull { it.selected }
+                ?: layers.filter { it.on }.maxByOrNull { it.index } ?: layers.first()
+    val hasLayersTurnedOn get() = layers.any { it.on }
+
+    private var currentDragHistory: MutableMap<Point, ColorAndShape?> = mutableMapOf()
+
+    private var rows: Int by mutableIntStateOf(0)
+    private var columns: Int by mutableIntStateOf(0)
+    private var yOffSet: Float by mutableFloatStateOf(0F)
+    private var xOffSet: Float by mutableFloatStateOf(0F)
+
+    var boxSize: Float by mutableFloatStateOf(0F)
+        private set
+
+    fun clear() {
+        if (isLoading) return
+        val selectedLayer = layers.firstOrNull { it.selected }
+        selectedLayer?.let {
+            _selections[it.id]?.forEach { (_, points) ->
+                points.clear()
+            }
+        }
+    }
+
+    fun getCurrentSelectedLayerSelections(layerId: Long) =
+        _selections[layerId]
+            ?.flatMap {
+                it.value
+                    .mapValues { entry ->
+                        entry.key to entry.value
+                    }.values
+            }?.toMap() ?: emptyMap()
+
+    fun getTapHistoryItem(
+        point: Point,
+        layerId: Long,
+    ) = UserHistory(layerId, mapOf(point to getCurrentSelection(point, layerId)))
+
+    fun closeDragHistory(layerId: Long) =
+        UserHistory(layerId, currentDragHistory.toMap()).also {
+            currentDragHistory.clear()
+        }
+
+    fun addToDragHistory(
+        points: HashSet<Point>,
+        layerId: Long,
+        checkColor: ColorAndShape? = null,
+    ) {
+        val filtered = points.filter { !currentDragHistory.keys.contains(it) }.toSet()
+        val currentSelection = getCurrentSelections(filtered, layerId, checkColor)
+        currentSelection.keys.forEach {
+            if (!currentDragHistory.keys.contains(it)) {
+                currentDragHistory[it] = currentSelection[it]
+            }
+        }
+    }
+
+    fun onTap(
+        point: Point,
+        layerId: Long,
+        currentColor: ColorAndShape,
+        currentShape: Shape,
+    ): ColorAndShape? {
+        val colorAndShape = currentColor.copy(shape = currentShape)
+        val quadrant = point.quadrant
+        val selection =
+            when (_selections[layerId]?.get(quadrant)?.get(point) == colorAndShape) {
+                true -> null
+                else -> colorAndShape
+            }
+        _selections
+            .getOrPut(layerId) {
+                mutableStateMapOf()
+            }.getOrPut(quadrant) {
+                mutableStateMapOf()
+            }.apply {
+                when (selection) {
+                    null -> remove(point)
+                    else -> put(point, selection)
+                }
+            }
+        return selection
+    }
+
+    fun onDrag(
+        points: HashSet<Point>,
+        layerId: Long,
+        currentColor: ColorAndShape?,
+    ) {
+        val pts = points.groupByQuadrant
+        pts.forEach { (quad, list) ->
+            _selections
+                .getOrPut(layerId) { mutableStateMapOf() }
+                .getOrPut(quad) { mutableStateMapOf() }
+                .let { map ->
+                    when (currentColor) {
+                        null -> map.keys.removeAll(list.toSet())
+                        else -> map.putAll(list.associateWith { currentColor })
+                    }
+                }
+        }
+    }
+
+    val isEmpty get() = rows == 0 || columns == 0 || boxSize == 0F
+
+    val numberOfBoxes get() = rows * columns
+
+    fun fillInBoxes(
+        size: Size,
+        offset: Float,
+        columns: Int,
+        rows: Int,
+    ) {
+        val maxWidth =
+            size.width / columns.toFloat()
+        val maxHeight =
+            (size.height - offset) / rows.toFloat()
+        val min = min(maxWidth, maxHeight)
+
+        val yOffSet =
+            max(
+                (((size.height - offset) - (min * rows)) / 2),
+                0F,
+            )
+
+        val xOffSet =
+            max(((size.width - (min * columns)) / 2), 0F)
+
+        this.columns = columns
+        this.rows = rows
+        this.xOffSet = xOffSet
+        this.yOffSet = (offset + yOffSet)
+        this.boxSize = min
+    }
+
+    fun containsPosition(point: Point) = point.x <= columns && point.y <= rows
+
+    fun findCoordinates(point: Point?): Rect? = point?.let { findCoordinates(it.x, it.y) }
+
+    fun findCoordinates(
+        x: Int,
+        y: Int,
+    ): Rect {
+        val topLeft =
+            Offset(
+                (boxSize * x) + xOffSet,
+                (boxSize * y) + yOffSet,
+            )
+        return Rect(
+            topLeft.x,
+            topLeft.y,
+            (topLeft.x + boxSize),
+            (topLeft.y + boxSize),
+        )
+    }
+
+    private fun getCurrentSelection(
+        point: Point,
+        layerId: Long,
+    ): ColorAndShape? = _selections[layerId]?.get(point.quadrant)?.get(point)
+
+    fun getCurrentSelection(point: Point): ColorAndShape? {
+        val turnedOnLayers = layers.filter { it.on }.sortedBy { it.index }.reversed()
+        return turnedOnLayers
+            .firstOrNull {
+                _selections[it.id]?.get(point.quadrant)?.get(point) != null
+            }?.let { getCurrentSelection(point, it.id) }
+    }
+
+    private fun getCurrentSelections(
+        points: Set<Point>,
+        layerId: Long,
+        checkColor: ColorAndShape? = null,
+        filter: Boolean = true,
+    ): Map<Point, ColorAndShape?> =
+        points.associateWith { _selections[layerId]?.get(it.quadrant)?.get(it) }.run {
+            when (filter) {
+                true -> filterNot { it.value == checkColor }
+                else -> this
+            }
+        }
+}

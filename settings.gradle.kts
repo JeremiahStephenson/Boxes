@@ -14,4 +14,4 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "Boxes"
-include(":app")
+include(":composeApp")
