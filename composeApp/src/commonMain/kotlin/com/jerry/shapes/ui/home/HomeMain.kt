@@ -47,8 +47,7 @@ import com.jerry.shapes.ui.common.unboundClickable
 import com.jerry.shapes.ui.create.CreateNavKey
 import kotlinx.coroutines.flow.collectLatest
 import org.koin.compose.viewmodel.koinViewModel
-import kotlinx.datetime.Instant
-import kotlin.time.Instant as KInstant
+import kotlin.time.Instant
 import boxes.composeapp.generated.resources.Res
 import boxes.composeapp.generated.resources.*
 import org.jetbrains.compose.resources.painterResource

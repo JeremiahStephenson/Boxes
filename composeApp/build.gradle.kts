@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.kotlin.parcelize)
     alias(libs.plugins.ksp)
     alias(libs.plugins.kotlin.serialization)
+    id("kotlin-parcelize")
 }
 
 ksp {
@@ -16,9 +17,23 @@ ksp {
 }
 
 kotlin {
+    compilerOptions {
+        freeCompilerArgs.addAll(
+            "-opt-in=kotlin.RequiresOptIn",
+            "-opt-in=androidx.compose.animation.ExperimentalAnimationApi",
+            "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
+            "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
+            "-P", "plugin:org.jetbrains.kotlin.parcelize:additionalAnnotation=com.jerry.shapes.util.Parcelize",
+            "-P", "plugin:org.jetbrains.kotlin.parcelize:additionalAnnotation=com.jerry.shapes.util.IgnoredOnParcel",
+        )
+    }
+
     androidTarget {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_21)
+            freeCompilerArgs.addAll(
+                "-jvm-default=enable",
+            )
         }
     }
 

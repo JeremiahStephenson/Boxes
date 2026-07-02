@@ -2,22 +2,24 @@ package com.jerry.shapes.inject
 
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import com.jerry.shapes.util.Analytics
+import com.jerry.shapes.util.PlatformContext
 import okio.Path.Companion.toPath
 import org.koin.dsl.module
 import platform.Foundation.NSDocumentDirectory
 import platform.Foundation.NSFileManager
-import platform.Foundation.NSURL
 import platform.Foundation.NSUserDomainMask
 
 class IosAnalytics : Analytics {
     override fun logEvent(name: String, params: Map<String, Any?>) {
-        // No-op or native log
+        // No-op
     }
 
     override fun logError(throwable: Throwable) {
-        // No-op or native log
+        // No-op
     }
 }
+
+class IosPlatformContext : PlatformContext()
 
 actual val platformModule = module {
     single<Analytics> { IosAnalytics() }
@@ -33,4 +35,5 @@ actual val platformModule = module {
             (directory!!.path!! + "/settings.preferences_pb").toPath()
         }
     }
+    single<PlatformContext> { IosPlatformContext() }
 }

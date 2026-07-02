@@ -10,15 +10,16 @@ import com.jerry.shapes.cache.data.HistoryItem
 import com.jerry.shapes.cache.data.Layer
 import com.jerry.shapes.cache.data.Pixel
 import com.jerry.shapes.cache.data.Project
+import com.jerry.shapes.extensions.exportCanvas
 import com.jerry.shapes.ui.boxes.data.LayerState
 import com.jerry.shapes.ui.boxes.state.CanvasState
 import com.jerry.shapes.ui.shapes.Shape
 import com.jerry.shapes.util.Analytics
 import com.jerry.shapes.util.CoroutineContextProvider
 import com.jerry.shapes.util.ExportType
+import com.jerry.shapes.util.PlatformContext
 import com.jerry.shapes.util.Point
 import com.jerry.shapes.util.Resource
-import com.jerry.shapes.util.exportCanvas
 import com.jerry.shapes.util.generateSelections
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -36,6 +37,7 @@ class BoxesRepository(
     private val applicationScope: CoroutineScope,
     private val cc: CoroutineContextProvider,
     private val analytics: Analytics,
+    private val context: PlatformContext?,
 ) {
     fun getPixelsFlow(projectId: Long) =
         boxesDao
@@ -123,10 +125,11 @@ class BoxesRepository(
         imageSize: Int,
         exportType: ExportType,
     ): String? =
-        exportCanvas(
+        context.exportCanvas(
             imageSize = imageSize,
-            fileName = fileName,
-            project = project,
+            name = fileName,
+            rows = project.rows,
+            columns = project.columns,
             layers = layers,
             selections = selections,
             exportType = exportType,

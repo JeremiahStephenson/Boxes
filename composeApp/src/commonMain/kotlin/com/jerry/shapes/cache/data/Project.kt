@@ -1,12 +1,9 @@
 package com.jerry.shapes.cache.data
 
-import com.jerry.shapes.util.Parcelable
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import com.jerry.shapes.ui.shapes.Shape
-import kotlinx.parcelize.IgnoredOnParcel
-import com.jerry.shapes.util.Parcelize
 
 @Entity(
     tableName = Project.TABLE_NAME,
@@ -27,7 +24,6 @@ data class Project(
     }
 
     @Ignore
-    @IgnoredOnParcel
     private var _colorAndShape: ColorAndShape? = null
     val colorAndShape: ColorAndShape
         get() =

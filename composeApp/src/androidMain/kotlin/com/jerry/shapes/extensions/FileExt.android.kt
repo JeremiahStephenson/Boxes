@@ -2,19 +2,29 @@ package com.jerry.shapes.extensions
 
 import android.content.Context
 import android.graphics.Bitmap
-import com.jerry.shapes.util.Point
+import android.graphics.Canvas
+import android.graphics.Paint
 import android.os.Environment
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.toAndroidRectF
+import androidx.core.graphics.applyCanvas
+import androidx.core.graphics.createBitmap
 import com.jerry.shapes.R
 import com.jerry.shapes.cache.data.ColorAndShape
 import com.jerry.shapes.ui.boxes.data.LayerState
+import com.jerry.shapes.util.AndroidPlatformContext
 import com.jerry.shapes.util.ExportType
-import com.jerry.shapes.util.generateBitmap
+import com.jerry.shapes.util.PlatformContext
+import com.jerry.shapes.util.Point
+import com.jerry.shapes.util.generateBoxes
 import kotlinx.io.asOutputStream
 import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
+import kotlin.math.ceil
+import kotlin.math.min
 
-fun Context?.exportCanvas(
+actual fun PlatformContext?.exportCanvas(
     name: String,
     exportType: ExportType,
     rows: Int,
@@ -23,7 +33,7 @@ fun Context?.exportCanvas(
     layers: Collection<LayerState>,
     selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
 ): String? {
-    val context = this ?: return null
+    val context = (this as? AndroidPlatformContext)?.context ?: return null
     val bitmap = generateBitmap(rows, columns, imageSize, layers, selections)
     return bitmap.storeImage(context, exportType, name)
 }
@@ -77,4 +87,71 @@ private fun getOutputMediaFile(
         }
     mediaFile = Path(mediaStorageDir.toString(), mImageName)
     return mediaFile
+}
+
+fun generateBitmap(
+    rows: Int,
+    columns: Int,
+    imageSize: Int,
+    layers: Collection<LayerState>,
+    selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
+): Bitmap {
+    val boxSize = ceil(min(imageSize / columns.toFloat(), imageSize / rows.toFloat())).toInt()
+    val newBoxes = generateBoxes(columns, rows, boxSize.toFloat(), 0F, 0F)
+    val bitmap = createBitmap(columns * boxSize, rows * boxSize)
+    return bitmap.applyCanvas {
+        drawShapes(layers, selections, newBoxes)
+    }
+}
+
+fun generateBitmap(
+    rows: Int,
+    columns: Int,
+    imageSize: Int,
+    layerId: Long,
+    selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
+): Bitmap =
+    generateBitmap(
+        rows,
+        columns,
+        imageSize,
+        listOf(
+            LayerState(
+                layerId,
+                0L,
+                1,
+                "",
+                on = true,
+                selected = true,
+                visibilityEnabled = true,
+                showControls = true,
+            )
+        ),
+        selections,
+    )
+
+fun Canvas.drawShapes(
+    layers: Collection<LayerState>,
+    selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
+    boxes: Map<Point, Rect>,
+) {
+    if (boxes.isEmpty()) return
+    val layerIds = layers.filter { it.on }.sortedBy { it.index }.map { it.id }
+    layerIds.forEach { layerId ->
+        selections[layerId]?.forEach { (_, list) ->
+            list.forEach { (point, color) ->
+                val position = boxes[point]
+                position?.let { pos ->
+                    drawCustomShape(pos, color)
+                }
+            }
+        }
+    }
+}
+
+fun Canvas.drawCustomShape(
+    pos: Rect,
+    color: ColorAndShape,
+) {
+    drawRect(pos.toAndroidRectF(), Paint().apply { this.color = color.colorValue.toInt() })
 }

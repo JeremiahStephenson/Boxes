@@ -29,7 +29,8 @@ val appModule =
                 boxesDao = get(),
                 applicationScope = get(),
                 cc = get(),
-                analytics = get()
+                analytics = get(),
+                context = get()
             ) 
         }
 

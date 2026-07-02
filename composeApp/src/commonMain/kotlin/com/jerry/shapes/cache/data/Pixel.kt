@@ -1,12 +1,10 @@
 package com.jerry.shapes.cache.data
 
-import com.jerry.shapes.util.Parcelable
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.jerry.shapes.ui.shapes.Shape
-import com.jerry.shapes.util.Parcelize
 
 @Entity(
     tableName = Pixel.TABLE_NAME,

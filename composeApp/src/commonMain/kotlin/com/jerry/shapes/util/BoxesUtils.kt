@@ -6,19 +6,9 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.jerry.shapes.cache.data.ColorAndShape
-import com.jerry.shapes.cache.data.Project
 import com.jerry.shapes.ui.boxes.data.LayerState
 import com.jerry.shapes.ui.shapes.ShapersInterface
 import kotlin.math.roundToInt
-
-expect fun exportCanvas(
-    project: Project,
-    fileName: String,
-    selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
-    layers: Collection<LayerState>,
-    imageSize: Int,
-    exportType: ExportType,
-): String?
 
 fun generateBoxes(
     numX: Int,
