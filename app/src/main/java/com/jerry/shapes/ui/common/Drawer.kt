@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DrawerDefaults
 import androidx.compose.material3.DrawerState
@@ -65,7 +64,6 @@ fun ModalDrawerSheet(
     drawerContainerColor: Color = MaterialTheme.colorScheme.surface,
     drawerContentColor: Color = contentColorFor(drawerContainerColor),
     drawerTonalElevation: Dp = DrawerDefaults.ModalDrawerElevation,
-    windowInsets: WindowInsets = DrawerDefaults.windowInsets,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val padding =
@@ -78,12 +76,10 @@ fun ModalDrawerSheet(
                 .sizeIn(
                     minWidth = DRAWER_MIN_WIDTH + padding,
                     maxWidth = DRAWER_MAX_WIDTH + padding,
-                ).fillMaxHeight()
-                .windowInsetsPadding(windowInsets),
+                ).fillMaxHeight(),
     ) {
         Spacer(modifier = Modifier.size(padding))
         DrawerSheet(
-            windowInsets,
             modifier,
             drawerShape,
             drawerContainerColor,
@@ -97,7 +93,6 @@ fun ModalDrawerSheet(
 @ExperimentalMaterial3Api
 @Composable
 private fun DrawerSheet(
-    windowInsets: WindowInsets,
     modifier: Modifier = Modifier,
     drawerShape: Shape = RectangleShape,
     drawerContainerColor: Color = MaterialTheme.colorScheme.surface,
@@ -122,7 +117,7 @@ private fun DrawerSheet(
                 .sizeIn(
                     minWidth = DRAWER_MIN_WIDTH,
                     maxWidth = DRAWER_MAX_WIDTH,
-                ).windowInsetsPadding(windowInsets),
+                ),
             content = content,
         )
     }
