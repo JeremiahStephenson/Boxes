@@ -5,6 +5,7 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.jerry.shapes.cache.data.ColorAndShape
+import com.jerry.shapes.util.CanvasExport
 
 fun DrawScope.drawCornerArcRight(
     pos: Rect,
@@ -20,6 +21,11 @@ fun DrawScope.drawCornerArcRight(
     )
 }
 
+expect fun CanvasExport.drawCornerArcRight(
+    pos: Rect,
+    color: ColorAndShape,
+)
+
 fun DrawScope.drawCornerArcRightSmall(
     pos: Rect,
     color: ColorAndShape,
@@ -33,6 +39,11 @@ fun DrawScope.drawCornerArcRightSmall(
         color = color.color,
     )
 }
+
+expect fun CanvasExport.drawCornerArcRightSmall(
+    pos: Rect,
+    color: ColorAndShape,
+)
 
 fun DrawScope.drawCornerArcLeft(
     pos: Rect,
@@ -48,6 +59,11 @@ fun DrawScope.drawCornerArcLeft(
     )
 }
 
+expect fun CanvasExport.drawCornerArcLeft(
+    pos: Rect,
+    color: ColorAndShape,
+)
+
 fun DrawScope.drawCornerArcLeftSmall(
     pos: Rect,
     color: ColorAndShape,
@@ -61,6 +77,11 @@ fun DrawScope.drawCornerArcLeftSmall(
         color = color.color,
     )
 }
+
+expect fun CanvasExport.drawCornerArcLeftSmall(
+    pos: Rect,
+    color: ColorAndShape,
+)
 
 fun DrawScope.drawCornerArcRightInverse(
     pos: Rect,
@@ -76,6 +97,11 @@ fun DrawScope.drawCornerArcRightInverse(
     )
 }
 
+expect fun CanvasExport.drawCornerArcRightInverse(
+    pos: Rect,
+    color: ColorAndShape,
+)
+
 fun DrawScope.drawCornerArcRightInverseSmall(
     pos: Rect,
     color: ColorAndShape,
@@ -89,6 +115,11 @@ fun DrawScope.drawCornerArcRightInverseSmall(
         color = color.color,
     )
 }
+
+expect fun CanvasExport.drawCornerArcRightInverseSmall(
+    pos: Rect,
+    color: ColorAndShape,
+)
 
 fun DrawScope.drawCornerArcLeftInverse(
     pos: Rect,
@@ -104,6 +135,11 @@ fun DrawScope.drawCornerArcLeftInverse(
     )
 }
 
+expect fun CanvasExport.drawCornerArcLeftInverse(
+    pos: Rect,
+    color: ColorAndShape,
+)
+
 fun DrawScope.drawCornerArcLeftInverseSmall(
     pos: Rect,
     color: ColorAndShape,
@@ -117,6 +153,11 @@ fun DrawScope.drawCornerArcLeftInverseSmall(
         color = color.color,
     )
 }
+
+expect fun CanvasExport.drawCornerArcLeftInverseSmall(
+    pos: Rect,
+    color: ColorAndShape,
+)
 
 fun DrawScope.drawArcRight(
     pos: Rect,
@@ -132,6 +173,11 @@ fun DrawScope.drawArcRight(
     )
 }
 
+expect fun CanvasExport.drawArcRight(
+    pos: Rect,
+    color: ColorAndShape,
+)
+
 fun DrawScope.drawArcTop(
     pos: Rect,
     color: ColorAndShape,
@@ -145,6 +191,11 @@ fun DrawScope.drawArcTop(
         color = color.color,
     )
 }
+
+expect fun CanvasExport.drawArcTop(
+    pos: Rect,
+    color: ColorAndShape,
+)
 
 fun DrawScope.drawArcLeft(
     pos: Rect,
@@ -160,6 +211,11 @@ fun DrawScope.drawArcLeft(
     )
 }
 
+expect fun CanvasExport.drawArcLeft(
+    pos: Rect,
+    color: ColorAndShape,
+)
+
 fun DrawScope.drawArcBottom(
     pos: Rect,
     color: ColorAndShape,
@@ -173,3 +229,8 @@ fun DrawScope.drawArcBottom(
         color = color.color,
     )
 }
+
+expect fun CanvasExport.drawArcBottom(
+    pos: Rect,
+    color: ColorAndShape,
+)

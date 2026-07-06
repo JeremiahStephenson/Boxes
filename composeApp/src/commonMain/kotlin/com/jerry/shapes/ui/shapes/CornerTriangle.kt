@@ -1,9 +1,11 @@
 package com.jerry.shapes.ui.shapes
 
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.jerry.shapes.cache.data.ColorAndShape
+import com.jerry.shapes.util.CanvasExport
 
 fun DrawScope.drawTriangleBottomLeft(
     pos: Rect,
@@ -21,6 +23,11 @@ fun DrawScope.drawTriangleBottomLeft(
     )
 }
 
+expect fun CanvasExport.drawTriangleBottomLeft(
+    pos: Rect,
+    color: ColorAndShape,
+)
+
 fun DrawScope.drawTriangleBottomRight(
     pos: Rect,
     color: ColorAndShape,
@@ -36,6 +43,11 @@ fun DrawScope.drawTriangleBottomRight(
         color = color.color,
     )
 }
+
+expect fun CanvasExport.drawTriangleBottomRight(
+    pos: Rect,
+    color: ColorAndShape,
+)
 
 fun DrawScope.drawTriangleTopLeft(
     pos: Rect,
@@ -53,6 +65,11 @@ fun DrawScope.drawTriangleTopLeft(
     )
 }
 
+expect fun CanvasExport.drawTriangleTopLeft(
+    pos: Rect,
+    color: ColorAndShape,
+)
+
 fun DrawScope.drawTriangleTopRight(
     pos: Rect,
     color: ColorAndShape,
@@ -68,6 +85,11 @@ fun DrawScope.drawTriangleTopRight(
         color = color.color,
     )
 }
+
+expect fun CanvasExport.drawTriangleTopRight(
+    pos: Rect,
+    color: ColorAndShape,
+)
 
 fun DrawScope.drawTriangleBottomLeftSmall(
     pos: Rect,
@@ -85,6 +107,11 @@ fun DrawScope.drawTriangleBottomLeftSmall(
     )
 }
 
+expect fun CanvasExport.drawTriangleBottomLeftSmall(
+    pos: Rect,
+    color: ColorAndShape,
+)
+
 fun DrawScope.drawTriangleBottomRightSmall(
     pos: Rect,
     color: ColorAndShape,
@@ -100,6 +127,11 @@ fun DrawScope.drawTriangleBottomRightSmall(
         color = color.color,
     )
 }
+
+expect fun CanvasExport.drawTriangleBottomRightSmall(
+    pos: Rect,
+    color: ColorAndShape,
+)
 
 fun DrawScope.drawTriangleTopLeftSmall(
     pos: Rect,
@@ -117,6 +149,11 @@ fun DrawScope.drawTriangleTopLeftSmall(
     )
 }
 
+expect fun CanvasExport.drawTriangleTopLeftSmall(
+    pos: Rect,
+    color: ColorAndShape,
+)
+
 fun DrawScope.drawTriangleTopRightSmall(
     pos: Rect,
     color: ColorAndShape,
@@ -132,6 +169,11 @@ fun DrawScope.drawTriangleTopRightSmall(
         color = color.color,
     )
 }
+
+expect fun CanvasExport.drawTriangleTopRightSmall(
+    pos: Rect,
+    color: ColorAndShape,
+)
 
 fun DrawScope.drawTriangleBottomLeftSmallest(
     pos: Rect,
@@ -149,6 +191,11 @@ fun DrawScope.drawTriangleBottomLeftSmallest(
     )
 }
 
+expect fun CanvasExport.drawTriangleBottomLeftSmallest(
+    pos: Rect,
+    color: ColorAndShape,
+)
+
 fun DrawScope.drawTriangleBottomRightSmallest(
     pos: Rect,
     color: ColorAndShape,
@@ -164,6 +211,11 @@ fun DrawScope.drawTriangleBottomRightSmallest(
         color = color.color,
     )
 }
+
+expect fun CanvasExport.drawTriangleBottomRightSmallest(
+    pos: Rect,
+    color: ColorAndShape,
+)
 
 fun DrawScope.drawTriangleTopLeftSmallest(
     pos: Rect,
@@ -181,6 +233,11 @@ fun DrawScope.drawTriangleTopLeftSmallest(
     )
 }
 
+expect fun CanvasExport.drawTriangleTopLeftSmallest(
+    pos: Rect,
+    color: ColorAndShape,
+)
+
 fun DrawScope.drawTriangleTopRightSmallest(
     pos: Rect,
     color: ColorAndShape,
@@ -196,3 +253,8 @@ fun DrawScope.drawTriangleTopRightSmallest(
         color = color.color,
     )
 }
+
+expect fun CanvasExport.drawTriangleTopRightSmallest(
+    pos: Rect,
+    color: ColorAndShape,
+)

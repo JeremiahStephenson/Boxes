@@ -6,6 +6,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
 import com.jerry.shapes.cache.data.ColorAndShape
+import com.jerry.shapes.util.CanvasExport
 
 fun DrawScope.drawRectangleLeft(
     pos: Rect,
@@ -19,6 +20,11 @@ fun DrawScope.drawRectangleLeft(
     )
 }
 
+expect fun CanvasExport.drawRectangleLeft(
+    pos: Rect,
+    color: ColorAndShape,
+)
+
 fun DrawScope.drawRectangleRight(
     pos: Rect,
     color: ColorAndShape,
@@ -30,6 +36,11 @@ fun DrawScope.drawRectangleRight(
         color = color.color,
     )
 }
+
+expect fun CanvasExport.drawRectangleRight(
+    pos: Rect,
+    color: ColorAndShape,
+)
 
 fun DrawScope.drawRectangleTop(
     pos: Rect,
@@ -43,6 +54,11 @@ fun DrawScope.drawRectangleTop(
     )
 }
 
+expect fun CanvasExport.drawRectangleTop(
+    pos: Rect,
+    color: ColorAndShape,
+)
+
 fun DrawScope.drawRectangleBottom(
     pos: Rect,
     color: ColorAndShape,
@@ -54,6 +70,11 @@ fun DrawScope.drawRectangleBottom(
         color = color.color,
     )
 }
+
+expect fun CanvasExport.drawRectangleBottom(
+    pos: Rect,
+    color: ColorAndShape,
+)
 
 fun DrawScope.drawBoxTopRight(
     pos: Rect,
@@ -67,6 +88,11 @@ fun DrawScope.drawBoxTopRight(
     )
 }
 
+expect fun CanvasExport.drawBoxTopRight(
+    pos: Rect,
+    color: ColorAndShape,
+)
+
 fun DrawScope.drawBoxTopLeft(
     pos: Rect,
     color: ColorAndShape,
@@ -78,6 +104,11 @@ fun DrawScope.drawBoxTopLeft(
         color = color.color,
     )
 }
+
+expect fun CanvasExport.drawBoxTopLeft(
+    pos: Rect,
+    color: ColorAndShape,
+)
 
 fun DrawScope.drawBoxBottomRight(
     pos: Rect,
@@ -91,6 +122,11 @@ fun DrawScope.drawBoxBottomRight(
     )
 }
 
+expect fun CanvasExport.drawBoxBottomRight(
+    pos: Rect,
+    color: ColorAndShape,
+)
+
 fun DrawScope.drawBoxBottomLeft(
     pos: Rect,
     color: ColorAndShape,
@@ -102,3 +138,8 @@ fun DrawScope.drawBoxBottomLeft(
         color = color.color,
     )
 }
+
+expect fun CanvasExport.drawBoxBottomLeft(
+    pos: Rect,
+    color: ColorAndShape,
+)

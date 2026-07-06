@@ -4,6 +4,7 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.jerry.shapes.cache.data.ColorAndShape
+import com.jerry.shapes.util.CanvasExport
 
 fun DrawScope.drawBottomLeftElbow(
     pos: Rect,
@@ -24,6 +25,11 @@ fun DrawScope.drawBottomLeftElbow(
     )
 }
 
+expect fun CanvasExport.drawBottomLeftElbow(
+    pos: Rect,
+    color: ColorAndShape,
+)
+
 fun DrawScope.drawBottomRightElbow(
     pos: Rect,
     color: ColorAndShape,
@@ -42,6 +48,11 @@ fun DrawScope.drawBottomRightElbow(
         color = color.color,
     )
 }
+
+expect fun CanvasExport.drawBottomRightElbow(
+    pos: Rect,
+    color: ColorAndShape,
+)
 
 fun DrawScope.drawTopLeftElbow(
     pos: Rect,
@@ -62,6 +73,11 @@ fun DrawScope.drawTopLeftElbow(
     )
 }
 
+expect fun CanvasExport.drawTopLeftElbow(
+    pos: Rect,
+    color: ColorAndShape,
+)
+
 fun DrawScope.drawTopRightElbow(
     pos: Rect,
     color: ColorAndShape,
@@ -80,3 +96,8 @@ fun DrawScope.drawTopRightElbow(
         color = color.color,
     )
 }
+
+expect fun CanvasExport.drawTopRightElbow(
+    pos: Rect,
+    color: ColorAndShape,
+)

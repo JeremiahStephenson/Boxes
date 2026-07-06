@@ -11,6 +11,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.rotate
 import com.jerry.shapes.cache.data.ColorAndShape
+import com.jerry.shapes.util.CanvasExport
 
 fun DrawScope.drawBox(
     pos: Rect,
@@ -23,6 +24,11 @@ fun DrawScope.drawBox(
         color = color.color,
     )
 }
+
+expect fun CanvasExport.drawBox(
+    pos: Rect,
+    color: ColorAndShape,
+)
 
 fun DrawScope.drawLegoSquare(
     pos: Rect,
@@ -59,6 +65,11 @@ fun DrawScope.drawLegoSquare(
         color = color.color,
     )
 }
+
+expect fun CanvasExport.drawLegoSquare(
+    pos: Rect,
+    color: ColorAndShape,
+)
 
 fun DrawScope.drawLegoRound(
     pos: Rect,
@@ -98,6 +109,11 @@ fun DrawScope.drawLegoRound(
     )
 }
 
+expect fun CanvasExport.drawLegoRound(
+    pos: Rect,
+    color: ColorAndShape,
+)
+
 fun DrawScope.drawCircle(
     pos: Rect,
     color: ColorAndShape,
@@ -111,6 +127,11 @@ fun DrawScope.drawCircle(
         color = color.color,
     )
 }
+
+expect fun CanvasExport.drawCircle(
+    pos: Rect,
+    color: ColorAndShape,
+)
 
 fun DrawScope.drawStar(
     pos: Rect,
@@ -135,6 +156,11 @@ fun DrawScope.drawStar(
     )
 }
 
+expect fun CanvasExport.drawStar(
+    pos: Rect,
+    color: ColorAndShape,
+)
+
 fun DrawScope.drawDiamond(
     pos: Rect,
     color: ColorAndShape,
@@ -152,6 +178,11 @@ fun DrawScope.drawDiamond(
     )
 }
 
+expect fun CanvasExport.drawDiamond(
+    pos: Rect,
+    color: ColorAndShape,
+)
+
 fun DrawScope.drawRoundedBox(
     pos: Rect,
     color: ColorAndShape,
@@ -164,6 +195,11 @@ fun DrawScope.drawRoundedBox(
         cornerRadius = CornerRadius(pos.width * 0.3F, pos.width * 0.3F),
     )
 }
+
+expect fun CanvasExport.drawRoundedBox(
+    pos: Rect,
+    color: ColorAndShape,
+)
 
 fun DrawScope.drawOctagon(
     pos: Rect,
@@ -186,6 +222,11 @@ fun DrawScope.drawOctagon(
         color = color.color,
     )
 }
+
+expect fun CanvasExport.drawOctagon(
+    pos: Rect,
+    color: ColorAndShape,
+)
 
 fun DrawScope.drawHeart(
     pos: Rect,
@@ -217,3 +258,8 @@ fun DrawScope.drawHeart(
         color = color.color,
     )
 }
+
+expect fun CanvasExport.drawHeart(
+    pos: Rect,
+    color: ColorAndShape,
+)

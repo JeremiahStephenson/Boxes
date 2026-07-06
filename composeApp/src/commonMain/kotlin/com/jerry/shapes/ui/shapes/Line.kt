@@ -7,6 +7,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
 import com.jerry.shapes.cache.data.ColorAndShape
+import com.jerry.shapes.util.CanvasExport
 
 fun DrawScope.drawBottomLeftToTopRightLine(
     pos: Rect,
@@ -27,6 +28,11 @@ fun DrawScope.drawBottomLeftToTopRightLine(
     )
 }
 
+expect fun CanvasExport.drawBottomLeftToTopRightLine(
+    pos: Rect,
+    color: ColorAndShape,
+)
+
 fun DrawScope.drawTopLeftToBottomRightLine(
     pos: Rect,
     color: ColorAndShape,
@@ -46,6 +52,12 @@ fun DrawScope.drawTopLeftToBottomRightLine(
     )
 }
 
+expect fun CanvasExport.drawTopLeftToBottomRightLine(
+    pos: Rect,
+    color: ColorAndShape,
+)
+
+
 fun DrawScope.drawVerticalLine(
     pos: Rect,
     color: ColorAndShape,
@@ -58,6 +70,11 @@ fun DrawScope.drawVerticalLine(
     )
 }
 
+expect fun CanvasExport.drawVerticalLine(
+    pos: Rect,
+    color: ColorAndShape,
+)
+
 fun DrawScope.drawHorizontalLine(
     pos: Rect,
     color: ColorAndShape,
@@ -69,3 +86,8 @@ fun DrawScope.drawHorizontalLine(
         color = color.color,
     )
 }
+
+expect fun CanvasExport.drawHorizontalLine(
+    pos: Rect,
+    color: ColorAndShape,
+)

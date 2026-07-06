@@ -50,6 +50,8 @@ import org.koin.compose.viewmodel.koinViewModel
 import kotlin.time.Instant
 import boxes.composeapp.generated.resources.Res
 import boxes.composeapp.generated.resources.*
+import coil3.compose.LocalPlatformContext
+import com.jerry.shapes.extensions.thumbnailUrl
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -178,7 +180,7 @@ private fun ProjectItem(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.TopEnd,
             ) {
-                ProjectImageItem(item.id, item.timestamp)
+                ProjectImageItem(item, item.timestamp)
                 if (editMode) {
                     Icon(
                         modifier =
@@ -230,11 +232,12 @@ private fun ProjectItem(
 
 @Composable
 private fun BoxWithConstraintsScope.ProjectImageItem(
-    projectId: Long,
+    project: Project,
     memoryKey: Long,
 ) {
-    // TODO: implement platform-specific thumbnail path
-    val imagePath = ""
+    val context = LocalPlatformContext.current
+    val imagePath =
+        remember(project.id) { project.thumbnailUrl(context) }
     ProjectImage(
         modifier =
             Modifier

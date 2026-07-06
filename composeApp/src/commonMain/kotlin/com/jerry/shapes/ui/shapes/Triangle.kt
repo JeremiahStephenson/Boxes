@@ -1,9 +1,11 @@
 package com.jerry.shapes.ui.shapes
 
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.jerry.shapes.cache.data.ColorAndShape
+import com.jerry.shapes.util.CanvasExport
 
 fun DrawScope.drawTriangleLeft(
     pos: Rect,
@@ -21,6 +23,11 @@ fun DrawScope.drawTriangleLeft(
     )
 }
 
+expect fun CanvasExport.drawTriangleLeft(
+    pos: Rect,
+    color: ColorAndShape,
+)
+
 fun DrawScope.drawTriangleRight(
     pos: Rect,
     color: ColorAndShape,
@@ -36,6 +43,11 @@ fun DrawScope.drawTriangleRight(
         color = color.color,
     )
 }
+
+expect fun CanvasExport.drawTriangleRight(
+    pos: Rect,
+    color: ColorAndShape,
+)
 
 fun DrawScope.drawTriangleTop(
     pos: Rect,
@@ -53,6 +65,11 @@ fun DrawScope.drawTriangleTop(
     )
 }
 
+expect fun CanvasExport.drawTriangleTop(
+    pos: Rect,
+    color: ColorAndShape,
+)
+
 fun DrawScope.drawTriangleBottom(
     pos: Rect,
     color: ColorAndShape,
@@ -68,3 +85,8 @@ fun DrawScope.drawTriangleBottom(
         color = color.color,
     )
 }
+
+expect fun CanvasExport.drawTriangleBottom(
+    pos: Rect,
+    color: ColorAndShape,
+)

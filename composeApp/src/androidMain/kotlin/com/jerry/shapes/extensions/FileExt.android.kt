@@ -11,8 +11,12 @@ import androidx.core.graphics.applyCanvas
 import androidx.core.graphics.createBitmap
 import com.jerry.shapes.R
 import com.jerry.shapes.cache.data.ColorAndShape
+import com.jerry.shapes.cache.data.Project
 import com.jerry.shapes.ui.boxes.data.LayerState
+import com.jerry.shapes.ui.shapes.ShapersInterface
+import com.jerry.shapes.util.AndroidPlatformCanvasExport
 import com.jerry.shapes.util.AndroidPlatformContext
+import com.jerry.shapes.util.CanvasExport
 import com.jerry.shapes.util.ExportType
 import com.jerry.shapes.util.PlatformContext
 import com.jerry.shapes.util.Point
@@ -21,6 +25,7 @@ import kotlinx.io.asOutputStream
 import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
+import kotlinx.io.files.SystemPathSeparator
 import kotlin.math.ceil
 import kotlin.math.min
 
@@ -100,7 +105,7 @@ fun generateBitmap(
     val newBoxes = generateBoxes(columns, rows, boxSize.toFloat(), 0F, 0F)
     val bitmap = createBitmap(columns * boxSize, rows * boxSize)
     return bitmap.applyCanvas {
-        drawShapes(layers, selections, newBoxes)
+        AndroidPlatformCanvasExport(this).drawShapes(layers, selections, newBoxes)
     }
 }
 
@@ -130,7 +135,7 @@ fun generateBitmap(
         selections,
     )
 
-fun Canvas.drawShapes(
+fun CanvasExport.drawShapes(
     layers: Collection<LayerState>,
     selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
     boxes: Map<Point, Rect>,
@@ -149,9 +154,13 @@ fun Canvas.drawShapes(
     }
 }
 
-fun Canvas.drawCustomShape(
+fun CanvasExport.drawCustomShape(
     pos: Rect,
     color: ColorAndShape,
 ) {
-    drawRect(pos.toAndroidRectF(), Paint().apply { this.color = color.colorValue.toInt() })
+    (color.shape as ShapersInterface).draw(this, pos, color)
+}
+
+actual fun Project.thumbnailUrl(context: coil3.PlatformContext): String {
+    return context.thumbnailLocation.path + SystemPathSeparator + "${id}.png"
 }

@@ -23,6 +23,7 @@ kotlin {
             "-opt-in=androidx.compose.animation.ExperimentalAnimationApi",
             "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
             "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
+            "-Xexpect-actual-classes",
             "-P", "plugin:org.jetbrains.kotlin.parcelize:additionalAnnotation=com.jerry.shapes.util.Parcelize",
             "-P", "plugin:org.jetbrains.kotlin.parcelize:additionalAnnotation=com.jerry.shapes.util.IgnoredOnParcel",
         )
