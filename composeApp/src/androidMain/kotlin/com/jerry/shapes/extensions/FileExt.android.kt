@@ -2,11 +2,8 @@ package com.jerry.shapes.extensions
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Paint
 import android.os.Environment
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.graphics.toAndroidRectF
 import androidx.core.graphics.applyCanvas
 import androidx.core.graphics.createBitmap
 import com.jerry.shapes.R
@@ -14,11 +11,10 @@ import com.jerry.shapes.cache.data.ColorAndShape
 import com.jerry.shapes.cache.data.Project
 import com.jerry.shapes.ui.boxes.data.LayerState
 import com.jerry.shapes.ui.shapes.ShapersInterface
-import com.jerry.shapes.util.AndroidPlatformCanvasExport
-import com.jerry.shapes.util.AndroidPlatformContext
-import com.jerry.shapes.util.CanvasExport
+import com.jerry.shapes.platform.CanvasExport
 import com.jerry.shapes.util.ExportType
-import com.jerry.shapes.util.PlatformContext
+import com.jerry.shapes.platform.AppContext
+import com.jerry.shapes.platform.PlatformBitmap
 import com.jerry.shapes.util.Point
 import com.jerry.shapes.util.generateBoxes
 import kotlinx.io.asOutputStream
@@ -29,7 +25,7 @@ import kotlinx.io.files.SystemPathSeparator
 import kotlin.math.ceil
 import kotlin.math.min
 
-actual fun PlatformContext?.exportCanvas(
+actual fun AppContext.exportCanvas(
     name: String,
     exportType: ExportType,
     rows: Int,
@@ -38,9 +34,8 @@ actual fun PlatformContext?.exportCanvas(
     layers: Collection<LayerState>,
     selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
 ): String? {
-    val context = (this as? AndroidPlatformContext)?.context ?: return null
     val bitmap = generateBitmap(rows, columns, imageSize, layers, selections)
-    return bitmap.storeImage(context, exportType, name)
+    return bitmap.storeImage(this, exportType, name)
 }
 
 fun Bitmap.storeImage(
@@ -94,28 +89,28 @@ private fun getOutputMediaFile(
     return mediaFile
 }
 
-fun generateBitmap(
+actual fun generateBitmap(
     rows: Int,
     columns: Int,
     imageSize: Int,
     layers: Collection<LayerState>,
     selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
-): Bitmap {
+): PlatformBitmap {
     val boxSize = ceil(min(imageSize / columns.toFloat(), imageSize / rows.toFloat())).toInt()
     val newBoxes = generateBoxes(columns, rows, boxSize.toFloat(), 0F, 0F)
     val bitmap = createBitmap(columns * boxSize, rows * boxSize)
     return bitmap.applyCanvas {
-        AndroidPlatformCanvasExport(this).drawShapes(layers, selections, newBoxes)
+        drawShapes(layers, selections, newBoxes)
     }
 }
 
-fun generateBitmap(
+actual fun generateBitmap(
     rows: Int,
     columns: Int,
     imageSize: Int,
     layerId: Long,
     selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
-): Bitmap =
+): PlatformBitmap =
     generateBitmap(
         rows,
         columns,

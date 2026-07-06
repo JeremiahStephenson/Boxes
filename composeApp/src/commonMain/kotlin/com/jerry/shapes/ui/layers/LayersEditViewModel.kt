@@ -5,9 +5,11 @@ import androidx.lifecycle.viewModelScope
 import androidx.room.withTransaction
 import com.jerry.shapes.cache.BoxesDao
 import com.jerry.shapes.cache.BoxesDatabase
+import com.jerry.shapes.extensions.generateBitmap
 import com.jerry.shapes.ui.layers.data.LayerEditUi
 import com.jerry.shapes.ui.layers.data.ProjectUi
 import com.jerry.shapes.util.CoroutineContextProvider
+import com.jerry.shapes.platform.PlatformBitmap
 import com.jerry.shapes.util.generateSelections
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -22,6 +24,7 @@ class LayersEditViewModel(
     private val boxesDatabase: BoxesDatabase,
     private val cc: CoroutineContextProvider,
 ) : ViewModel() {
+    private val cachedBitmaps = HashMap<Long, PlatformBitmap>()
     private var lastProjectTimestamp: Long? = null
 
     private val projectId = MutableStateFlow<Long?>(null)
@@ -33,6 +36,7 @@ class LayersEditViewModel(
                 boxesDao
                     .getFullProjectFlowById(projectId)
                     .map {
+                        val projectHasChanged = lastProjectTimestamp != null && lastProjectTimestamp != it.project.timestamp
                         lastProjectTimestamp = it.project.timestamp
                         val layers =
                             it.layers.sortedByDescending { layer -> layer.layer.index }.map { layer ->
@@ -40,7 +44,28 @@ class LayersEditViewModel(
                                     layer.layer.id,
                                     layer.layer.index,
                                     layer.layer.name,
-                                    null, // TODO: Platform-agnostic thumbnails
+                                    when (projectHasChanged) {
+                                        true ->
+                                            generateBitmap(
+                                                it.project.rows,
+                                                it.project.columns,
+                                                200,
+                                                layer.layer.id,
+                                                generateSelections(layer.pixels),
+                                            ).also { bitmap -> cachedBitmaps[layer.layer.id] = bitmap }
+                                        else ->
+                                            cachedBitmaps.getOrPut(
+                                                layer.layer.id,
+                                            ) {
+                                                generateBitmap(
+                                                    it.project.rows,
+                                                    it.project.columns,
+                                                    200,
+                                                    layer.layer.id,
+                                                    generateSelections(layer.pixels),
+                                                )
+                                            }
+                                    },
                                 )
                             }
                         ProjectUi(it.project.id, it.project.name, layers)

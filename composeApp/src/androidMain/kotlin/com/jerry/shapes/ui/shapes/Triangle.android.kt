@@ -4,13 +4,12 @@ import android.graphics.Paint
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.toArgb
 import com.jerry.shapes.cache.data.ColorAndShape
-import com.jerry.shapes.util.CanvasExport
-import com.jerry.shapes.util.expectPlatformCanvas
+import com.jerry.shapes.platform.CanvasExport
 
 actual fun CanvasExport.drawTriangleLeft(
     pos: Rect,
     color: ColorAndShape
-) = expectPlatformCanvas {
+) {
     drawPath(
         android.graphics.Path().apply {
             moveTo(pos.left, pos.top)
@@ -25,7 +24,7 @@ actual fun CanvasExport.drawTriangleLeft(
 actual fun CanvasExport.drawTriangleRight(
     pos: Rect,
     color: ColorAndShape,
-) = expectPlatformCanvas {
+) {
     drawPath(
         android.graphics.Path().apply {
             moveTo(pos.right, pos.top)
@@ -40,7 +39,7 @@ actual fun CanvasExport.drawTriangleRight(
 actual fun CanvasExport.drawTriangleTop(
     pos: Rect,
     color: ColorAndShape,
-) = expectPlatformCanvas {
+) {
     drawPath(
         android.graphics.Path().apply {
             moveTo(pos.left, pos.top)
@@ -55,7 +54,7 @@ actual fun CanvasExport.drawTriangleTop(
 actual fun CanvasExport.drawTriangleBottom(
     pos: Rect,
     color: ColorAndShape,
-) = expectPlatformCanvas {
+) {
     drawPath(
         android.graphics.Path().apply {
             moveTo(pos.left, pos.bottom)

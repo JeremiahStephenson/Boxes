@@ -6,13 +6,12 @@ import android.graphics.RectF
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.toArgb
 import com.jerry.shapes.cache.data.ColorAndShape
-import com.jerry.shapes.util.CanvasExport
-import com.jerry.shapes.util.expectPlatformCanvas
+import com.jerry.shapes.platform.CanvasExport
 
 actual fun CanvasExport.drawBottomLeftToTopRightLine(
     pos: Rect,
     color: ColorAndShape
-) = expectPlatformCanvas {
+) {
     drawPath(
         Path().apply {
             moveTo(pos.left + (pos.width * 0.75F), pos.top)
@@ -30,7 +29,7 @@ actual fun CanvasExport.drawBottomLeftToTopRightLine(
 actual fun CanvasExport.drawTopLeftToBottomRightLine(
     pos: Rect,
     color: ColorAndShape,
-) = expectPlatformCanvas {
+) {
     drawPath(
         Path().apply {
             moveTo(pos.left, pos.top)
@@ -48,7 +47,7 @@ actual fun CanvasExport.drawTopLeftToBottomRightLine(
 actual fun CanvasExport.drawVerticalLine(
     pos: Rect,
     color: ColorAndShape,
-) = expectPlatformCanvas {
+) {
     drawRect(
         RectF(pos.left + (pos.width * 0.4F), pos.top, pos.right - (pos.width * 0.4F), pos.bottom),
         Paint().apply { this.color = color.color.toArgb() },
@@ -58,7 +57,7 @@ actual fun CanvasExport.drawVerticalLine(
 actual fun CanvasExport.drawHorizontalLine(
     pos: Rect,
     color: ColorAndShape,
-) = expectPlatformCanvas {
+) {
     drawRect(
         RectF(pos.left, pos.top + (pos.height * 0.4F), pos.right, pos.bottom - (pos.height * 0.4F)),
         Paint().apply { this.color = color.color.toArgb() },

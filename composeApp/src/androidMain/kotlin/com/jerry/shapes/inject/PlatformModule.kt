@@ -5,8 +5,6 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.jerry.shapes.LaunchViewModel
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.jerry.shapes.util.Analytics
-import com.jerry.shapes.util.AndroidPlatformContext
-import com.jerry.shapes.util.PlatformContext
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
@@ -39,6 +37,5 @@ actual val platformModule = module {
     single { FirebaseAnalytics.getInstance(androidContext()) }
     single<Analytics> { AndroidAnalytics(get()) }
     single { androidContext().dataStore }
-    single<PlatformContext> { AndroidPlatformContext(androidContext()) }
     viewModel { LaunchViewModel(get()) }
 }

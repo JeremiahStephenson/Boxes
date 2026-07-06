@@ -5,13 +5,12 @@ import android.graphics.RectF
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.toArgb
 import com.jerry.shapes.cache.data.ColorAndShape
-import com.jerry.shapes.util.CanvasExport
-import com.jerry.shapes.util.expectPlatformCanvas
+import com.jerry.shapes.platform.CanvasExport
 
 actual fun CanvasExport.drawCornerArcRight(
     pos: Rect,
     color: ColorAndShape,
-) = expectPlatformCanvas {
+) {
     drawArc(
         RectF(pos.left - pos.width, pos.top, pos.right, pos.bottom + pos.height),
         -90F,
@@ -24,7 +23,7 @@ actual fun CanvasExport.drawCornerArcRight(
 actual fun CanvasExport.drawCornerArcRightSmall(
     pos: Rect,
     color: ColorAndShape,
-) = expectPlatformCanvas {
+) {
     drawArc(
         RectF(
             pos.left - (pos.width / 2),
@@ -42,7 +41,7 @@ actual fun CanvasExport.drawCornerArcRightSmall(
 actual fun CanvasExport.drawCornerArcLeft(
     pos: Rect,
     color: ColorAndShape,
-) = expectPlatformCanvas {
+) {
     drawArc(
         RectF(pos.left, pos.top, pos.right + pos.width, pos.bottom + pos.height),
         -90F,
@@ -55,7 +54,7 @@ actual fun CanvasExport.drawCornerArcLeft(
 actual fun CanvasExport.drawCornerArcLeftSmall(
     pos: Rect,
     color: ColorAndShape,
-) = expectPlatformCanvas {
+) {
     drawArc(
         RectF(
             pos.left + (pos.width / 2),
@@ -73,7 +72,7 @@ actual fun CanvasExport.drawCornerArcLeftSmall(
 actual fun CanvasExport.drawCornerArcRightInverse(
     pos: Rect,
     color: ColorAndShape,
-) = expectPlatformCanvas {
+) {
      drawArc(
         RectF(pos.left - pos.width, pos.top - pos.height, pos.right, pos.bottom),
         0F,
@@ -86,7 +85,7 @@ actual fun CanvasExport.drawCornerArcRightInverse(
 actual fun CanvasExport.drawCornerArcRightInverseSmall(
     pos: Rect,
     color: ColorAndShape,
-) = expectPlatformCanvas {
+) {
     drawArc(
         RectF(
             pos.left - (pos.width / 2),
@@ -104,7 +103,7 @@ actual fun CanvasExport.drawCornerArcRightInverseSmall(
 actual fun CanvasExport.drawCornerArcLeftInverse(
     pos: Rect,
     color: ColorAndShape,
-) = expectPlatformCanvas {
+) {
     drawArc(
         RectF(pos.left, pos.top - pos.height, pos.right + pos.width, pos.bottom),
         90F,
@@ -117,7 +116,7 @@ actual fun CanvasExport.drawCornerArcLeftInverse(
 actual fun CanvasExport.drawCornerArcLeftInverseSmall(
     pos: Rect,
     color: ColorAndShape,
-) = expectPlatformCanvas {
+) {
     drawArc(
         RectF(
             pos.left + (pos.width / 2),
@@ -135,7 +134,7 @@ actual fun CanvasExport.drawCornerArcLeftInverseSmall(
 actual fun CanvasExport.drawArcRight(
     pos: Rect,
     color: ColorAndShape,
-) = expectPlatformCanvas {
+) {
     drawArc(
         RectF(pos.left + (pos.width / 2), pos.top, pos.right + (pos.width / 2), pos.bottom),
         -90F,
@@ -148,7 +147,7 @@ actual fun CanvasExport.drawArcRight(
 actual fun CanvasExport.drawArcTop(
     pos: Rect,
     color: ColorAndShape,
-) = expectPlatformCanvas {
+) {
     drawArc(
         RectF(pos.left, pos.top - (pos.height / 2), pos.right, pos.bottom - (pos.height / 2)),
         -180F,
@@ -161,7 +160,7 @@ actual fun CanvasExport.drawArcTop(
 actual fun CanvasExport.drawArcLeft(
     pos: Rect,
     color: ColorAndShape,
-) = expectPlatformCanvas {
+) {
     drawArc(
         RectF(pos.left - (pos.width / 2), pos.top, pos.right - (pos.width / 2), pos.bottom),
         -90F,
@@ -174,7 +173,7 @@ actual fun CanvasExport.drawArcLeft(
 actual fun CanvasExport.drawArcBottom(
     pos: Rect,
     color: ColorAndShape,
-) = expectPlatformCanvas {
+) {
     drawArc(
         RectF(pos.left, pos.top + (pos.height / 2), pos.right, pos.bottom + (pos.height / 2)),
         -180F,

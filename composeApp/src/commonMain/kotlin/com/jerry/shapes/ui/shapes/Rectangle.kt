@@ -6,7 +6,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
 import com.jerry.shapes.cache.data.ColorAndShape
-import com.jerry.shapes.util.CanvasExport
+import com.jerry.shapes.platform.CanvasExport
 
 fun DrawScope.drawRectangleLeft(
     pos: Rect,

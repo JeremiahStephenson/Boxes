@@ -3,10 +3,10 @@ package com.jerry.shapes.extensions
 import com.jerry.shapes.cache.data.ColorAndShape
 import com.jerry.shapes.ui.boxes.data.LayerState
 import com.jerry.shapes.util.ExportType
-import com.jerry.shapes.util.PlatformContext
+import com.jerry.shapes.platform.AppContext
 import com.jerry.shapes.util.Point
 
-actual fun PlatformContext?.exportCanvas(
+actual fun AppContext?.exportCanvas(
     name: String,
     exportType: ExportType,
     rows: Int,

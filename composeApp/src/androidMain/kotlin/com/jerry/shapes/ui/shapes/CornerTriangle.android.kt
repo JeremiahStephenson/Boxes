@@ -5,13 +5,12 @@ import android.graphics.Path
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.toArgb
 import com.jerry.shapes.cache.data.ColorAndShape
-import com.jerry.shapes.util.CanvasExport
-import com.jerry.shapes.util.expectPlatformCanvas
+import com.jerry.shapes.platform.CanvasExport
 
 actual fun CanvasExport.drawTriangleBottomLeft(
     pos: Rect,
     color: ColorAndShape
-) = expectPlatformCanvas {
+) {
     drawPath(
         Path().apply {
             moveTo(pos.left, pos.top)
@@ -26,7 +25,7 @@ actual fun CanvasExport.drawTriangleBottomLeft(
 actual fun CanvasExport.drawTriangleBottomRight(
     pos: Rect,
     color: ColorAndShape,
-) = expectPlatformCanvas {
+) {
     drawPath(
         Path().apply {
             moveTo(pos.left, pos.bottom)
@@ -41,7 +40,7 @@ actual fun CanvasExport.drawTriangleBottomRight(
 actual fun CanvasExport.drawTriangleTopLeft(
     pos: Rect,
     color: ColorAndShape,
-) = expectPlatformCanvas {
+) {
     drawPath(
         Path().apply {
             moveTo(pos.left, pos.top)
@@ -56,7 +55,7 @@ actual fun CanvasExport.drawTriangleTopLeft(
 actual fun CanvasExport.drawTriangleTopRight(
     pos: Rect,
     color: ColorAndShape,
-) = expectPlatformCanvas {
+) {
     drawPath(
         Path().apply {
             moveTo(pos.left, pos.top)
@@ -71,7 +70,7 @@ actual fun CanvasExport.drawTriangleTopRight(
 actual fun CanvasExport.drawTriangleBottomLeftSmall(
     pos: Rect,
     color: ColorAndShape,
-) = expectPlatformCanvas {
+) {
     drawPath(
         Path().apply {
             moveTo(pos.left, pos.top + (pos.height / 2))
@@ -86,7 +85,7 @@ actual fun CanvasExport.drawTriangleBottomLeftSmall(
 actual fun CanvasExport.drawTriangleBottomRightSmall(
     pos: Rect,
     color: ColorAndShape,
-) = expectPlatformCanvas {
+) {
     drawPath(
         Path().apply {
             moveTo(pos.left + (pos.width / 2), pos.bottom)
@@ -101,7 +100,7 @@ actual fun CanvasExport.drawTriangleBottomRightSmall(
 actual fun CanvasExport.drawTriangleTopLeftSmall(
     pos: Rect,
     color: ColorAndShape,
-) = expectPlatformCanvas {
+) {
     drawPath(
         Path().apply {
             moveTo(pos.left, pos.top)
@@ -116,7 +115,7 @@ actual fun CanvasExport.drawTriangleTopLeftSmall(
 actual fun CanvasExport.drawTriangleTopRightSmall(
     pos: Rect,
     color: ColorAndShape,
-) = expectPlatformCanvas {
+) {
     drawPath(
         Path().apply {
             moveTo(pos.left + (pos.width / 2), pos.top)
@@ -131,7 +130,7 @@ actual fun CanvasExport.drawTriangleTopRightSmall(
 actual fun CanvasExport.drawTriangleBottomLeftSmallest(
     pos: Rect,
     color: ColorAndShape,
-) = expectPlatformCanvas {
+) {
     drawPath(
         Path().apply {
             moveTo(pos.left, pos.bottom - (pos.height / 4))
@@ -146,7 +145,7 @@ actual fun CanvasExport.drawTriangleBottomLeftSmallest(
 actual fun CanvasExport.drawTriangleBottomRightSmallest(
     pos: Rect,
     color: ColorAndShape,
-) = expectPlatformCanvas {
+) {
     drawPath(
         Path().apply {
             moveTo(pos.right - (pos.width / 4), pos.bottom)
@@ -161,7 +160,7 @@ actual fun CanvasExport.drawTriangleBottomRightSmallest(
 actual fun CanvasExport.drawTriangleTopLeftSmallest(
     pos: Rect,
     color: ColorAndShape,
-) = expectPlatformCanvas {
+) {
     drawPath(
         Path().apply {
             moveTo(pos.left, pos.top)
@@ -176,7 +175,7 @@ actual fun CanvasExport.drawTriangleTopLeftSmallest(
 actual fun CanvasExport.drawTriangleTopRightSmallest(
     pos: Rect,
     color: ColorAndShape,
-) = expectPlatformCanvas {
+) {
     drawPath(
         Path().apply {
             moveTo(pos.right - (pos.width / 4), pos.top)

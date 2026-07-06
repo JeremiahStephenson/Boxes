@@ -4,14 +4,13 @@ import android.graphics.Paint
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.toArgb
 import com.jerry.shapes.cache.data.ColorAndShape
-import com.jerry.shapes.util.CanvasExport
-import com.jerry.shapes.util.expectPlatformCanvas
+import com.jerry.shapes.platform.CanvasExport
 import android.graphics.Path
 
 actual fun CanvasExport.drawBottomLeftElbow(
     pos: Rect,
     color: ColorAndShape
-) = expectPlatformCanvas {
+) {
     drawPath(
         Path().apply {
             moveTo(pos.left, pos.top + (pos.height * 0.4F))
@@ -29,7 +28,7 @@ actual fun CanvasExport.drawBottomLeftElbow(
 actual fun CanvasExport.drawBottomRightElbow(
     pos: Rect,
     color: ColorAndShape,
-) = expectPlatformCanvas {
+) {
     drawPath(
         Path().apply {
             moveTo(pos.left + (pos.width * 0.4F), pos.top + (pos.height * 0.4F))
@@ -47,7 +46,7 @@ actual fun CanvasExport.drawBottomRightElbow(
 actual fun CanvasExport.drawTopLeftElbow(
     pos: Rect,
     color: ColorAndShape,
-) = expectPlatformCanvas {
+) {
     drawPath(
         Path().apply {
             moveTo(pos.left + (pos.width * 0.4F), pos.top)
@@ -65,7 +64,7 @@ actual fun CanvasExport.drawTopLeftElbow(
 actual fun CanvasExport.drawTopRightElbow(
     pos: Rect,
     color: ColorAndShape,
-) = expectPlatformCanvas {
+) {
     drawPath(
         Path().apply {
             moveTo(pos.left + (pos.width * 0.4F), pos.top)

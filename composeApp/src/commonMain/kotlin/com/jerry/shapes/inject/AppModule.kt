@@ -23,14 +23,14 @@ val appModule =
         viewModel { CreateViewModel(get()) }
         viewModel { LayersEditViewModel(get(), get(), get()) }
 
-        single { 
+        single {
             BoxesRepository(
                 boxesDatabase = get(),
                 boxesDao = get(),
                 applicationScope = get(),
                 cc = get(),
                 analytics = get(),
-                context = get()
+                context = get(),
             ) 
         }
 

@@ -2,7 +2,7 @@ package com.jerry.shapes.inject
 
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import com.jerry.shapes.util.Analytics
-import com.jerry.shapes.util.PlatformContext
+import com.jerry.shapes.platform.AppContext
 import okio.Path.Companion.toPath
 import org.koin.dsl.module
 import platform.Foundation.NSDocumentDirectory
@@ -19,7 +19,7 @@ class IosAnalytics : Analytics {
     }
 }
 
-class IosPlatformContext : PlatformContext()
+class IosPlatformContext : AppContext()
 
 actual val platformModule = module {
     single<Analytics> { IosAnalytics() }
@@ -35,5 +35,5 @@ actual val platformModule = module {
             (directory!!.path!! + "/settings.preferences_pb").toPath()
         }
     }
-    single<PlatformContext> { IosPlatformContext() }
+    single<AppContext> { IosPlatformContext() }
 }

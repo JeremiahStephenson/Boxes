@@ -17,7 +17,7 @@ import com.jerry.shapes.ui.shapes.Shape
 import com.jerry.shapes.util.Analytics
 import com.jerry.shapes.util.CoroutineContextProvider
 import com.jerry.shapes.util.ExportType
-import com.jerry.shapes.util.PlatformContext
+import com.jerry.shapes.platform.AppContext
 import com.jerry.shapes.util.Point
 import com.jerry.shapes.util.Resource
 import com.jerry.shapes.util.generateSelections
@@ -37,7 +37,7 @@ class BoxesRepository(
     private val applicationScope: CoroutineScope,
     private val cc: CoroutineContextProvider,
     private val analytics: Analytics,
-    private val context: PlatformContext?,
+    private val context: AppContext,
 ) {
     fun getPixelsFlow(projectId: Long) =
         boxesDao

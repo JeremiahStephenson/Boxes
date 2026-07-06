@@ -9,21 +9,20 @@ import androidx.compose.ui.graphics.toAndroidRectF
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.graphics.withRotation
 import com.jerry.shapes.cache.data.ColorAndShape
-import com.jerry.shapes.util.CanvasExport
-import com.jerry.shapes.util.expectPlatformCanvas
+import com.jerry.shapes.platform.CanvasExport
 import androidx.compose.ui.graphics.Color
 
 actual fun CanvasExport.drawBox(
     pos: Rect,
     color: ColorAndShape,
-) = expectPlatformCanvas {
+) {
     drawRect(pos.toAndroidRectF(), Paint().apply { this.color = color.color.toArgb() })
 }
 
 actual fun CanvasExport.drawLegoSquare(
     pos: Rect,
     color: ColorAndShape,
-) = expectPlatformCanvas {
+) {
     drawRect(
         RectF(
             pos.left + (pos.width * 0.01F),
@@ -76,7 +75,7 @@ actual fun CanvasExport.drawLegoSquare(
 actual fun CanvasExport.drawLegoRound(
     pos: Rect,
     color: ColorAndShape,
-) = expectPlatformCanvas {
+) {
     drawArc(
         RectF(
             pos.left + (pos.width * 0.01F),
@@ -132,7 +131,7 @@ actual fun CanvasExport.drawLegoRound(
 actual fun CanvasExport.drawCircle(
     pos: Rect,
     color: ColorAndShape,
-) = expectPlatformCanvas {
+) {
     drawArc(
         pos.toAndroidRectF(),
         0F,
@@ -145,7 +144,7 @@ actual fun CanvasExport.drawCircle(
 actual fun CanvasExport.drawStar(
     pos: Rect,
     color: ColorAndShape,
-) = expectPlatformCanvas {
+) {
     drawPath(
         android.graphics.Path().apply {
             moveTo(pos.left + (pos.width / 2), pos.top)
@@ -167,7 +166,7 @@ actual fun CanvasExport.drawStar(
 actual fun CanvasExport.drawDiamond(
     pos: Rect,
     color: ColorAndShape,
-) = expectPlatformCanvas {
+) {
     drawPath(
         android.graphics.Path().apply {
             moveTo(pos.left + (pos.width / 2), pos.top)
@@ -183,7 +182,7 @@ actual fun CanvasExport.drawDiamond(
 actual fun CanvasExport.drawRoundedBox(
     pos: Rect,
     color: ColorAndShape,
-) = expectPlatformCanvas {
+) {
     drawRoundRect(
         pos.toAndroidRectF(),
         pos.width * 0.3F,
@@ -194,7 +193,7 @@ actual fun CanvasExport.drawRoundedBox(
 actual fun CanvasExport.drawOctagon(
     pos: Rect,
     color: ColorAndShape,
-) = expectPlatformCanvas {
+) {
     val sides = (pos.width - (pos.width * 0.414F)) / 2F
     drawPath(
         android.graphics.Path().apply {
@@ -215,7 +214,7 @@ actual fun CanvasExport.drawOctagon(
 actual fun CanvasExport.drawHeart(
     pos: Rect,
     color: ColorAndShape,
-) = expectPlatformCanvas {
+) {
     drawPath(
         android.graphics.Path().apply {
             moveTo(pos.left + (pos.width / 2), pos.bottom)

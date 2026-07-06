@@ -1,11 +1,10 @@
 package com.jerry.shapes.ui.shapes
 
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import com.jerry.shapes.cache.data.ColorAndShape
-import com.jerry.shapes.util.CanvasExport
+import com.jerry.shapes.platform.CanvasExport
 
 fun DrawScope.drawTriangleLeft(
     pos: Rect,

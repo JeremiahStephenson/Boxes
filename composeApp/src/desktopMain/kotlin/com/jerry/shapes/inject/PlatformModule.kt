@@ -2,7 +2,7 @@ package com.jerry.shapes.inject
 
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import com.jerry.shapes.util.Analytics
-import com.jerry.shapes.util.PlatformContext
+import com.jerry.shapes.platform.AppContext
 import okio.Path.Companion.toPath
 import org.koin.dsl.module
 
@@ -16,7 +16,7 @@ class DesktopAnalytics : Analytics {
     }
 }
 
-class DesktopPlatformContext : PlatformContext()
+class DesktopAppContext : AppContext()
 
 actual val platformModule = module {
     single<Analytics> { DesktopAnalytics() }
@@ -25,5 +25,5 @@ actual val platformModule = module {
             "settings.preferences_pb".toPath()
         }
     }
-    single<PlatformContext> { DesktopPlatformContext() }
+    single<AppContext> { DesktopAppContext() }
 }
