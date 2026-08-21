@@ -46,6 +46,7 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -122,8 +123,7 @@ class BoxesViewModel(
                 Resource.loading(SnapshotStateMap()),
             )
 
-    private val _loadingState = MutableStateFlow(false)
-    val loadingState = _loadingState.asStateFlow()
+    val loadingState: StateFlow<Boolean> field = MutableStateFlow(false)
 
     private val _uiEventFlow = MutableSharedFlow<UiEvent>(0, 1, BufferOverflow.DROP_OLDEST)
     val uiEventFlow = _uiEventFlow.asSharedFlow()
@@ -269,10 +269,10 @@ class BoxesViewModel(
     private var undoJob: Job? = null
 
     fun onUndo(layerId: Long?) {
-        if (undoJob?.isActive == true || layerId == null || _loadingState.value) return
+        if (undoJob?.isActive == true || layerId == null || loadingState.value) return
         undoJob =
             viewModelScope.launch(cc.io) {
-                _loadingState.value = true
+                loadingState.value = true
                 runCatching {
                     val layer = pixelsFlow.value.data?.getOrPut(layerId) { mutableStateMapOf() }
                     val quads = boxesRepository.getLastHistoryItem(layerId).quadrants
@@ -294,7 +294,7 @@ class BoxesViewModel(
                 }.onFailure { error ->
                     _uiEventFlow.emit(UiEvent.Error(error.message))
                 }
-                _loadingState.value = false
+                loadingState.value = false
             }
     }
 
@@ -310,7 +310,7 @@ class BoxesViewModel(
         if (exportJob?.isActive == true) return
         exportJob =
             viewModelScope.launch(cc.io) {
-                _loadingState.value = true
+                loadingState.value = true
                 runCatching {
                     val path =
                         boxesRepository.export(
@@ -328,7 +328,7 @@ class BoxesViewModel(
                     _uiEventFlow.emit(UiEvent.Error(error.message))
                     analytics.logError(error)
                 }
-                _loadingState.value = false
+                loadingState.value = false
             }
     }
 
@@ -361,7 +361,7 @@ class BoxesViewModel(
         if (fillJob?.isActive == true) return
         fillJob =
             viewModelScope.launch(cc.io) {
-                _loadingState.value = true
+                loadingState.value = true
                 withTimeout(timeout = FILL_TIMEOUT) {
                     runCatching {
                         fillInArea(point, layerId, currentColor, currentShape, columns, rows)
@@ -369,7 +369,7 @@ class BoxesViewModel(
                         _uiEventFlow.emit(UiEvent.Error(error.message))
                     }
                 }
-                _loadingState.value = false
+                loadingState.value = false
             }
     }
 
@@ -395,7 +395,7 @@ class BoxesViewModel(
     ) {
         if (uri.path.isNullOrEmpty() || columns == null || rows == null) return
         viewModelScope.launch(cc.io) {
-            _loadingState.value = true
+            loadingState.value = true
             runCatching {
                 val bitmap =
                     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
@@ -467,7 +467,7 @@ class BoxesViewModel(
             }.onFailure { error ->
                 _uiEventFlow.emit(UiEvent.Error(error.message))
             }
-            _loadingState.value = false
+            loadingState.value = false
         }
     }
 
@@ -479,10 +479,10 @@ class BoxesViewModel(
         bottomRight: Point?,
         direction: Direction,
     ) {
-        if (moveJob?.isActive == true || _loadingState.value || topLeft == null || bottomRight == null) return
+        if (moveJob?.isActive == true || loadingState.value || topLeft == null || bottomRight == null) return
         moveJob =
             viewModelScope.launch(cc.io) {
-                _loadingState.value = true
+                loadingState.value = true
                 runCatching {
                     val points = HashSet<Point>()
                     for (c in min(topLeft.x, bottomRight.x)..max(topLeft.x, bottomRight.x)) {
@@ -517,7 +517,7 @@ class BoxesViewModel(
                 }.onFailure { error ->
                     _uiEventFlow.emit(UiEvent.Error(error.message))
                 }
-                _loadingState.value = false
+                loadingState.value = false
             }
     }
 

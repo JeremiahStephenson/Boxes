@@ -30,6 +30,7 @@ kotlin {
             "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
             "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
             "-jvm-default=enable",
+            "-XXLanguage:+ExplicitBackingFields",
         )
     }
 }
