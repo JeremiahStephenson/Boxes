@@ -37,6 +37,11 @@ public final class RenderLauncherIcons {
         }
 
         Path res = projectRoot.resolve("app/src/main/res");
+        write(
+                projectRoot.resolve("artwork/launcher-icon/play-store-icon.png"),
+                512,
+                Layer.PLAY_STORE,
+                CURRENT);
         Map<String, Integer> legacySizes = Map.of(
                 "mdpi", 48,
                 "hdpi", 72,
@@ -111,7 +116,11 @@ public final class RenderLauncherIcons {
     }
 
     private static void draw(Graphics2D graphics, Layer layer, Palette palette) {
-        if (layer == Layer.LEGACY) {
+        if (layer == Layer.PLAY_STORE) {
+            // Google Play applies its own rounded mask and shadow to this full-square artwork.
+            drawBackground(graphics);
+            drawCenteredTiles(graphics, false, palette);
+        } else if (layer == Layer.LEGACY) {
             graphics.clip(new Ellipse2D.Float(2, 2, 104, 104));
             drawBackground(graphics);
             drawCenteredTiles(graphics, false, palette);
@@ -256,6 +265,7 @@ public final class RenderLauncherIcons {
             Color highlightEnd) {}
 
     private enum Layer {
+        PLAY_STORE,
         LEGACY,
         BACKGROUND,
         FOREGROUND,
