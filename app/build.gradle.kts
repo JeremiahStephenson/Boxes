@@ -36,11 +36,11 @@ kotlin {
 }
 
 android {
-    namespace = "com.jerry.shapes"
+    namespace = "com.jerry.bit.shapes"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.jerry.shapes"
+        applicationId = "com.jerry.bit.shapes"
         minSdk = 24
         targetSdk = 37
         versionCode = 3
