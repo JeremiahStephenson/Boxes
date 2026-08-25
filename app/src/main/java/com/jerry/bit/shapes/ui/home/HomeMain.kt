@@ -74,6 +74,10 @@ fun HomeMain(
                     itemsFlow?.isSuccessful == true && (itemsFlow?.data?.isEmpty() ?: true)
                 }
             }
+            // Turn this on when seeding is needed
+//            SeedMenu {
+//                viewModel.seedProjects()
+//            }
             if (!emptyList) {
                 EditMenu(editMode) {
                     editMode = !editMode
@@ -246,6 +250,20 @@ private fun BoxWithConstraintsScope.ProjectImageItem(
         imagePath = imagePath,
         memoryKey = memoryKey.toString(),
         contentScale = ContentScale.Fit,
+    )
+}
+
+@Composable
+private fun SeedMenu(
+    onSeedClick: () -> Unit,
+) {
+    Text(
+        modifier =
+            Modifier
+                .unboundClickable {
+                    onSeedClick()
+                }.padding(8.dp),
+        text = "Seed",
     )
 }
 

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jerry.bit.shapes.cache.BoxesDao
 import com.jerry.bit.shapes.datastore.AppDataStore
+import com.jerry.bit.shapes.util.ProjectSeeder
 import com.jerry.bit.shapes.util.Resource
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -14,6 +15,8 @@ class HomeViewModel(
     private val boxesDao: BoxesDao,
     private val appDataStore: AppDataStore,
 ) : ViewModel() {
+    private val projectSeeder = ProjectSeeder(boxesDao)
+
     val projectsFlow =
         boxesDao
             .findAllProjects()
@@ -31,6 +34,12 @@ class HomeViewModel(
     fun setHasLaunched() {
         viewModelScope.launch {
             appDataStore.setHasLaunched()
+        }
+    }
+
+    fun seedProjects() {
+        viewModelScope.launch {
+            projectSeeder.seedProjects()
         }
     }
 }
