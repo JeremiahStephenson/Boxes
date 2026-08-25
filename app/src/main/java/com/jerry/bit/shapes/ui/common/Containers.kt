@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.LifecycleResumeEffect
@@ -20,9 +21,10 @@ fun DefaultContainer(
     val localAppBarTitle = LocalAppBarTitle.current
     val localFloatingActionBarButton = LocalFloatingActionBarButton.current
     val localAppBarActions = LocalAppBarActions.current
+    val titleRemembered by rememberUpdatedState(title)
 
     val setScaffoldValues = {
-        localAppBarTitle(title.orEmpty() to disableAppbarScroll)
+        localAppBarTitle(titleRemembered.orEmpty() to disableAppbarScroll)
         localFloatingActionBarButton(
             when (fabListener) {
                 null -> null
