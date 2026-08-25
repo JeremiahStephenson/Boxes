@@ -13,10 +13,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setEdgeToEdgeConfig()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            // Force the 3-button navigation bar to be transparent
-            window.isNavigationBarContrastEnforced = false
-        }
 
         setContent {
             BoxesTheme {

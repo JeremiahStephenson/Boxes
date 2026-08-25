@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.Boxes" parent="android:Theme.Material.Light.NoActionBar" >
-        <item name="android:statusBarColor">@android:color/transparent</item>
-    </style>
+    <style name="Theme.Boxes" parent="android:Theme.Material.Light.NoActionBar" />
 
     <style name="SplashTheme" parent="Theme.SplashScreen">
         <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
