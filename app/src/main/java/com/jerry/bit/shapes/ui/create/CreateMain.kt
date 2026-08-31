@@ -11,12 +11,16 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.plus
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -127,8 +131,11 @@ private fun CreateForm(
             Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
-                .windowInsetsPadding(WindowInsets.displayCutout.only(WindowInsetsSides.Horizontal))
-                .imePadding()
+                .windowInsetsPadding(
+                    WindowInsets
+                        .displayCutout
+                        .only(WindowInsetsSides.Horizontal),
+                ).imePadding()
                 .padding(horizontal = 16.dp),
         contentAlignment = Alignment.BottomCenter,
     ) {
@@ -158,7 +165,10 @@ private fun CreateForm(
         val scrollState = rememberLazyListState()
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 86.dp),
+            contentPadding =
+                WindowInsets.navigationBars
+                    .asPaddingValues()
+                    .plus(PaddingValues(bottom = 86.dp)),
             state = scrollState,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -218,6 +228,7 @@ private fun CreateForm(
             modifier =
                 Modifier
                     .fillMaxWidth()
+                    .navigationBarsPadding()
                     .padding(vertical = 8.dp),
             onClick = {
                 when (text.trim().isEmpty()) {

@@ -6,232 +6,281 @@ import com.jerry.bit.shapes.cache.data.Pixel
 import com.jerry.bit.shapes.cache.data.Project
 import com.jerry.bit.shapes.ui.shapes.Shape
 
-class ProjectSeeder(private val boxesDao: BoxesDao) {
-
+class ProjectSeeder(
+    private val boxesDao: BoxesDao,
+) {
     suspend fun seedProjects() {
         val now = System.currentTimeMillis()
-        
+
         // Cactus
-        val cactusId = boxesDao.insertProject(
-            Project(
-                name = "Desert Cactus",
-                columns = 16, rows = 16,
-                currentColor = 0xFF4CAF50.toInt(),
-                currentShape = Shape.Box,
-                showGrid = true, showPngBg = true,
-                timestamp = now
+        val cactusId =
+            boxesDao.insertProject(
+                Project(
+                    name = "Desert Cactus",
+                    columns = 16,
+                    rows = 16,
+                    currentColor = 0xFF4CAF50.toInt(),
+                    currentShape = Shape.Box,
+                    showGrid = true,
+                    showPngBg = true,
+                    timestamp = now,
+                ),
             )
-        )
         val cactusLayer = boxesDao.insertLayer(Layer(projectId = cactusId, index = 0, name = "Layer 1", on = true))
         boxesDao.insertAllPixels(createCactusPixels(cactusLayer))
 
         // Kitty
-        val kittyId = boxesDao.insertProject(
-            Project(
-                name = "Pixel Kitty",
-                columns = 16, rows = 16,
-                currentColor = 0xFFFFFFFF.toInt(),
-                currentShape = Shape.Box,
-                showGrid = true, showPngBg = true,
-                timestamp = now + 1000
+        val kittyId =
+            boxesDao.insertProject(
+                Project(
+                    name = "Pixel Kitty",
+                    columns = 16,
+                    rows = 16,
+                    currentColor = 0xFFFFFFFF.toInt(),
+                    currentShape = Shape.Box,
+                    showGrid = true,
+                    showPngBg = true,
+                    timestamp = now + 1000,
+                ),
             )
-        )
         val kittyLayer = boxesDao.insertLayer(Layer(projectId = kittyId, index = 0, name = "Layer 1", on = true))
         boxesDao.insertAllPixels(createKittyPixels(kittyLayer))
-        
+
         // House
-        val houseId = boxesDao.insertProject(
-            Project(
-                name = "Cozy Home",
-                columns = 16, rows = 16,
-                currentColor = 0xFFFFEB3B.toInt(),
-                currentShape = Shape.Box,
-                showGrid = true, showPngBg = true,
-                timestamp = now + 2000
+        val houseId =
+            boxesDao.insertProject(
+                Project(
+                    name = "Cozy Home",
+                    columns = 16,
+                    rows = 16,
+                    currentColor = 0xFFFFEB3B.toInt(),
+                    currentShape = Shape.Box,
+                    showGrid = true,
+                    showPngBg = true,
+                    timestamp = now + 2000,
+                ),
             )
-        )
         val houseLayer = boxesDao.insertLayer(Layer(projectId = houseId, index = 0, name = "Layer 1", on = true))
         boxesDao.insertAllPixels(createHousePixels(houseLayer))
 
         // Sprite
-        val spriteId = boxesDao.insertProject(
-            Project(
-                name = "Adventurer",
-                columns = 16, rows = 16,
-                currentColor = 0xFF2196F3.toInt(),
-                currentShape = Shape.Box,
-                showGrid = true, showPngBg = true,
-                timestamp = now + 3000
+        val spriteId =
+            boxesDao.insertProject(
+                Project(
+                    name = "Adventurer",
+                    columns = 16,
+                    rows = 16,
+                    currentColor = 0xFF2196F3.toInt(),
+                    currentShape = Shape.Box,
+                    showGrid = true,
+                    showPngBg = true,
+                    timestamp = now + 3000,
+                ),
             )
-        )
         val spriteLayer = boxesDao.insertLayer(Layer(projectId = spriteId, index = 0, name = "Layer 1", on = true))
         boxesDao.insertAllPixels(createSpritePixels(spriteLayer))
 
         // 1. Duck
-        val duckId = boxesDao.insertProject(
-            Project(
-                name = "Rubber Duck",
-                columns = 16, rows = 16,
-                currentColor = 0xFFFFEB3B.toInt(),
-                currentShape = Shape.Box,
-                showGrid = true, showPngBg = true,
-                timestamp = now + 4000
+        val duckId =
+            boxesDao.insertProject(
+                Project(
+                    name = "Rubber Duck",
+                    columns = 16,
+                    rows = 16,
+                    currentColor = 0xFFFFEB3B.toInt(),
+                    currentShape = Shape.Box,
+                    showGrid = true,
+                    showPngBg = true,
+                    timestamp = now + 4000,
+                ),
             )
-        )
         val duckLayer = boxesDao.insertLayer(Layer(projectId = duckId, index = 0, name = "Layer 1", on = true))
         boxesDao.insertAllPixels(createDuckPixels(duckLayer))
 
         // 2. Mushroom
-        val mushroomId = boxesDao.insertProject(
-            Project(
-                name = "Magic Mushroom",
-                columns = 16, rows = 16,
-                currentColor = 0xFFF44336.toInt(),
-                currentShape = Shape.Box,
-                showGrid = true, showPngBg = true,
-                timestamp = now + 5000
+        val mushroomId =
+            boxesDao.insertProject(
+                Project(
+                    name = "Magic Mushroom",
+                    columns = 16,
+                    rows = 16,
+                    currentColor = 0xFFF44336.toInt(),
+                    currentShape = Shape.Box,
+                    showGrid = true,
+                    showPngBg = true,
+                    timestamp = now + 5000,
+                ),
             )
-        )
         val mushroomLayer = boxesDao.insertLayer(Layer(projectId = mushroomId, index = 0, name = "Layer 1", on = true))
         boxesDao.insertAllPixels(createMushroomPixels(mushroomLayer))
 
         // 3. Wizard
-        val wizardId = boxesDao.insertProject(
-            Project(
-                name = "Wise Wizard",
-                columns = 16, rows = 16,
-                currentColor = 0xFF3F51B5.toInt(),
-                currentShape = Shape.Box,
-                showGrid = true, showPngBg = true,
-                timestamp = now + 6000
+        val wizardId =
+            boxesDao.insertProject(
+                Project(
+                    name = "Wise Wizard",
+                    columns = 16,
+                    rows = 16,
+                    currentColor = 0xFF3F51B5.toInt(),
+                    currentShape = Shape.Box,
+                    showGrid = true,
+                    showPngBg = true,
+                    timestamp = now + 6000,
+                ),
             )
-        )
         val wizardLayer = boxesDao.insertLayer(Layer(projectId = wizardId, index = 0, name = "Layer 1", on = true))
         boxesDao.insertAllPixels(createWizardPixels(wizardLayer))
 
         // 4. Castle
-        val castleId = boxesDao.insertProject(
-            Project(
-                name = "Pixel Castle",
-                columns = 16, rows = 16,
-                currentColor = 0xFF9E9E9E.toInt(),
-                currentShape = Shape.Box,
-                showGrid = true, showPngBg = true,
-                timestamp = now + 7000
+        val castleId =
+            boxesDao.insertProject(
+                Project(
+                    name = "Pixel Castle",
+                    columns = 16,
+                    rows = 16,
+                    currentColor = 0xFF9E9E9E.toInt(),
+                    currentShape = Shape.Box,
+                    showGrid = true,
+                    showPngBg = true,
+                    timestamp = now + 7000,
+                ),
             )
-        )
         val castleLayer = boxesDao.insertLayer(Layer(projectId = castleId, index = 0, name = "Layer 1", on = true))
         boxesDao.insertAllPixels(createCastlePixels(castleLayer))
 
         // 5. Sword
-        val swordId = boxesDao.insertProject(
-            Project(
-                name = "Iron Sword",
-                columns = 16, rows = 16,
-                currentColor = 0xFFE0E0E0.toInt(),
-                currentShape = Shape.Box,
-                showGrid = true, showPngBg = true,
-                timestamp = now + 8000
+        val swordId =
+            boxesDao.insertProject(
+                Project(
+                    name = "Iron Sword",
+                    columns = 16,
+                    rows = 16,
+                    currentColor = 0xFFE0E0E0.toInt(),
+                    currentShape = Shape.Box,
+                    showGrid = true,
+                    showPngBg = true,
+                    timestamp = now + 8000,
+                ),
             )
-        )
         val swordLayer = boxesDao.insertLayer(Layer(projectId = swordId, index = 0, name = "Layer 1", on = true))
         boxesDao.insertAllPixels(createSwordPixels(swordLayer))
 
         // 6. Heart
-        val heartId = boxesDao.insertProject(
-            Project(
-                name = "Pixel Heart",
-                columns = 16, rows = 16,
-                currentColor = 0xFFD32F2F.toInt(),
-                currentShape = Shape.Box,
-                showGrid = true, showPngBg = true,
-                timestamp = now + 9000
+        val heartId =
+            boxesDao.insertProject(
+                Project(
+                    name = "Pixel Heart",
+                    columns = 16,
+                    rows = 16,
+                    currentColor = 0xFFD32F2F.toInt(),
+                    currentShape = Shape.Box,
+                    showGrid = true,
+                    showPngBg = true,
+                    timestamp = now + 9000,
+                ),
             )
-        )
         val heartLayer = boxesDao.insertLayer(Layer(projectId = heartId, index = 0, name = "Layer 1", on = true))
         boxesDao.insertAllPixels(createHeartPixels(heartLayer))
 
         // 7. Frog
-        val frogId = boxesDao.insertProject(
-            Project(
-                name = "Leaping Frog",
-                columns = 16, rows = 16,
-                currentColor = 0xFF4CAF50.toInt(),
-                currentShape = Shape.Box,
-                showGrid = true, showPngBg = true,
-                timestamp = now + 10000
+        val frogId =
+            boxesDao.insertProject(
+                Project(
+                    name = "Leaping Frog",
+                    columns = 16,
+                    rows = 16,
+                    currentColor = 0xFF4CAF50.toInt(),
+                    currentShape = Shape.Box,
+                    showGrid = true,
+                    showPngBg = true,
+                    timestamp = now + 10000,
+                ),
             )
-        )
         val frogLayer = boxesDao.insertLayer(Layer(projectId = frogId, index = 0, name = "Layer 1", on = true))
         boxesDao.insertAllPixels(createFrogPixels(frogLayer))
 
         // 8. Rose
-        val roseId = boxesDao.insertProject(
-            Project(
-                name = "Blooming Rose",
-                columns = 16, rows = 16,
-                currentColor = 0xFFE91E63.toInt(),
-                currentShape = Shape.Box,
-                showGrid = true, showPngBg = true,
-                timestamp = now + 11000
+        val roseId =
+            boxesDao.insertProject(
+                Project(
+                    name = "Blooming Rose",
+                    columns = 16,
+                    rows = 16,
+                    currentColor = 0xFFE91E63.toInt(),
+                    currentShape = Shape.Box,
+                    showGrid = true,
+                    showPngBg = true,
+                    timestamp = now + 11000,
+                ),
             )
-        )
         val roseLayer = boxesDao.insertLayer(Layer(projectId = roseId, index = 0, name = "Layer 1", on = true))
         boxesDao.insertAllPixels(createRosePixels(roseLayer))
 
         // 9. Fox
-        val foxId = boxesDao.insertProject(
-            Project(
-                name = "Clever Fox",
-                columns = 16, rows = 16,
-                currentColor = 0xFFFFFF5722.toInt(),
-                currentShape = Shape.Box,
-                showGrid = true, showPngBg = true,
-                timestamp = now + 12000
+        val foxId =
+            boxesDao.insertProject(
+                Project(
+                    name = "Clever Fox",
+                    columns = 16,
+                    rows = 16,
+                    currentColor = 0xFFFFFF5722.toInt(),
+                    currentShape = Shape.Box,
+                    showGrid = true,
+                    showPngBg = true,
+                    timestamp = now + 12000,
+                ),
             )
-        )
         val foxLayer = boxesDao.insertLayer(Layer(projectId = foxId, index = 0, name = "Layer 1", on = true))
         boxesDao.insertAllPixels(createFoxPixels(foxLayer))
 
         // 10. Tree
-        val treeId = boxesDao.insertProject(
-            Project(
-                name = "Oak Tree",
-                columns = 16, rows = 16,
-                currentColor = 0xFF795548.toInt(),
-                currentShape = Shape.Box,
-                showGrid = true, showPngBg = true,
-                timestamp = now + 13000
+        val treeId =
+            boxesDao.insertProject(
+                Project(
+                    name = "Oak Tree",
+                    columns = 16,
+                    rows = 16,
+                    currentColor = 0xFF795548.toInt(),
+                    currentShape = Shape.Box,
+                    showGrid = true,
+                    showPngBg = true,
+                    timestamp = now + 13000,
+                ),
             )
-        )
         val treeLayer = boxesDao.insertLayer(Layer(projectId = treeId, index = 0, name = "Layer 1", on = true))
         boxesDao.insertAllPixels(createTreePixels(treeLayer))
 
         // 11. Panda
-        val pandaId = boxesDao.insertProject(
-            Project(
-                name = "Sleepy Panda",
-                columns = 16, rows = 16,
-                currentColor = 0xFFFFFFFF.toInt(),
-                currentShape = Shape.Box,
-                showGrid = true, showPngBg = true,
-                timestamp = now + 14000
+        val pandaId =
+            boxesDao.insertProject(
+                Project(
+                    name = "Sleepy Panda",
+                    columns = 16,
+                    rows = 16,
+                    currentColor = 0xFFFFFFFF.toInt(),
+                    currentShape = Shape.Box,
+                    showGrid = true,
+                    showPngBg = true,
+                    timestamp = now + 14000,
+                ),
             )
-        )
         val pandaLayer = boxesDao.insertLayer(Layer(projectId = pandaId, index = 0, name = "Layer 1", on = true))
         boxesDao.insertAllPixels(createPandaPixels(pandaLayer))
 
         // 12. Star
-        val starId = boxesDao.insertProject(
-            Project(
-                name = "Golden Star",
-                columns = 16, rows = 16,
-                currentColor = 0xFFFFD600.toInt(),
-                currentShape = Shape.Box,
-                showGrid = true, showPngBg = true,
-                timestamp = now + 15000
+        val starId =
+            boxesDao.insertProject(
+                Project(
+                    name = "Golden Star",
+                    columns = 16,
+                    rows = 16,
+                    currentColor = 0xFFFFD600.toInt(),
+                    currentShape = Shape.Box,
+                    showGrid = true,
+                    showPngBg = true,
+                    timestamp = now + 15000,
+                ),
             )
-        )
         val starLayer = boxesDao.insertLayer(Layer(projectId = starId, index = 0, name = "Layer 1", on = true))
         boxesDao.insertAllPixels(createStarPixels(starLayer))
     }
@@ -485,12 +534,14 @@ class ProjectSeeder(private val boxesDao: BoxesDao) {
         val lightRed = 0xFFFF5252.toInt()
         val now = System.currentTimeMillis()
 
-        for (x in 4..11) for (y in 4..12) {
-            if (y == 4 && (x == 4 || x == 7 || x == 8 || x == 11)) continue
-            if (y == 12 && (x != 7 && x != 8)) continue
-            if (y == 11 && (x < 6 || x > 9)) continue
-            if (y == 10 && (x < 5 || x > 10)) continue
-            pixels.add(pixel(layerId, x, y, red, now))
+        for (x in 4..11) {
+            for (y in 4..12) {
+                if (y == 4 && (x == 4 || x == 7 || x == 8 || x == 11)) continue
+                if (y == 12 && (x != 7 && x != 8)) continue
+                if (y == 11 && (x < 6 || x > 9)) continue
+                if (y == 10 && (x < 5 || x > 10)) continue
+                pixels.add(pixel(layerId, x, y, red, now))
+            }
         }
         pixels.add(pixel(layerId, 11, 5, darkRed, now))
         pixels.add(pixel(layerId, 11, 6, darkRed, now))
@@ -632,10 +683,22 @@ class ProjectSeeder(private val boxesDao: BoxesDao) {
         val now = System.currentTimeMillis()
 
         for (x in 7..8) for (y in 7..8) pixels.add(pixel(layerId, x, y, yellow, now))
-        for (y in 3..6) { pixels.add(pixel(layerId, 7, y, yellow, now)); pixels.add(pixel(layerId, 8, y, yellow, now)) }
-        for (y in 9..12) { pixels.add(pixel(layerId, 7, y, yellow, now)); pixels.add(pixel(layerId, 8, y, yellow, now)) }
-        for (x in 3..6) { pixels.add(pixel(layerId, x, 7, yellow, now)); pixels.add(pixel(layerId, x, 8, yellow, now)) }
-        for (x in 9..12) { pixels.add(pixel(layerId, x, 7, yellow, now)); pixels.add(pixel(layerId, x, 8, yellow, now)) }
+        for (y in 3..6) {
+            pixels.add(pixel(layerId, 7, y, yellow, now))
+            pixels.add(pixel(layerId, 8, y, yellow, now))
+        }
+        for (y in 9..12) {
+            pixels.add(pixel(layerId, 7, y, yellow, now))
+            pixels.add(pixel(layerId, 8, y, yellow, now))
+        }
+        for (x in 3..6) {
+            pixels.add(pixel(layerId, x, 7, yellow, now))
+            pixels.add(pixel(layerId, x, 8, yellow, now))
+        }
+        for (x in 9..12) {
+            pixels.add(pixel(layerId, x, 7, yellow, now))
+            pixels.add(pixel(layerId, x, 8, yellow, now))
+        }
         pixels.add(pixel(layerId, 6, 6, yellow, now))
         pixels.add(pixel(layerId, 9, 6, yellow, now))
         pixels.add(pixel(layerId, 6, 9, yellow, now))
@@ -648,13 +711,19 @@ class ProjectSeeder(private val boxesDao: BoxesDao) {
         return pixels
     }
 
-    private fun pixel(layerId: Long, x: Int, y: Int, color: Int, timestamp: Long): Pixel {
-        return Pixel(
+    private fun pixel(
+        layerId: Long,
+        x: Int,
+        y: Int,
+        color: Int,
+        timestamp: Long,
+    ): Pixel =
+        Pixel(
             layerId = layerId,
-            x = x, y = y,
+            x = x,
+            y = y,
             color = color,
             shape = Shape.Box,
-            timestamp = timestamp
+            timestamp = timestamp,
         )
-    }
 }

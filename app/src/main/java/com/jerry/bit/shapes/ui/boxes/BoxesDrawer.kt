@@ -12,10 +12,17 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.plus
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.HorizontalDivider
@@ -62,7 +69,12 @@ fun DrawerMenu(
                 .fillMaxSize()
                 .padding(8.dp),
         verticalArrangement = remember { ArrangementLastItem() },
-        contentPadding = PaddingValues(vertical = 8.dp),
+        contentPadding =
+            WindowInsets.navigationBars
+                .only(WindowInsetsSides.Right)
+                .asPaddingValues()
+                .plus(WindowInsets.displayCutout.only(WindowInsetsSides.Right).asPaddingValues())
+                .plus(PaddingValues(vertical = 8.dp)),
     ) {
         item {
             Row(

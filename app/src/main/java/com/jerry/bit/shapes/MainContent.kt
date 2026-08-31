@@ -15,10 +15,9 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.add
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.minus
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
@@ -85,18 +84,7 @@ fun MainContent(onBackPressed: () -> Unit) {
     ) {
         Scaffold(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-            topBar = {
-                val showBackArrow by remember {
-                    derivedStateOf { !navigator.isAtRoot }
-                }
-                Toolbar(
-                    scrollBehavior = scrollBehavior,
-                    showBackArrow = { showBackArrow },
-                    onBack = onBackPressed,
-                    getTitle = { title.first.orEmpty() },
-                    actions = { actions ?: {} },
-                )
-            },
+            contentWindowInsets = WindowInsets(),
             floatingActionButton = {
                 val derived by remember { derivedStateOf { fab != null } }
                 AnimatedVisibility(
@@ -104,6 +92,7 @@ fun MainContent(onBackPressed: () -> Unit) {
                     enter = fadeIn() + expandIn { IntSize(width = 1, height = 1) },
                 ) {
                     FloatingActionButton(
+                        modifier = Modifier.navigationBarsPadding(),
                         onClick = fab?.onClick ?: {},
                     ) {
                         Icon(
@@ -117,11 +106,7 @@ fun MainContent(onBackPressed: () -> Unit) {
             NavDisplay(
                 modifier =
                     Modifier
-                        .padding(
-                            innerPadding.minus(
-                                WindowInsets.displayCutout.only(WindowInsetsSides.Horizontal).asPaddingValues(),
-                            ),
-                        ),
+                        .padding(innerPadding),
                 backStack = navigator.backStack,
                 onBack = { navigator.popBackstack() },
                 entryDecorators =
@@ -190,11 +175,13 @@ fun MainContent(onBackPressed: () -> Unit) {
 @Composable
 fun Toolbar(
     scrollBehavior: TopAppBarScrollBehavior,
-    showBackArrow: () -> Boolean,
-    onBack: () -> Unit,
     getTitle: () -> String,
     actions: () -> @Composable RowScope.() -> Unit = { {} },
 ) {
+    val navigator = koinInject<Navigator>()
+    val showBackArrow by remember {
+        derivedStateOf { !navigator.isAtRoot }
+    }
     val topAppBarElementColor = MaterialTheme.colorScheme.onPrimary
     val appBarContainerColor = MaterialTheme.colorScheme.primary
     TopAppBar(
@@ -207,7 +194,7 @@ fun Toolbar(
             ),
         navigationIcon = {
             AnimatedVisibility(
-                visible = showBackArrow(),
+                visible = showBackArrow,
                 enter = fadeIn() + expandIn(expandFrom = Alignment.Center),
                 exit = shrinkOut(shrinkTowards = Alignment.Center) + fadeOut(),
             ) {
@@ -216,7 +203,7 @@ fun Toolbar(
                         Modifier
                             .padding(8.dp)
                             .unboundClickable {
-                                onBack()
+                                navigator.popBackstack()
                             }.padding(8.dp),
                     painter = painterResource(R.drawable.ic_arrow_back_24),
                     contentDescription = stringResource(R.string.back),

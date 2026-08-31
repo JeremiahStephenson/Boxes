@@ -7,10 +7,14 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.plus
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
@@ -103,11 +107,13 @@ fun HomeMain(
             modifier = Modifier.fillMaxSize(),
             columns = StaggeredGridCells.Adaptive(150.dp),
             contentPadding =
-                PaddingValues(
-                    bottom = 84.dp,
-                    top = 16.dp,
-                    start = 10.dp,
-                    end = 10.dp,
+                WindowInsets.navigationBars.asPaddingValues().plus(
+                    PaddingValues(
+                        bottom = 84.dp,
+                        top = 16.dp,
+                        start = 10.dp,
+                        end = 10.dp,
+                    ),
                 ),
             verticalItemSpacing = 16.dp,
             horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -157,7 +163,10 @@ fun HomeMain(
         }
 
         FadeAnimatedVisibility(
-            modifier = Modifier.fillMaxSize().wrapContentSize(Alignment.Center),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .wrapContentSize(Alignment.Center),
             visible = isLoading,
         ) {
             CircularProgressIndicator()
@@ -263,9 +272,7 @@ private fun BoxWithConstraintsScope.ProjectImageItem(
 }
 
 @Composable
-private fun SeedMenu(
-    onSeedClick: () -> Unit,
-) {
+private fun SeedMenu(onSeedClick: () -> Unit) {
     Text(
         modifier =
             Modifier

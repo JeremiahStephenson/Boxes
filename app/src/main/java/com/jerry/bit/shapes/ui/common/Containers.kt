@@ -1,6 +1,8 @@
 package com.jerry.bit.shapes.ui.common
 
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -9,6 +11,8 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.LifecycleResumeEffect
+import com.jerry.bit.shapes.Toolbar
+import kotlin.text.orEmpty
 
 @Composable
 fun DefaultContainer(
@@ -16,11 +20,12 @@ fun DefaultContainer(
     fabListener: (() -> Unit)? = null,
     disableAppbarScroll: Boolean = false,
     appBarActions: (@Composable RowScope.() -> Unit)? = null,
+    scrollBehavior: TopAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(),
     content: @Composable () -> Unit,
 ) {
     val localAppBarTitle = LocalAppBarTitle.current
-    val localFloatingActionBarButton = LocalFloatingActionBarButton.current
     val localAppBarActions = LocalAppBarActions.current
+    val localFloatingActionBarButton = LocalFloatingActionBarButton.current
     val titleRemembered by rememberUpdatedState(title)
 
     val setScaffoldValues = {
@@ -47,5 +52,14 @@ fun DefaultContainer(
         onPauseOrDispose { }
     }
 
-    content()
+    TopBarLayout(
+        topBar = {
+            Toolbar(
+                scrollBehavior = scrollBehavior,
+                getTitle = { titleRemembered.orEmpty() },
+                actions = { appBarActions ?: {} },
+            )
+        },
+        content = content,
+    )
 }

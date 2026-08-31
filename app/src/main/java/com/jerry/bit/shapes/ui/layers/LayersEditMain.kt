@@ -8,10 +8,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -107,6 +109,7 @@ fun LayersEditMain(
 
         LazyColumn(
             state = lazyListState,
+            contentPadding = WindowInsets.navigationBars.asPaddingValues(),
             modifier =
                 Modifier
                     .fillMaxSize()
@@ -146,12 +149,7 @@ fun LayersEditMain(
                                 LayerItemAction.OnDragEnd -> {
                                     viewModel.setLayerIndicies(
                                         list.map {
-                                            it.id to (
-                                                (list.size - 1) -
-                                                    list.indexOf(
-                                                        it,
-                                                    )
-                                            )
+                                            it.id to ((list.size - 1) - list.indexOf(it))
                                         },
                                     )
                                 }
