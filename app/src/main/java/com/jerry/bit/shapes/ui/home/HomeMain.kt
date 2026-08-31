@@ -17,7 +17,10 @@ import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -186,16 +189,22 @@ private fun ProjectItem(
             ) {
                 ProjectImageItem(item.id, item.timestamp)
                 if (editMode) {
-                    Icon(
+                    FilledIconButton(
                         modifier =
                             Modifier
-                                .unboundClickable {
-                                    showConfirmationDialog = true
-                                }.padding(16.dp),
-                        painter = painterResource(R.drawable.ic_delete_24),
-                        tint = MaterialTheme.colorScheme.error,
-                        contentDescription = null, // todo
-                    )
+                                .padding(8.dp),
+                        onClick = { showConfirmationDialog = true },
+                        colors =
+                            IconButtonDefaults.filledIconButtonColors(
+                                containerColor = MaterialTheme.colorScheme.errorContainer,
+                                contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                            ),
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_delete_24),
+                            contentDescription = stringResource(R.string.delete_project),
+                        )
+                    }
                 }
             }
 
@@ -272,18 +281,13 @@ private fun EditMenu(
     editMode: Boolean,
     onEditClick: () -> Unit,
 ) {
-    Text(
-        modifier =
-            Modifier
-                .unboundClickable {
-                    onEditClick()
-                }.padding(8.dp),
-        text =
-            stringResource(
-                when (editMode) {
-                    true -> R.string.done
-                    else -> R.string.edit
-                },
-            ),
-    )
+    val icon = if (editMode) R.drawable.ic_done_24 else R.drawable.ic_edit_24
+    val contentDescription = if (editMode) R.string.done else R.string.edit
+
+    IconButton(onClick = onEditClick) {
+        Icon(
+            painter = painterResource(icon),
+            contentDescription = stringResource(contentDescription),
+        )
+    }
 }
