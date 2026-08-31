@@ -18,25 +18,21 @@ import kotlin.text.orEmpty
 fun DefaultContainer(
     title: String? = null,
     fabListener: (() -> Unit)? = null,
-    disableAppbarScroll: Boolean = false,
     appBarActions: (@Composable RowScope.() -> Unit)? = null,
+    showBackArrow: Boolean = true,
     scrollBehavior: TopAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(),
     content: @Composable () -> Unit,
 ) {
-    val localAppBarTitle = LocalAppBarTitle.current
-    val localAppBarActions = LocalAppBarActions.current
     val localFloatingActionBarButton = LocalFloatingActionBarButton.current
     val titleRemembered by rememberUpdatedState(title)
 
     val setScaffoldValues = {
-        localAppBarTitle(titleRemembered.orEmpty() to disableAppbarScroll)
         localFloatingActionBarButton(
             when (fabListener) {
                 null -> null
                 else -> FloatButtonProperties(fabListener)
             },
         )
-        localAppBarActions(appBarActions)
     }
 
     var hasPresented by rememberSaveable { mutableStateOf(false) }
@@ -56,6 +52,7 @@ fun DefaultContainer(
         topBar = {
             Toolbar(
                 scrollBehavior = scrollBehavior,
+                showBackArrow = showBackArrow,
                 getTitle = { titleRemembered.orEmpty() },
                 actions = { appBarActions ?: {} },
             )

@@ -72,6 +72,7 @@ fun HomeMain(
     var editMode by rememberSaveable { mutableStateOf(false) }
     DefaultContainer(
         title = stringResource(R.string.app_name),
+        showBackArrow = false,
         fabListener = {
             navigator.navigate(CreateNavKey())
         },

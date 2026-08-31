@@ -31,7 +31,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onLayoutRectChanged
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import com.jerry.bit.shapes.cache.data.Project
@@ -94,10 +94,9 @@ fun BoxCanvas(
                 .fillMaxSize()
                 .clipToBounds()
                 .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Vertical))
-                .onLayoutRectChanged(callback = { bounds ->
-                    onSizeChanged(Size(bounds.width.toFloat(), bounds.height.toFloat()))
-                })
-                .pointerInput(appBarExpanded) {
+                .onSizeChanged {
+                    onSizeChanged(Size(it.width.toFloat(), it.height.toFloat()))
+                }.pointerInput(appBarExpanded) {
                     detectTapGestures { point ->
                         if (state.isTransformInProgress) return@detectTapGestures
                         point

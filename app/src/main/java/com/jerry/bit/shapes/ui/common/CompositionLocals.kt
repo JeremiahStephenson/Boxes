@@ -1,7 +1,5 @@
 package com.jerry.bit.shapes.ui.common
 
-import androidx.compose.foundation.layout.RowScope
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableFloatStateOf
@@ -11,6 +9,4 @@ data class FloatButtonProperties(
 )
 
 val LocalFloatingActionBarButton = compositionLocalOf<(FloatButtonProperties?) -> Unit> { {} }
-val LocalAppBarTitle = compositionLocalOf<(Pair<String, Boolean>) -> Unit> { {} }
 val LocalAppBarHeight = compositionLocalOf<State<Float>> { mutableFloatStateOf(0F) }
-val LocalAppBarActions = compositionLocalOf<((@Composable RowScope.() -> Unit)?) -> Unit> { {} }

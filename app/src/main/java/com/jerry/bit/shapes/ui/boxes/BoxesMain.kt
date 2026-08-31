@@ -124,7 +124,6 @@ fun BoxesMain(
     val selectionState = rememberSaveable(saver = SelectionState.SAVER) { SelectionState() }
     DefaultContainer(
         title = project?.name ?: projectName ?: "",
-        disableAppbarScroll = true,
         appBarActions = {
             Icon(
                 modifier =

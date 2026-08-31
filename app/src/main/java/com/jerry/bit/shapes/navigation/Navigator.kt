@@ -62,6 +62,4 @@ class Navigator(
     private fun ensureBackStackIsInitialized(block: () -> Unit) {
         if (::_backStack.isInitialized) block()
     }
-
-    val isAtRoot get() = _backStack.size == 1
 }

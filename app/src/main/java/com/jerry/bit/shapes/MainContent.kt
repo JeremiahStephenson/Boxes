@@ -53,9 +53,7 @@ import com.jerry.bit.shapes.navigation.Navigator
 import com.jerry.bit.shapes.ui.boxes.BoxesMain
 import com.jerry.bit.shapes.ui.boxes.BoxesNavKey
 import com.jerry.bit.shapes.ui.common.FloatButtonProperties
-import com.jerry.bit.shapes.ui.common.LocalAppBarActions
 import com.jerry.bit.shapes.ui.common.LocalAppBarHeight
-import com.jerry.bit.shapes.ui.common.LocalAppBarTitle
 import com.jerry.bit.shapes.ui.common.LocalFloatingActionBarButton
 import com.jerry.bit.shapes.ui.common.unboundClickable
 import com.jerry.bit.shapes.ui.create.CreateMain
@@ -69,17 +67,13 @@ import org.koin.compose.koinInject
 @Composable
 fun MainContent(onBackPressed: () -> Unit) {
     var fab by remember { mutableStateOf<FloatButtonProperties?>(null) }
-    var title by remember { mutableStateOf<Pair<String?, Boolean>>(null to false) }
-    var actions by remember { mutableStateOf<(@Composable RowScope.() -> Unit)?>(null) }
 
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val navigator = koinInject<Navigator>()
     navigator.Init()
 
     CompositionLocalProvider(
-        LocalAppBarTitle provides { title = it },
         LocalFloatingActionBarButton provides { fab = it },
-        LocalAppBarActions provides { actions = it },
         LocalAppBarHeight provides rememberUpdatedState(scrollBehavior.state.heightOffset),
     ) {
         Scaffold(
@@ -175,13 +169,11 @@ fun MainContent(onBackPressed: () -> Unit) {
 @Composable
 fun Toolbar(
     scrollBehavior: TopAppBarScrollBehavior,
+    showBackArrow: Boolean,
     getTitle: () -> String,
     actions: () -> @Composable RowScope.() -> Unit = { {} },
 ) {
     val navigator = koinInject<Navigator>()
-    val showBackArrow by remember {
-        derivedStateOf { !navigator.isAtRoot }
-    }
     val topAppBarElementColor = MaterialTheme.colorScheme.onPrimary
     val appBarContainerColor = MaterialTheme.colorScheme.primary
     TopAppBar(
@@ -193,11 +185,7 @@ fun Toolbar(
                 ),
             ),
         navigationIcon = {
-            AnimatedVisibility(
-                visible = showBackArrow,
-                enter = fadeIn() + expandIn(expandFrom = Alignment.Center),
-                exit = shrinkOut(shrinkTowards = Alignment.Center) + fadeOut(),
-            ) {
+            if (showBackArrow) {
                 Icon(
                     modifier =
                         Modifier
