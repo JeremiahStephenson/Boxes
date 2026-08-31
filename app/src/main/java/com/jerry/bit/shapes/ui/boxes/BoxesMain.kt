@@ -47,7 +47,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.onLayoutRectChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -286,12 +285,7 @@ private fun MainCanvas(
 ) {
     var size by remember { mutableStateOf(Size(0F, 0F)) }
     Box(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .onLayoutRectChanged(callback = { bounds ->
-                    size = Size(bounds.width.toFloat(), bounds.height.toFloat())
-                }),
+        modifier = Modifier.fillMaxSize(),
     ) {
         val density = LocalDensity.current
         val strokeWidth = remember { with(density) { 2.dp.toPx() } }
@@ -327,6 +321,9 @@ private fun MainCanvas(
                 size = size,
                 strokeWidth = strokeWidth,
                 state = state,
+                onSizeChanged = {
+                    size = it
+                },
                 onTap = { point ->
                     if (canvasState.hasLayersTurnedOn) {
                         when (buttonsState.tapTypeState) {
