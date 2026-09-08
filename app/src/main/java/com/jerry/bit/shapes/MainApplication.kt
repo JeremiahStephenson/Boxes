@@ -3,6 +3,7 @@ package com.jerry.bit.shapes
 import android.app.Application
 import com.jerry.bit.shapes.inject.appModule
 import com.jerry.bit.shapes.inject.cacheModule
+import com.jerry.bit.shapes.inject.navigationModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
@@ -15,7 +16,7 @@ class MainApplication : Application() {
         startKoin {
             androidLogger()
             androidContext(this@MainApplication)
-            modules(appModule, cacheModule)
+            modules(appModule, cacheModule, navigationModule)
         }
     }
 }

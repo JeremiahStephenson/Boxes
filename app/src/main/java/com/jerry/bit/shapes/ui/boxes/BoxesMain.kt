@@ -60,7 +60,6 @@ import com.jerry.bit.shapes.cache.data.Project
 import com.jerry.bit.shapes.extensions.openImage
 import com.jerry.bit.shapes.extensions.openShareSheet
 import com.jerry.bit.shapes.navigation.Navigator
-import com.jerry.bit.shapes.ui.howto.HowToNavKey
 import com.jerry.bit.shapes.ui.boxes.data.Action
 import com.jerry.bit.shapes.ui.boxes.data.UiEvent
 import com.jerry.bit.shapes.ui.boxes.history.UserHistory
@@ -77,6 +76,7 @@ import com.jerry.bit.shapes.ui.common.IconMenuButton
 import com.jerry.bit.shapes.ui.common.ShapeOption
 import com.jerry.bit.shapes.ui.common.unboundClickable
 import com.jerry.bit.shapes.ui.create.CreateNavKey
+import com.jerry.bit.shapes.ui.howto.HowToNavKey
 import com.jerry.bit.shapes.ui.layers.LayersEditNavKey
 import com.jerry.bit.shapes.ui.shapes.Shape
 import com.jerry.bit.shapes.util.ExportType

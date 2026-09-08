@@ -67,14 +67,13 @@ fun DrawerMenu(
         modifier =
             modifier
                 .fillMaxSize()
-                .padding(8.dp),
+                .padding(horizontal = 8.dp),
         verticalArrangement = remember { ArrangementLastItem() },
         contentPadding =
             WindowInsets.navigationBars
-                .only(WindowInsetsSides.Right)
-                .asPaddingValues()
+                .only(WindowInsetsSides.Right + WindowInsetsSides.Bottom).asPaddingValues()
                 .plus(WindowInsets.displayCutout.only(WindowInsetsSides.Right).asPaddingValues())
-                .plus(PaddingValues(vertical = 8.dp)),
+                .plus(PaddingValues(vertical = 16.dp)),
     ) {
         item {
             Row(

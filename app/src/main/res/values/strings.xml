@@ -93,4 +93,70 @@
     <string name="select_shape">Select Shape</string>
     <string name="drag_layer">Drag this to reorder layer</string>
     <string name="how_to">Guide</string>
+
+    <string name="guide_basic_drawing">Basic Drawing</string>
+    <string name="guide_basic_drawing_1_label">Finger Drag</string>
+    <string name="guide_basic_drawing_1_desc">Move finger across canvas to fill boxes.</string>
+    <string name="guide_basic_drawing_2_label">Taps</string>
+    <string name="guide_basic_drawing_2_desc">Single tap paints or triggers active tool action.</string>
+    <string name="guide_basic_drawing_3_label">Pinch to Zoom</string>
+    <string name="guide_basic_drawing_3_desc">Pinch gesture scales canvas zoom level.</string>
+
+    <string name="guide_tool_icon_bar">Tool Icon Bar</string>
+    <string name="guide_tool_icon_bar_1_label">Color Picker</string>
+    <string name="guide_tool_icon_bar_1_desc">Select active color.</string>
+    <string name="guide_tool_icon_bar_2_label">Shape Picker</string>
+    <string name="guide_tool_icon_bar_2_desc">Choose active drawing shape.</string>
+    <string name="guide_tool_icon_bar_3_label">Tool Picker</string>
+    <string name="guide_tool_icon_bar_3_desc">Switch active tool mode.</string>
+    <string name="guide_tool_icon_bar_4_label">Undo</string>
+    <string name="guide_tool_icon_bar_4_desc">Revert last action on current layer.</string>
+    <string name="guide_tool_icon_bar_5_label">Center</string>
+    <string name="guide_tool_icon_bar_5_desc">Re-center canvas view.</string>
+
+    <string name="guide_drawer_menu_options">Drawer Menu Options</string>
+    <string name="guide_drawer_menu_1_label">Fill</string>
+    <string name="guide_drawer_menu_1_desc">Bucket fill connected regions.</string>
+    <string name="guide_drawer_menu_2_label">Color Picker</string>
+    <string name="guide_drawer_menu_2_desc">Sample color from canvas.</string>
+    <string name="guide_drawer_menu_3_label">Eraser</string>
+    <string name="guide_drawer_menu_3_desc">Erase painted pixels.</string>
+    <string name="guide_drawer_menu_4_label">Selection Tool</string>
+    <string name="guide_drawer_menu_4_desc">Select and move regions.</string>
+    <string name="guide_drawer_menu_5_label">Grid Toggle</string>
+    <string name="guide_drawer_menu_5_desc">Show or hide background grid.</string>
+    <string name="guide_drawer_menu_6_label">Opacity Background</string>
+    <string name="guide_drawer_menu_6_desc">Toggle transparent checkerboard background.</string>
+    <string name="guide_drawer_menu_7_label">Project Edit</string>
+    <string name="guide_drawer_menu_7_desc">Modify project name and grid dimensions.</string>
+    <string name="guide_drawer_menu_8_label">Save</string>
+    <string name="guide_drawer_menu_8_desc">Save project locally.</string>
+    <string name="guide_drawer_menu_9_label">Export Image</string>
+    <string name="guide_drawer_menu_9_desc">Save project as PNG file.</string>
+    <string name="guide_drawer_menu_10_label">Share</string>
+    <string name="guide_drawer_menu_10_desc">Share creation.</string>
+    <string name="guide_drawer_menu_11_label">Image Import</string>
+    <string name="guide_drawer_menu_11_desc">Import image into selected layer.</string>
+    <string name="guide_drawer_menu_12_label">Clear Layer</string>
+    <string name="guide_drawer_menu_12_desc">Clear all pixels on selected layer.</string>
+
+    <string name="guide_layer_options_draw_order">Layer Options &amp; Draw Order</string>
+    <string name="guide_layer_options_1_label">Add / Delete Layer</string>
+    <string name="guide_layer_options_1_desc">Create up to 10 layers or delete layers.</string>
+    <string name="guide_layer_options_2_label">Visibility Toggle</string>
+    <string name="guide_layer_options_2_desc">Show or hide layer visibility.</string>
+    <string name="guide_layer_options_3_label">Draw Order</string>
+    <string name="guide_layer_options_3_desc">Top-to-bottom list order defines draw order (layers higher in list draw over layers below them).</string>
+
+    <string name="guide_layer_edit_screen">Layer Edit Screen</string>
+    <string name="guide_layer_edit_1_label">Access</string>
+    <string name="guide_layer_edit_1_desc">Tap edit icon in layers drawer header.</string>
+    <string name="guide_layer_edit_2_label">Draw Order</string>
+    <string name="guide_layer_edit_2_desc">Determined by list order.</string>
+    <string name="guide_layer_edit_3_label">Reordering</string>
+    <string name="guide_layer_edit_3_desc">Use drag handle indicator to reorder layers.</string>
+    <string name="guide_layer_edit_4_label">Edit Name</string>
+    <string name="guide_layer_edit_4_desc">Rename layer.</string>
+    <string name="guide_layer_edit_5_label">Delete</string>
+    <string name="guide_layer_edit_5_desc">Remove layer from project.</string>
 </resources>

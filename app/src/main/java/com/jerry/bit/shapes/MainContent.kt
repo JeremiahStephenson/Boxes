@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.add
-import androidx.compose.foundation.layout.minus
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.only
@@ -41,25 +40,18 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
-import androidx.navigation3.runtime.NavEntry
+import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.jerry.bit.shapes.navigation.Navigator
-import com.jerry.bit.shapes.ui.boxes.BoxesMain
-import com.jerry.bit.shapes.ui.boxes.BoxesNavKey
 import com.jerry.bit.shapes.ui.common.FloatButtonProperties
 import com.jerry.bit.shapes.ui.common.LocalFloatingActionBarButton
 import com.jerry.bit.shapes.ui.common.unboundClickable
-import com.jerry.bit.shapes.ui.create.CreateMain
-import com.jerry.bit.shapes.ui.create.CreateNavKey
-import com.jerry.bit.shapes.ui.home.HomeMain
-import com.jerry.bit.shapes.ui.home.HomeNavKey
-import com.jerry.bit.shapes.ui.howto.HowToMain
-import com.jerry.bit.shapes.ui.howto.HowToNavKey
-import com.jerry.bit.shapes.ui.layers.LayersEditMain
-import com.jerry.bit.shapes.ui.layers.LayersEditNavKey
 import org.koin.compose.koinInject
+import org.koin.compose.navigation3.koinEntryProvider
+import org.koin.core.annotation.KoinExperimentalAPI
 
+@OptIn(KoinExperimentalAPI::class)
 @Composable
 fun MainContent(onBackPressed: () -> Unit) {
     var fab by remember { mutableStateOf<FloatButtonProperties?>(null) }
@@ -111,46 +103,7 @@ fun MainContent(onBackPressed: () -> Unit) {
                         rememberSaveableStateHolderNavEntryDecorator(),
                         rememberViewModelStoreNavEntryDecorator(),
                     ),
-                entryProvider = { key ->
-                    when (key) {
-                        is HomeNavKey ->
-                            NavEntry(key) {
-                                HomeMain(navigator = navigator)
-                            }
-
-                        is BoxesNavKey ->
-                            NavEntry(key) {
-                                BoxesMain(
-                                    projectId = key.projectId,
-                                    projectName = key.projectName,
-                                    navigator = navigator,
-                                )
-                            }
-
-                        is LayersEditNavKey ->
-                            NavEntry(key) {
-                                LayersEditMain(
-                                    projectId = key.projectId,
-                                    navigator = navigator,
-                                )
-                            }
-
-                        is CreateNavKey ->
-                            NavEntry(key) {
-                                CreateMain(
-                                    projectId = key.projectId,
-                                    navigator = navigator,
-                                )
-                            }
-
-                        is HowToNavKey ->
-                            NavEntry(key) {
-                                HowToMain(navigator = navigator)
-                            }
-
-                        else -> error("Unknown route: $key")
-                    }
-                },
+                entryProvider = koinEntryProvider<NavKey>(),
                 transitionSpec = {
                     val enterTransition =
                         slideInHorizontally(
@@ -269,5 +222,3 @@ fun Toolbar(
 private const val ANIM_DURATION = 500
 private const val PARALLAX_OFFSET_FACTOR = 0.25F
 private const val BACKGROUND_SHIFT_FACTOR = 0.1F
-private const val FAB_ANIM_DURATION = 200
-private const val FAB_HIDDEN_SCALE = 0.4F
