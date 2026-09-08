@@ -28,6 +28,8 @@ sealed interface Action {
 
     data object GoToLayerEdit : Action
 
+    data object GoToHowTo : Action
+
     data object ClearSelect : Action
 
     data class ImageImport(

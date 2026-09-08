@@ -54,6 +54,8 @@ import com.jerry.bit.shapes.ui.create.CreateMain
 import com.jerry.bit.shapes.ui.create.CreateNavKey
 import com.jerry.bit.shapes.ui.home.HomeMain
 import com.jerry.bit.shapes.ui.home.HomeNavKey
+import com.jerry.bit.shapes.ui.howto.HowToMain
+import com.jerry.bit.shapes.ui.howto.HowToNavKey
 import com.jerry.bit.shapes.ui.layers.LayersEditMain
 import com.jerry.bit.shapes.ui.layers.LayersEditNavKey
 import org.koin.compose.koinInject
@@ -139,6 +141,11 @@ fun MainContent(onBackPressed: () -> Unit) {
                                     projectId = key.projectId,
                                     navigator = navigator,
                                 )
+                            }
+
+                        is HowToNavKey ->
+                            NavEntry(key) {
+                                HowToMain(navigator = navigator)
                             }
 
                         else -> error("Unknown route: $key")

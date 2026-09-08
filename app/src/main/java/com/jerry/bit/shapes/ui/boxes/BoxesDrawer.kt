@@ -219,6 +219,22 @@ fun DrawerMenu(
         }
 
         item {
+            OutlinedButton(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .padding(top = 8.dp),
+                onClick = {
+                    onAction(Action.GoToHowTo)
+                },
+            ) {
+                Text(stringResource(R.string.how_to))
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        item {
             ButtonSection(R.string.clear) {
                 IconMenuButton(
                     onClick = { onAction(Action.Clear) },

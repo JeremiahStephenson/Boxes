@@ -60,6 +60,7 @@ import com.jerry.bit.shapes.cache.data.Project
 import com.jerry.bit.shapes.extensions.openImage
 import com.jerry.bit.shapes.extensions.openShareSheet
 import com.jerry.bit.shapes.navigation.Navigator
+import com.jerry.bit.shapes.ui.howto.HowToNavKey
 import com.jerry.bit.shapes.ui.boxes.data.Action
 import com.jerry.bit.shapes.ui.boxes.data.UiEvent
 import com.jerry.bit.shapes.ui.boxes.history.UserHistory
@@ -714,6 +715,7 @@ private fun handleAction(
             project?.id?.let {
                 navigator.navigate(LayersEditNavKey(it))
             }
+        is Action.GoToHowTo -> navigator.navigate(HowToNavKey)
         is Action.Export ->
             project?.let {
                 viewModel.export(
