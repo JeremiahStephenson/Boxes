@@ -223,7 +223,7 @@ private fun ProjectItem(
                     Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp)
-                        .padding(top = 24.dp),
+                        .padding(top = 12.dp),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 text = item.name,

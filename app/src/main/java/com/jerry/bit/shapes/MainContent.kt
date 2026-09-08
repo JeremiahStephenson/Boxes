@@ -1,16 +1,13 @@
 package com.jerry.bit.shapes
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandIn
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.animation.unveilIn
+import androidx.compose.animation.veilOut
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -35,15 +32,13 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavEntry
@@ -53,7 +48,6 @@ import com.jerry.bit.shapes.navigation.Navigator
 import com.jerry.bit.shapes.ui.boxes.BoxesMain
 import com.jerry.bit.shapes.ui.boxes.BoxesNavKey
 import com.jerry.bit.shapes.ui.common.FloatButtonProperties
-import com.jerry.bit.shapes.ui.common.LocalAppBarHeight
 import com.jerry.bit.shapes.ui.common.LocalFloatingActionBarButton
 import com.jerry.bit.shapes.ui.common.unboundClickable
 import com.jerry.bit.shapes.ui.create.CreateMain
@@ -74,26 +68,33 @@ fun MainContent(onBackPressed: () -> Unit) {
 
     CompositionLocalProvider(
         LocalFloatingActionBarButton provides { fab = it },
-        LocalAppBarHeight provides rememberUpdatedState(scrollBehavior.state.heightOffset),
     ) {
         Scaffold(
-            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+            modifier =
+                Modifier
+                    .nestedScroll(scrollBehavior.nestedScrollConnection),
             contentWindowInsets = WindowInsets(),
             floatingActionButton = {
                 val derived by remember { derivedStateOf { fab != null } }
-                AnimatedVisibility(
-                    visible = derived,
-                    enter = fadeIn() + expandIn { IntSize(width = 1, height = 1) },
+                val animateSize by animateFloatAsState(
+                    targetValue = if (derived) 1F else 0F,
+                    animationSpec = tween(durationMillis = 100),
+                    label = "FAB Elevation",
+                )
+                FloatingActionButton(
+                    modifier =
+                        Modifier
+                            .navigationBarsPadding()
+                            .graphicsLayer {
+                                scaleX = animateSize
+                                scaleY = animateSize
+                            },
+                    onClick = fab?.onClick ?: {},
                 ) {
-                    FloatingActionButton(
-                        modifier = Modifier.navigationBarsPadding(),
-                        onClick = fab?.onClick ?: {},
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_add_24),
-                            contentDescription = null,
-                        )
-                    }
+                    Icon(
+                        painter = painterResource(R.drawable.ic_add_24),
+                        contentDescription = null,
+                    )
                 }
             },
         ) { innerPadding ->
@@ -142,6 +143,46 @@ fun MainContent(onBackPressed: () -> Unit) {
 
                         else -> error("Unknown route: $key")
                     }
+                },
+                transitionSpec = {
+                    val enterTransition =
+                        slideInHorizontally(
+                            initialOffsetX = { it },
+                            animationSpec = tween(ANIM_DURATION),
+                        )
+
+                    val exitTransition =
+                        slideOutHorizontally(
+                            targetOffsetX = {
+                                -(it * BACKGROUND_SHIFT_FACTOR).toInt()
+                            },
+                            animationSpec = tween(ANIM_DURATION),
+                        ) +
+                            veilOut(
+                                animationSpec = tween(ANIM_DURATION),
+                            )
+
+                    enterTransition togetherWith exitTransition
+                },
+                popTransitionSpec = {
+                    val enterTransition =
+                        slideInHorizontally(
+                            initialOffsetX = {
+                                -(it * BACKGROUND_SHIFT_FACTOR).toInt()
+                            },
+                            animationSpec = tween(ANIM_DURATION),
+                        ) +
+                            unveilIn(
+                                animationSpec = tween(ANIM_DURATION),
+                            )
+
+                    val exitTransition =
+                        slideOutHorizontally(
+                            targetOffsetX = { it },
+                            animationSpec = tween(ANIM_DURATION),
+                        )
+
+                    enterTransition togetherWith exitTransition
                 },
                 predictivePopTransitionSpec = {
                     val enterTransition =
@@ -218,5 +259,8 @@ fun Toolbar(
     )
 }
 
-private const val ANIM_DURATION = 700
+private const val ANIM_DURATION = 500
 private const val PARALLAX_OFFSET_FACTOR = 0.25F
+private const val BACKGROUND_SHIFT_FACTOR = 0.1F
+private const val FAB_ANIM_DURATION = 200
+private const val FAB_HIDDEN_SCALE = 0.4F

@@ -73,7 +73,6 @@ import com.jerry.bit.shapes.ui.common.DefaultContainer
 import com.jerry.bit.shapes.ui.common.DrawerContainer
 import com.jerry.bit.shapes.ui.common.FadeAnimatedVisibility
 import com.jerry.bit.shapes.ui.common.IconMenuButton
-import com.jerry.bit.shapes.ui.common.LocalAppBarHeight
 import com.jerry.bit.shapes.ui.common.ShapeOption
 import com.jerry.bit.shapes.ui.common.unboundClickable
 import com.jerry.bit.shapes.ui.create.CreateNavKey
@@ -290,9 +289,7 @@ private fun MainCanvas(
         val strokeWidth = remember { with(density) { 2.dp.toPx() } }
         val buttonBarOffset = remember { with(density) { 56.dp.toPx() } }
 
-        val contentOffset = LocalAppBarHeight.current
-        val appBarExpanded by remember { derivedStateOf { contentOffset.value == 0F } }
-        LaunchedEffect(project.rows, project.columns, appBarExpanded, size) {
+        LaunchedEffect(project.rows, project.columns, size) {
             canvasState.fillInBoxes(
                 size,
                 buttonBarOffset,

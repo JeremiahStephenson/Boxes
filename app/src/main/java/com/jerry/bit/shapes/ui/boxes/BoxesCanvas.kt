@@ -42,7 +42,6 @@ import com.jerry.bit.shapes.ui.boxes.data.DragMode
 import com.jerry.bit.shapes.ui.boxes.state.ButtonsState
 import com.jerry.bit.shapes.ui.boxes.state.CanvasState
 import com.jerry.bit.shapes.ui.boxes.state.SelectionState
-import com.jerry.bit.shapes.ui.common.LocalAppBarHeight
 import com.jerry.bit.shapes.ui.common.pngBackground
 import com.jerry.bit.shapes.util.QUADRANT_SIZE
 import com.jerry.bit.shapes.util.drawShapes
@@ -69,8 +68,6 @@ fun BoxCanvas(
     onDragEnd: () -> Unit,
     onSizeChanged: (Size) -> Unit,
 ) {
-    val contentOffset = LocalAppBarHeight.current
-    val appBarExpanded by remember { derivedStateOf { contentOffset.value == 0F } }
     val scaleState by rememberUpdatedState(scale)
     val offsetState by rememberUpdatedState(offset)
     val sizeState by rememberUpdatedState(size)
@@ -96,7 +93,7 @@ fun BoxCanvas(
                 .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Vertical))
                 .onSizeChanged {
                     onSizeChanged(Size(it.width.toFloat(), it.height.toFloat()))
-                }.pointerInput(appBarExpanded) {
+                }.pointerInput(Unit) {
                     detectTapGestures { point ->
                         if (state.isTransformInProgress) return@detectTapGestures
                         point
