@@ -95,6 +95,8 @@
     <string name="drag_layer">Drag this to reorder layer</string>
     <string name="how_to">Guide</string>
     <string name="open_guide">Open guide</string>
+    <string name="update_downloaded">An update is ready to install.</string>
+    <string name="restart">Restart</string>
 
     <string name="guide_welcome_title">Create with confidence</string>
     <string name="guide_welcome_desc">BitShape turns a simple grid into pixel art. Choose a color and shape, draw on the canvas, then use layers to build up your creation.</string>

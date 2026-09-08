@@ -44,8 +44,8 @@ android {
         applicationId = "com.jerry.bit.shapes"
         minSdk = 24
         targetSdk = 37
-        versionCode = 8
-        versionName = "1.07"
+        versionCode = 9
+        versionName = "1.08"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -140,6 +140,8 @@ dependencies {
 
     implementation(libs.kotlinx.datetime)
     implementation(libs.kotlin.io)
+    implementation(libs.play.app.update)
+    implementation(libs.play.app.update.ktx)
 
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 
