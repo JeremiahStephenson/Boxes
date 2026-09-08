@@ -18,6 +18,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.jerry.bit.shapes.cache.data.ColorAndShape
 import com.jerry.bit.shapes.cache.data.Project
+import com.jerry.bit.shapes.datastore.AppDataStore
 import com.jerry.bit.shapes.extensions.addIfNotFound
 import com.jerry.bit.shapes.extensions.adjust
 import com.jerry.bit.shapes.extensions.filterNotNullValues
@@ -67,7 +68,16 @@ class BoxesViewModel(
     private val boxesRepository: BoxesRepository,
     private val cc: CoroutineContextProvider,
     private val analytics: FirebaseAnalytics,
+    private val appDataStore: AppDataStore,
 ) : ViewModel() {
+    val isFirstProjectGuideAvailable = appDataStore.isFirstProjectGuideAvailable
+
+    fun markFirstProjectGuideShown() {
+        viewModelScope.launch {
+            appDataStore.markFirstProjectGuideShown()
+        }
+    }
+
     private var layerStateHandle by SavedHandle<MutableMap<Long, Boolean>?>(
         handle,
         LAYER_LIST_STATE,

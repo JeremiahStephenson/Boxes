@@ -19,13 +19,25 @@ class AppDataStore(
             preferences[HAS_LAUNCHED]
         }
 
+    val isFirstProjectGuideAvailable =
+        context.datastore.data.mapLatest { preferences ->
+            preferences[FIRST_PROJECT_GUIDE_SHOWN] != true
+        }
+
     suspend fun setHasLaunched() {
         context.datastore.edit { preferences ->
             preferences[HAS_LAUNCHED] = true
         }
     }
 
+    suspend fun markFirstProjectGuideShown() {
+        context.datastore.edit { preferences ->
+            preferences[FIRST_PROJECT_GUIDE_SHOWN] = true
+        }
+    }
+
     companion object {
         private val HAS_LAUNCHED = booleanPreferencesKey("FIRST_LAUNCH")
+        private val FIRST_PROJECT_GUIDE_SHOWN = booleanPreferencesKey("FIRST_PROJECT_GUIDE_SHOWN")
     }
 }

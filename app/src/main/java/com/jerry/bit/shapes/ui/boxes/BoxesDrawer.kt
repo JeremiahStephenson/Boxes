@@ -71,7 +71,8 @@ fun DrawerMenu(
         verticalArrangement = remember { ArrangementLastItem() },
         contentPadding =
             WindowInsets.navigationBars
-                .only(WindowInsetsSides.Right + WindowInsetsSides.Bottom).asPaddingValues()
+                .only(WindowInsetsSides.Right + WindowInsetsSides.Bottom)
+                .asPaddingValues()
                 .plus(WindowInsets.displayCutout.only(WindowInsetsSides.Right).asPaddingValues())
                 .plus(PaddingValues(vertical = 16.dp)),
     ) {
@@ -212,7 +213,7 @@ fun DrawerMenu(
                         launcher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                     },
                     drawableRes = R.drawable.ic_upload_file_24,
-                    contentDescription = "",
+                    contentDescription = stringResource(R.string.import_photo),
                 )
             }
         }

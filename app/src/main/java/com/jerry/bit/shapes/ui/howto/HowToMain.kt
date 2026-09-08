@@ -2,13 +2,12 @@ package com.jerry.bit.shapes.ui.howto
 
 import android.graphics.RectF
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -236,12 +235,15 @@ fun HowToMain() {
         val coroutineScope = rememberCoroutineScope()
 
         LazyVerticalStaggeredGrid(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background),
             columns = StaggeredGridCells.Adaptive(minSize = 360.dp),
-            contentPadding = WindowInsets.navigationBars.asPaddingValues()
-                .plus(PaddingValues(16.dp)),
+            contentPadding =
+                WindowInsets.navigationBars
+                    .asPaddingValues()
+                    .plus(PaddingValues(16.dp)),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalItemSpacing = 16.dp,
             state = gridState,
@@ -272,7 +274,7 @@ fun HowToMain() {
                 GuideSection(
                     stringResource(R.string.guide_drawer_tools),
                     stringResource(R.string.guide_drawer_tools_desc),
-                    toolItems
+                    toolItems,
                 )
             }
             item {
@@ -308,9 +310,10 @@ private fun GuideTableOfContents(
     onDestinationClick: (GuideDestination) -> Unit,
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 4.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(
@@ -337,11 +340,11 @@ private fun GuideIntroduction() {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.primaryContainer
+        color = MaterialTheme.colorScheme.primaryContainer,
     ) {
         Column(
             modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Text(
                 stringResource(R.string.guide_welcome_title),
@@ -385,12 +388,15 @@ private fun GuideSection(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             items.forEachIndexed { index, item ->
-                if (index > 0) HorizontalDivider(
-                    modifier = Modifier.padding(
-                        start = 76.dp,
-                        end = 20.dp
+                if (index > 0) {
+                    HorizontalDivider(
+                        modifier =
+                            Modifier.padding(
+                                start = 76.dp,
+                                end = 20.dp,
+                            ),
                     )
-                )
+                }
                 GuideRow(item)
             }
         }
@@ -400,9 +406,10 @@ private fun GuideSection(
 @Composable
 private fun GuideRow(item: GuideItem) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 12.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 12.dp),
         verticalAlignment = Alignment.Top,
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
@@ -416,9 +423,10 @@ private fun GuideRow(item: GuideItem) {
                     painterResource(icon),
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                    modifier = Modifier
-                        .size(22.dp)
-                        .wrapContentSize(align = Alignment.Center),
+                    modifier =
+                        Modifier
+                            .size(22.dp)
+                            .wrapContentSize(align = Alignment.Center),
                 )
             } ?: ShapePreview()
         }
@@ -426,12 +434,12 @@ private fun GuideRow(item: GuideItem) {
             Text(
                 item.title,
                 style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.SemiBold,
             )
             Text(
                 item.description,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -441,37 +449,39 @@ private fun GuideRow(item: GuideItem) {
 private fun ShapePreview() {
     val color = MaterialTheme.colorScheme.onSecondaryContainer
     Box(
-        modifier = Modifier
-            .size(22.dp)
-            .padding(8.dp)
-            .drawWithContent({
-                drawCustomShape(
-                    pos = RectF(0F, 0F, size.width, size.height),
-                    color = ColorAndShape(color.value, Shape.Star),
-                )
-            }),
+        modifier =
+            Modifier
+                .size(22.dp)
+                .padding(8.dp)
+                .drawWithContent({
+                    drawCustomShape(
+                        pos = RectF(0F, 0F, size.width, size.height),
+                        color = ColorAndShape(color.value, Shape.Star),
+                    )
+                }),
     )
 }
 
 @Composable
 private fun GuideTip() {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 4.dp, vertical = 8.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.Top,
     ) {
         Icon(
             painterResource(R.drawable.ic_brush_24),
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary
+            tint = MaterialTheme.colorScheme.primary,
         )
         Column {
             Text(
                 stringResource(R.string.guide_tip_title),
                 style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
             )
             Text(
                 stringResource(R.string.guide_tip_desc),

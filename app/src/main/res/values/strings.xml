@@ -67,6 +67,7 @@
     <string name="edit_project">Edit Project Details</string>
     <string name="save_to_png">Save to PNG File</string>
     <string name="share_with_people">Share Your Creation</string>
+    <string name="import_photo">Import a photo</string>
     <string name="clear_layer">Clear the Selected Layer</string>
     <string name="toggle_layer_visibility">Toggle Layer Visibility</string>
     <string name="select_and_move">Toggles Select and Move</string>
@@ -93,6 +94,7 @@
     <string name="select_shape">Select Shape</string>
     <string name="drag_layer">Drag this to reorder layer</string>
     <string name="how_to">Guide</string>
+    <string name="open_guide">Open guide</string>
 
     <string name="guide_welcome_title">Create with confidence</string>
     <string name="guide_welcome_desc">BitShape turns a simple grid into pixel art. Choose a color and shape, draw on the canvas, then use layers to build up your creation.</string>

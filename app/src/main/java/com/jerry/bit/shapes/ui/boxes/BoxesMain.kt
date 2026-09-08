@@ -122,9 +122,29 @@ fun BoxesMain(
         }
 
     val selectionState = rememberSaveable(saver = SelectionState.SAVER) { SelectionState() }
+    val isFirstProjectGuideAvailable by
+        viewModel.isFirstProjectGuideAvailable.collectAsStateWithLifecycle(initialValue = false)
+    var showFirstProjectGuide by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(isFirstProjectGuideAvailable) {
+        if (isFirstProjectGuideAvailable) {
+            showFirstProjectGuide = true
+            viewModel.markFirstProjectGuideShown()
+        }
+    }
     DefaultContainer(
         title = project?.name ?: projectName ?: "",
         appBarActions = {
+            if (showFirstProjectGuide) {
+                Icon(
+                    modifier =
+                        Modifier
+                            .unboundClickable {
+                                navigator.navigate(HowToNavKey)
+                            }.padding(16.dp),
+                    painter = painterResource(R.drawable.ic_help_24),
+                    contentDescription = null,
+                )
+            }
             Icon(
                 modifier =
                     Modifier

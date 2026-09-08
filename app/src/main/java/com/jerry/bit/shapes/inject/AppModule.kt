@@ -19,7 +19,7 @@ import org.koin.dsl.module
 
 val appModule =
     module {
-        viewModel { BoxesViewModel(get(), get(), get(), get()) }
+        viewModel { BoxesViewModel(get(), get(), get(), get(), get()) }
         viewModel { HomeViewModel(get(), get()) }
         viewModel { CreateViewModel(get()) }
         viewModel { LayersEditViewModel(get(), get(), get()) }
