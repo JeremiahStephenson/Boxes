@@ -50,7 +50,6 @@ val navigationModule =
         }
 
         navigation<HowToNavKey> { _ ->
-            val navigator = koinInject<Navigator>()
-            HowToMain(navigator = navigator)
+            HowToMain()
         }
     }
