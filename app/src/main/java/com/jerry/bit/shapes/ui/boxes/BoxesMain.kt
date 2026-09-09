@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -271,7 +272,10 @@ fun BoxesMain(
 private fun BoxScope.SnackBarImageLocator(snackBarHostState: SnackbarHostState) {
     val context = LocalContext.current
     SnackbarHost(
-        modifier = Modifier.align(Alignment.BottomCenter),
+        modifier =
+            Modifier
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding(),
         hostState = snackBarHostState,
         snackbar = { snackBarData ->
             Snackbar(
@@ -352,15 +356,15 @@ private fun MainCanvas(
                 },
                 onTap = { point ->
                     if (canvasState.hasLayersTurnedOn) {
-                    when (buttonsState.activeToolState) {
-                        ActiveTool.EYEDROPPER ->
-                            canvasState.getCurrentSelection(point)?.let {
-                                onAction(Action.SetColor(it))
-                            }
-                        ActiveTool.DRAW -> {
-                            if (!canvasState.isLoading) {
-                                onAction(
-                                    Action.AddToHistory(
+                        when (buttonsState.activeToolState) {
+                            ActiveTool.EYEDROPPER ->
+                                canvasState.getCurrentSelection(point)?.let {
+                                    onAction(Action.SetColor(it))
+                                }
+                            ActiveTool.DRAW -> {
+                                if (!canvasState.isLoading) {
+                                    onAction(
+                                        Action.AddToHistory(
                                             canvasState.getTapHistoryItem(point, currentLayer),
                                         ),
                                     )
@@ -369,31 +373,33 @@ private fun MainCanvas(
                                         currentLayer,
                                         projectState.colorAndShape,
                                         projectState.currentShape,
-                                )
+                                    )
+                                }
                             }
-                        }
-                        ActiveTool.ERASER -> {
-                            if (!canvasState.isLoading) {
-                                onAction(
-                                    Action.AddToHistory(
-                                        canvasState.getTapHistoryItem(point, currentLayer),
-                                    ),
-                                )
-                                canvasState.onDrag(hashSetOf(point), currentLayer, null)
+                            ActiveTool.ERASER -> {
+                                if (!canvasState.isLoading) {
+                                    onAction(
+                                        Action.AddToHistory(
+                                            canvasState.getTapHistoryItem(point, currentLayer),
+                                        ),
+                                    )
+                                    canvasState.onDrag(hashSetOf(point), currentLayer, null)
+                                }
                             }
+                            ActiveTool.FILL -> onAction(Action.Fill(point, currentLayer))
+                            ActiveTool.SELECT -> Unit
                         }
-                        ActiveTool.FILL -> onAction(Action.Fill(point, currentLayer))
-                        ActiveTool.SELECT -> Unit
                     }
-                }
-            },
-            onDrag = {
-                if (
-                    canvasState.hasLayersTurnedOn &&
-                    !canvasState.isLoading &&
-                    (buttonsState.activeToolState == ActiveTool.DRAW ||
-                        buttonsState.activeToolState == ActiveTool.ERASER)
-                ) {
+                },
+                onDrag = {
+                    if (
+                        canvasState.hasLayersTurnedOn &&
+                        !canvasState.isLoading &&
+                        (
+                            buttonsState.activeToolState == ActiveTool.DRAW ||
+                                buttonsState.activeToolState == ActiveTool.ERASER
+                        )
+                    ) {
                         val color =
                             projectState.colorAndShape
                                 .copy(shape = projectState.currentShape)
@@ -410,13 +416,15 @@ private fun MainCanvas(
                     }
                 },
                 onDragStart = {},
-            onDragEnd = {
-                if (
-                    canvasState.hasLayersTurnedOn &&
-                    !canvasState.isLoading &&
-                    (buttonsState.activeToolState == ActiveTool.DRAW ||
-                        buttonsState.activeToolState == ActiveTool.ERASER)
-                ) {
+                onDragEnd = {
+                    if (
+                        canvasState.hasLayersTurnedOn &&
+                        !canvasState.isLoading &&
+                        (
+                            buttonsState.activeToolState == ActiveTool.DRAW ||
+                                buttonsState.activeToolState == ActiveTool.ERASER
+                        )
+                    ) {
                         onAction(
                             Action.AddToHistory(
                                 canvasState.closeDragHistory(currentLayer),
@@ -562,11 +570,11 @@ private fun ActiveToolMenuItem(
         }
     }
     Box {
-            IconMenuButton(
-                onClick = { toolMenuExpanded = true },
-                drawableRes = activeToolIcon,
-                contentDescription = stringResource(R.string.choose_active_tool),
-            )
+        IconMenuButton(
+            onClick = { toolMenuExpanded = true },
+            drawableRes = activeToolIcon,
+            contentDescription = stringResource(R.string.choose_active_tool),
+        )
         DropdownMenu(
             expanded = toolMenuExpanded,
             onDismissRequest = { toolMenuExpanded = false },
@@ -684,16 +692,16 @@ private fun AdditionalButtonBar(
                 .padding(top = 56.dp),
         verticalAlignment = Alignment.Top,
     ) {
-            AnimatedContent(targetState = buttonsState) { state ->
-                if (state.selectToolSelectedState) {
-                    IconMenuButton(
-                        modifier = Modifier,
-                        onClick = { onAction(Action.SelectTool) },
-                        drawableRes = R.drawable.ic_select_all_24,
-                        contentDescription = stringResource(R.string.turn_off_select_and_move),
-                    )
-                }
+        AnimatedContent(targetState = buttonsState) { state ->
+            if (state.selectToolSelectedState) {
+                IconMenuButton(
+                    modifier = Modifier,
+                    onClick = { onAction(Action.SelectTool) },
+                    drawableRes = R.drawable.ic_select_all_24,
+                    contentDescription = stringResource(R.string.turn_off_select_and_move),
+                )
             }
+        }
         if (buttonsState.selectToolSelectedState) {
             val enabled by remember { derivedStateOf { selectionState.bottomRightState != null && selectionState.topLeftState != null } }
             val isAtLeftEdge by remember {

@@ -104,7 +104,7 @@
     <string name="shape_section_rectangles_and_corners">Rectangles and corners</string>
     <string name="shape_section_triangles">Triangles</string>
     <string name="shape_section_curves">Curves</string>
-    <string name="shape_section_lines">Lines</string>
+    <string name="shape_section_lines">Lines and connectors</string>
     <string name="shape_section_special">Special</string>
     <string name="drag_layer">Drag this to reorder layer</string>
     <string name="how_to">Guide</string>

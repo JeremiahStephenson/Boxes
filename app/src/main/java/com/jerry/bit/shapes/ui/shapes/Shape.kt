@@ -923,6 +923,123 @@ enum class Shape(
             scope.drawHeart(pos, color)
         }
     },
+    TTop(ShapeGroup.LINE) {
+        override fun draw(
+            scope: DrawScope,
+            pos: RectF,
+            color: ColorAndShape,
+        ) = scope.drawTTop(pos, color)
+
+        override fun draw(
+            scope: Canvas,
+            pos: RectF,
+            color: ColorAndShape,
+        ) = scope.drawTTop(pos, color)
+    },
+    TRight(ShapeGroup.LINE) {
+        override fun draw(
+            scope: DrawScope,
+            pos: RectF,
+            color: ColorAndShape,
+        ) = scope.drawTRight(pos, color)
+
+        override fun draw(
+            scope: Canvas,
+            pos: RectF,
+            color: ColorAndShape,
+        ) = scope.drawTRight(pos, color)
+    },
+    TBottom(ShapeGroup.LINE) {
+        override fun draw(
+            scope: DrawScope,
+            pos: RectF,
+            color: ColorAndShape,
+        ) = scope.drawTBottom(pos, color)
+
+        override fun draw(
+            scope: Canvas,
+            pos: RectF,
+            color: ColorAndShape,
+        ) = scope.drawTBottom(pos, color)
+    },
+    TLeft(ShapeGroup.LINE) {
+        override fun draw(
+            scope: DrawScope,
+            pos: RectF,
+            color: ColorAndShape,
+        ) = scope.drawTLeft(pos, color)
+
+        override fun draw(
+            scope: Canvas,
+            pos: RectF,
+            color: ColorAndShape,
+        ) = scope.drawTLeft(pos, color)
+    },
+    FourWayIntersection(ShapeGroup.LINE) {
+        override fun draw(
+            scope: DrawScope,
+            pos: RectF,
+            color: ColorAndShape,
+        ) = scope.drawFourWayIntersection(pos, color)
+
+        override fun draw(
+            scope: Canvas,
+            pos: RectF,
+            color: ColorAndShape,
+        ) = scope.drawFourWayIntersection(pos, color)
+    },
+    Ring(ShapeGroup.BASIC) {
+        override fun draw(
+            scope: DrawScope,
+            pos: RectF,
+            color: ColorAndShape,
+        ) = scope.drawRing(pos, color)
+
+        override fun draw(
+            scope: Canvas,
+            pos: RectF,
+            color: ColorAndShape,
+        ) = scope.drawRing(pos, color)
+    },
+    SmallCircle(ShapeGroup.BASIC) {
+        override fun draw(
+            scope: DrawScope,
+            pos: RectF,
+            color: ColorAndShape,
+        ) = scope.drawSmallCircle(pos, color)
+
+        override fun draw(
+            scope: Canvas,
+            pos: RectF,
+            color: ColorAndShape,
+        ) = scope.drawSmallCircle(pos, color)
+    },
+    HorizontalCapsule(ShapeGroup.BASIC) {
+        override fun draw(
+            scope: DrawScope,
+            pos: RectF,
+            color: ColorAndShape,
+        ) = scope.drawHorizontalCapsule(pos, color)
+
+        override fun draw(
+            scope: Canvas,
+            pos: RectF,
+            color: ColorAndShape,
+        ) = scope.drawHorizontalCapsule(pos, color)
+    },
+    VerticalCapsule(ShapeGroup.BASIC) {
+        override fun draw(
+            scope: DrawScope,
+            pos: RectF,
+            color: ColorAndShape,
+        ) = scope.drawVerticalCapsule(pos, color)
+
+        override fun draw(
+            scope: Canvas,
+            pos: RectF,
+            color: ColorAndShape,
+        ) = scope.drawVerticalCapsule(pos, color)
+    },
 }
 
 const val LEGO_LIMIT = 2500

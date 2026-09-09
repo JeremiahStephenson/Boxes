@@ -90,8 +90,7 @@ fun ColorPickerDialog(
                             true -> width(500.dp)
                             else -> this
                         }
-                    }
-                    .clip(MaterialTheme.shapes.large)
+                    }.clip(MaterialTheme.shapes.large)
                     .background(MaterialTheme.colorScheme.surfaceVariant),
         ) {
             Row(
@@ -293,8 +292,7 @@ private fun ColorBox(
                     .unboundClickable {
                         onColorChosen(color)
                         onDismiss()
-                    }
-                    .padding(16.dp)
+                    }.padding(16.dp)
                     .size(34.dp)
                     .border(width = 1.dp, color = MaterialTheme.colorScheme.onSurface)
                     .pngBackground(true, size)
