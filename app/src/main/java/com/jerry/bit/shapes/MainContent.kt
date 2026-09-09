@@ -21,6 +21,8 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -53,7 +55,10 @@ import org.koin.core.annotation.KoinExperimentalAPI
 
 @OptIn(KoinExperimentalAPI::class)
 @Composable
-fun MainContent(onBackPressed: () -> Unit) {
+fun MainContent(
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
+    onBackPressed: () -> Unit,
+) {
     var fab by remember { mutableStateOf<FloatButtonProperties?>(null) }
 
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
@@ -64,6 +69,7 @@ fun MainContent(onBackPressed: () -> Unit) {
         LocalFloatingActionBarButton provides { fab = it },
     ) {
         Scaffold(
+            snackbarHost = { SnackbarHost(snackbarHostState) },
             modifier =
                 Modifier
                     .nestedScroll(scrollBehavior.nestedScrollConnection),
