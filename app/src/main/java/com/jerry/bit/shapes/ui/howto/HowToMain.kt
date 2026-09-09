@@ -422,7 +422,7 @@ private fun GuideRow(item: GuideItem) {
                 Icon(
                     painterResource(icon),
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
                     modifier =
                         Modifier
                             .size(22.dp)
@@ -447,7 +447,7 @@ private fun GuideRow(item: GuideItem) {
 
 @Composable
 private fun ShapePreview() {
-    val color = MaterialTheme.colorScheme.onSecondaryContainer
+    val color = MaterialTheme.colorScheme.onPrimaryContainer
     Box(
         modifier =
             Modifier

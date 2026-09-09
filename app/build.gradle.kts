@@ -44,8 +44,8 @@ android {
         applicationId = "com.jerry.bit.shapes"
         minSdk = 24
         targetSdk = 37
-        versionCode = 9
-        versionName = "1.08"
+        versionCode = 11
+        versionName = "1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
