@@ -79,7 +79,12 @@
     <string name="toggle_fill">Toggles the Fill Bucket</string>
     <string name="toggle_color_picker">Toggles the Color Picker</string>
     <string name="color_selector">Color Selector</string>
-    <string name="toggle_tap_tool">Switch Tap Tool</string>
+    <string name="choose_active_tool">Choose active tool</string>
+    <string name="tool_draw">Draw</string>
+    <string name="tool_eraser">Eraser</string>
+    <string name="tool_fill">Fill</string>
+    <string name="tool_eyedropper">Eyedropper</string>
+    <string name="tool_select_and_move">Select and move</string>
     <string name="undo_history">Undo</string>
     <string name="re_center">Center the Canvas</string>
     <string name="move_left">Move Left</string>

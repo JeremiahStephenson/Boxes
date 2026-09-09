@@ -3,6 +3,7 @@ package com.jerry.bit.shapes.ui.boxes
 import android.content.Context
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -24,6 +25,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Snackbar
@@ -67,6 +70,7 @@ import com.jerry.bit.shapes.ui.boxes.state.ButtonsState
 import com.jerry.bit.shapes.ui.boxes.state.CanvasState
 import com.jerry.bit.shapes.ui.boxes.state.SelectionState
 import com.jerry.bit.shapes.ui.boxes.state.TransformerState
+import com.jerry.bit.shapes.ui.boxes.state.enums.ActiveTool
 import com.jerry.bit.shapes.ui.boxes.state.enums.Direction
 import com.jerry.bit.shapes.ui.boxes.state.enums.TapType
 import com.jerry.bit.shapes.ui.common.DefaultContainer
@@ -343,15 +347,15 @@ private fun MainCanvas(
                 },
                 onTap = { point ->
                     if (canvasState.hasLayersTurnedOn) {
-                        when (buttonsState.tapTypeState) {
-                            TapType.PICKER ->
-                                canvasState.getCurrentSelection(point)?.let {
-                                    onAction(Action.SetColor(it))
-                                }
-                            TapType.TAP -> {
-                                if (!canvasState.isLoading) {
-                                    onAction(
-                                        Action.AddToHistory(
+                    when (buttonsState.activeToolState) {
+                        ActiveTool.EYEDROPPER ->
+                            canvasState.getCurrentSelection(point)?.let {
+                                onAction(Action.SetColor(it))
+                            }
+                        ActiveTool.DRAW -> {
+                            if (!canvasState.isLoading) {
+                                onAction(
+                                    Action.AddToHistory(
                                             canvasState.getTapHistoryItem(point, currentLayer),
                                         ),
                                     )
@@ -360,15 +364,31 @@ private fun MainCanvas(
                                         currentLayer,
                                         projectState.colorAndShape,
                                         projectState.currentShape,
-                                    )
-                                }
+                                )
                             }
-                            TapType.FILL -> onAction(Action.Fill(point, currentLayer))
                         }
+                        ActiveTool.ERASER -> {
+                            if (!canvasState.isLoading) {
+                                onAction(
+                                    Action.AddToHistory(
+                                        canvasState.getTapHistoryItem(point, currentLayer),
+                                    ),
+                                )
+                                canvasState.onDrag(hashSetOf(point), currentLayer, null)
+                            }
+                        }
+                        ActiveTool.FILL -> onAction(Action.Fill(point, currentLayer))
+                        ActiveTool.SELECT -> Unit
                     }
-                },
-                onDrag = {
-                    if (canvasState.hasLayersTurnedOn && !canvasState.isLoading) {
+                }
+            },
+            onDrag = {
+                if (
+                    canvasState.hasLayersTurnedOn &&
+                    !canvasState.isLoading &&
+                    (buttonsState.activeToolState == ActiveTool.DRAW ||
+                        buttonsState.activeToolState == ActiveTool.ERASER)
+                ) {
                         val color =
                             projectState.colorAndShape
                                 .copy(shape = projectState.currentShape)
@@ -385,8 +405,13 @@ private fun MainCanvas(
                     }
                 },
                 onDragStart = {},
-                onDragEnd = {
-                    if (canvasState.hasLayersTurnedOn && !canvasState.isLoading) {
+            onDragEnd = {
+                if (
+                    canvasState.hasLayersTurnedOn &&
+                    !canvasState.isLoading &&
+                    (buttonsState.activeToolState == ActiveTool.DRAW ||
+                        buttonsState.activeToolState == ActiveTool.ERASER)
+                ) {
                         onAction(
                             Action.AddToHistory(
                                 canvasState.closeDragHistory(currentLayer),
@@ -484,20 +509,10 @@ private fun ButtonBar(
             shapePicker = true
         }
 
-        val tapTypeState by remember {
-            derivedStateOf {
-                when (buttonsState.tapTypeState) {
-                    TapType.PICKER -> R.drawable.ic_colorize_24
-                    TapType.FILL -> R.drawable.ic_format_color_fill_24
-                    else -> R.drawable.ic_brush_24
-                }
-            }
-        }
-        IconMenuButton(
-            onClick = { buttonsState.alternateTapType() },
-            color = getColor(),
-            drawableRes = tapTypeState,
-            contentDescription = stringResource(R.string.toggle_tap_tool),
+        ActiveToolMenuItem(
+            buttonsState = buttonsState,
+            onAction = onAction,
+            getColor = getColor,
         )
 
         Spacer(modifier = Modifier.weight(1F))
@@ -520,6 +535,77 @@ private fun ButtonBar(
             contentDescription = stringResource(R.string.re_center),
         )
     }
+}
+
+@Composable
+private fun ActiveToolMenuItem(
+    buttonsState: ButtonsState,
+    onAction: (Action) -> Unit,
+    getColor: () -> ColorAndShape,
+) {
+    var toolMenuExpanded by rememberSaveable { mutableStateOf(false) }
+    val activeToolIcon by remember {
+        derivedStateOf {
+            when (buttonsState.activeToolState) {
+                ActiveTool.DRAW -> R.drawable.ic_brush_24
+                ActiveTool.EYEDROPPER -> R.drawable.ic_colorize_24
+                ActiveTool.FILL -> R.drawable.ic_format_color_fill_24
+                ActiveTool.ERASER -> R.drawable.ic_eraser_on_24
+                ActiveTool.SELECT -> R.drawable.ic_select_all_24
+            }
+        }
+    }
+    Box {
+        IconMenuButton(
+            onClick = { toolMenuExpanded = true },
+            color = getColor(),
+            drawableRes = activeToolIcon,
+            contentDescription = stringResource(R.string.choose_active_tool),
+        )
+        DropdownMenu(
+            expanded = toolMenuExpanded,
+            onDismissRequest = { toolMenuExpanded = false },
+        ) {
+            ActiveToolMenuItem(stringResource(R.string.tool_draw), R.drawable.ic_brush_24) {
+                buttonsState.setTapType(TapType.TAP)
+                toolMenuExpanded = false
+            }
+            ActiveToolMenuItem(stringResource(R.string.tool_eraser), R.drawable.ic_eraser_on_24) {
+                if (!buttonsState.eraserSelectedState) onAction(Action.Eraser)
+                toolMenuExpanded = false
+            }
+            ActiveToolMenuItem(stringResource(R.string.tool_fill), R.drawable.ic_format_color_fill_24) {
+                buttonsState.setTapType(TapType.FILL)
+                toolMenuExpanded = false
+            }
+            ActiveToolMenuItem(stringResource(R.string.tool_eyedropper), R.drawable.ic_colorize_24) {
+                buttonsState.setTapType(TapType.PICKER)
+                toolMenuExpanded = false
+            }
+            ActiveToolMenuItem(stringResource(R.string.tool_select_and_move), R.drawable.ic_select_all_24) {
+                if (!buttonsState.selectToolSelectedState) onAction(Action.SelectTool)
+                toolMenuExpanded = false
+            }
+        }
+    }
+}
+
+@Composable
+private fun ActiveToolMenuItem(
+    label: String,
+    @DrawableRes drawableRes: Int,
+    onClick: () -> Unit,
+) {
+    DropdownMenuItem(
+        text = { Text(label) },
+        onClick = onClick,
+        leadingIcon = {
+            Icon(
+                painter = painterResource(drawableRes),
+                contentDescription = null,
+            )
+        },
+    )
 }
 
 @Composable
