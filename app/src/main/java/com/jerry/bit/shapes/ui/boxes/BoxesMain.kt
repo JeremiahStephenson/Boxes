@@ -37,6 +37,7 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -53,7 +54,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -61,6 +61,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.window.core.layout.WindowSizeClass
 import com.jerry.bit.shapes.R
 import com.jerry.bit.shapes.cache.data.ColorAndShape
 import com.jerry.bit.shapes.cache.data.Project
@@ -544,7 +545,11 @@ private fun ActiveToolMenuItem(
     onAction: (Action) -> Unit,
 ) {
     var toolMenuExpanded by rememberSaveable { mutableStateOf(false) }
-    val useCompactMenu = LocalConfiguration.current.screenHeightDp < 480
+    val windowSizeClass = currentWindowAdaptiveInfoV2().windowSizeClass
+    val useCompactMenu =
+        !windowSizeClass.isHeightAtLeastBreakpoint(
+            WindowSizeClass.HEIGHT_DP_MEDIUM_LOWER_BOUND,
+        )
     val activeToolIcon by remember {
         derivedStateOf {
             when (buttonsState.activeToolState) {

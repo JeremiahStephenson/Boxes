@@ -106,6 +106,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.util)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.material3.adaptive)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.core.splashscreen)
 

@@ -34,6 +34,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -77,8 +78,8 @@ fun ColorPickerDialog(
                 usePlatformDefaultWidth = (isPortrait),
             ),
     ) {
-        var currentColor by remember(color) { mutableStateOf(color) }
-        var hexColor by remember(color) { mutableStateOf(color.color.toHexCode()) }
+        var currentColor by rememberSaveable(color) { mutableStateOf(color) }
+        var hexColor by rememberSaveable(color) { mutableStateOf(color.color.toHexCode()) }
         var colorPickerKey by remember(color) { mutableIntStateOf(0) }
 
         Column(
