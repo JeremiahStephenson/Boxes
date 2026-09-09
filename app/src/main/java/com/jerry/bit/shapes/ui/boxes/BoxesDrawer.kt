@@ -152,6 +152,11 @@ fun DrawerMenu(
                     drawableResOn = R.drawable.ic_select_all_24,
                     contentDescription = stringResource(R.string.select_and_move),
                 )
+            }
+        }
+
+        item {
+            ButtonSection(R.string.canvas_display) {
                 IconSelectableMenuButton(
                     onClick = { onAction(Action.ShowGrid) },
                     isSelected = { getProject().showGrid },
@@ -168,7 +173,7 @@ fun DrawerMenu(
         }
 
         item {
-            ButtonSection(R.string.other) {
+            ButtonSection(R.string.project_actions) {
                 IconMenuButton(
                     onClick = { onAction(Action.Edit) },
                     drawableRes = R.drawable.ic_edit_24,

@@ -51,7 +51,8 @@
     <string name="share">Share</string>
     <string name="view">View</string>
     <string name="dismiss">Dismiss</string>
-    <string name="other">Other</string>
+    <string name="canvas_display">Canvas display</string>
+    <string name="project_actions">Project actions</string>
 
     <string name="name_required">A name is required</string>
     <string name="value_too_high">The value is too large</string>
@@ -75,7 +76,6 @@
     <string name="toggle_opacity_bg">Toggles Opacity Background Visibility</string>
     <string name="toggle_grid_visibility">Toggles the Grid Visibility</string>
     <string name="toggle_eraser">Toggles the Eraser</string>
-    <string name="turn_off_eraser">Turn off Eraser</string>
     <string name="toggle_fill">Toggles the Fill Bucket</string>
     <string name="toggle_color_picker">Toggles the Color Picker</string>
     <string name="color_selector">Color Selector</string>

@@ -50,6 +50,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -544,6 +545,7 @@ private fun ActiveToolMenuItem(
     getColor: () -> ColorAndShape,
 ) {
     var toolMenuExpanded by rememberSaveable { mutableStateOf(false) }
+    val useCompactMenu = LocalConfiguration.current.screenHeightDp < 480
     val activeToolIcon by remember {
         derivedStateOf {
             when (buttonsState.activeToolState) {
@@ -566,42 +568,72 @@ private fun ActiveToolMenuItem(
             expanded = toolMenuExpanded,
             onDismissRequest = { toolMenuExpanded = false },
         ) {
-            ActiveToolMenuItem(stringResource(R.string.tool_draw), R.drawable.ic_brush_24) {
-                buttonsState.setTapType(TapType.TAP)
-                toolMenuExpanded = false
-            }
-            ActiveToolMenuItem(stringResource(R.string.tool_eraser), R.drawable.ic_eraser_on_24) {
-                if (!buttonsState.eraserSelectedState) onAction(Action.Eraser)
-                toolMenuExpanded = false
-            }
-            ActiveToolMenuItem(stringResource(R.string.tool_fill), R.drawable.ic_format_color_fill_24) {
-                buttonsState.setTapType(TapType.FILL)
-                toolMenuExpanded = false
-            }
-            ActiveToolMenuItem(stringResource(R.string.tool_eyedropper), R.drawable.ic_colorize_24) {
-                buttonsState.setTapType(TapType.PICKER)
-                toolMenuExpanded = false
-            }
-            ActiveToolMenuItem(stringResource(R.string.tool_select_and_move), R.drawable.ic_select_all_24) {
-                if (!buttonsState.selectToolSelectedState) onAction(Action.SelectTool)
-                toolMenuExpanded = false
+            val options =
+                listOf(
+                    ActiveToolOption(stringResource(R.string.tool_draw), R.drawable.ic_brush_24) {
+                        buttonsState.setTapType(TapType.TAP)
+                    },
+                    ActiveToolOption(stringResource(R.string.tool_eraser), R.drawable.ic_eraser_on_24) {
+                        if (!buttonsState.eraserSelectedState) onAction(Action.Eraser)
+                    },
+                    ActiveToolOption(stringResource(R.string.tool_fill), R.drawable.ic_format_color_fill_24) {
+                        buttonsState.setTapType(TapType.FILL)
+                    },
+                    ActiveToolOption(stringResource(R.string.tool_eyedropper), R.drawable.ic_colorize_24) {
+                        buttonsState.setTapType(TapType.PICKER)
+                    },
+                    ActiveToolOption(stringResource(R.string.tool_select_and_move), R.drawable.ic_select_all_24) {
+                        if (!buttonsState.selectToolSelectedState) onAction(Action.SelectTool)
+                    },
+                )
+            if (useCompactMenu) {
+                Column {
+                    options.chunked(2).forEach { rowOptions ->
+                        Row {
+                            rowOptions.forEach { option ->
+                                ActiveToolMenuItem(
+                                    option = option,
+                                    modifier = Modifier.width(168.dp),
+                                    onMenuDismiss = { toolMenuExpanded = false },
+                                )
+                            }
+                        }
+                    }
+                }
+            } else {
+                options.forEach { option ->
+                    ActiveToolMenuItem(
+                        option = option,
+                        onMenuDismiss = { toolMenuExpanded = false },
+                    )
+                }
             }
         }
     }
 }
 
+private data class ActiveToolOption(
+    val label: String,
+    @param:DrawableRes val drawableRes: Int,
+    val onClick: () -> Unit,
+)
+
 @Composable
 private fun ActiveToolMenuItem(
-    label: String,
-    @DrawableRes drawableRes: Int,
-    onClick: () -> Unit,
+    option: ActiveToolOption,
+    modifier: Modifier = Modifier,
+    onMenuDismiss: () -> Unit,
 ) {
     DropdownMenuItem(
-        text = { Text(label) },
-        onClick = onClick,
+        modifier = modifier,
+        text = { Text(option.label) },
+        onClick = {
+            option.onClick()
+            onMenuDismiss()
+        },
         leadingIcon = {
             Icon(
-                painter = painterResource(drawableRes),
+                painter = painterResource(option.drawableRes),
                 contentDescription = null,
             )
         },
@@ -626,24 +658,16 @@ private fun AdditionalButtonBar(
                 .padding(top = 56.dp),
         verticalAlignment = Alignment.Top,
     ) {
-        AnimatedContent(targetState = buttonsState) { state ->
-            when {
-                state.selectToolSelectedState ->
+            AnimatedContent(targetState = buttonsState) { state ->
+                if (state.selectToolSelectedState) {
                     IconMenuButton(
                         modifier = Modifier,
                         onClick = { onAction(Action.SelectTool) },
                         drawableRes = R.drawable.ic_select_all_24,
                         contentDescription = stringResource(R.string.turn_off_select_and_move),
                     )
-                state.eraserSelectedState ->
-                    IconMenuButton(
-                        modifier = Modifier,
-                        onClick = { onAction(Action.Eraser) },
-                        drawableRes = R.drawable.ic_eraser_on_24,
-                        contentDescription = stringResource(R.string.turn_off_eraser),
-                    )
+                }
             }
-        }
         if (buttonsState.selectToolSelectedState) {
             val enabled by remember { derivedStateOf { selectionState.bottomRightState != null && selectionState.topLeftState != null } }
             val isAtLeftEdge by remember {
