@@ -112,6 +112,11 @@ fun HowToMain() {
         val toolItems =
             listOf(
                 GuideItem(
+                    R.drawable.ic_brush_24,
+                    stringResource(R.string.guide_drawer_menu_0_label),
+                    stringResource(R.string.guide_drawer_menu_0_desc),
+                ),
+                GuideItem(
                     R.drawable.ic_colorize_24,
                     stringResource(R.string.guide_drawer_menu_2_label),
                     stringResource(R.string.guide_drawer_menu_2_desc),
@@ -131,6 +136,9 @@ fun HowToMain() {
                     stringResource(R.string.guide_drawer_menu_4_label),
                     stringResource(R.string.guide_drawer_menu_4_desc),
                 ),
+            )
+        val displayItems =
+            listOf(
                 GuideItem(
                     R.drawable.ic_grid_on_24,
                     stringResource(R.string.guide_drawer_menu_5_label),
@@ -227,9 +235,10 @@ fun HowToMain() {
                 GuideDestination(stringResource(R.string.guide_basic_drawing), 2),
                 GuideDestination(stringResource(R.string.guide_tool_icon_bar), 3),
                 GuideDestination(stringResource(R.string.guide_drawer_tools), 4),
-                GuideDestination(stringResource(R.string.guide_project_actions), 5),
-                GuideDestination(stringResource(R.string.guide_layers), 6),
-                GuideDestination(stringResource(R.string.guide_layer_edit_screen), 7),
+                GuideDestination(stringResource(R.string.guide_canvas_display), 5),
+                GuideDestination(stringResource(R.string.guide_project_actions), 6),
+                GuideDestination(stringResource(R.string.guide_layers), 7),
+                GuideDestination(stringResource(R.string.guide_layer_edit_screen), 8),
             )
         val gridState = rememberLazyStaggeredGridState()
         val coroutineScope = rememberCoroutineScope()
@@ -275,6 +284,13 @@ fun HowToMain() {
                     stringResource(R.string.guide_drawer_tools),
                     stringResource(R.string.guide_drawer_tools_desc),
                     toolItems,
+                )
+            }
+            item {
+                GuideSection(
+                    stringResource(R.string.guide_canvas_display),
+                    stringResource(R.string.guide_canvas_display_desc),
+                    displayItems,
                 )
             }
             item {
