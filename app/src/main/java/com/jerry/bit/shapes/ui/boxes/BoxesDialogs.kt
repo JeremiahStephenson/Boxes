@@ -30,13 +30,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
@@ -74,7 +78,9 @@ fun ColorPickerDialog(
                 usePlatformDefaultWidth = (isPortrait),
             ),
     ) {
-        var currentColor by remember(color) { mutableStateOf(color) }
+        var currentColor by rememberSaveable(color) { mutableStateOf(color) }
+        var hexColor by rememberSaveable(color) { mutableStateOf(color.color.toHexCode()) }
+        var colorPickerKey by remember(color) { mutableIntStateOf(0) }
 
         Column(
             modifier =
@@ -157,15 +163,48 @@ fun ColorPickerDialog(
                                 .fillMaxWidth()
                                 .height(16.dp),
                     )
-                    ClassicColorPicker(
-                        color = HsvColor.from(color.color),
+                    key(colorPickerKey) {
+                        ClassicColorPicker(
+                            color = HsvColor.from(currentColor.color),
+                            modifier =
+                                Modifier
+                                    .height(height)
+                                    .padding(horizontal = 16.dp),
+                            onColorChanged = { color: HsvColor ->
+                                currentColor = color.asColorAndShape
+                                hexColor = currentColor.color.toHexCode()
+                            },
+                        )
+                    }
+                    OutlinedTextField(
+                        value = hexColor,
+                        onValueChange = { value ->
+                            if (value.length <= HEX_COLOR_MAX_LENGTH) {
+                                hexColor = value.uppercase()
+                                value.toColorAndShapeOrNull()?.let {
+                                    currentColor = it
+                                    colorPickerKey++
+                                }
+                            }
+                        },
                         modifier =
                             Modifier
-                                .height(height)
-                                .padding(horizontal = 16.dp),
-                        onColorChanged = { color: HsvColor ->
-                            currentColor = color.asColorAndShape
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp)
+                                .padding(top = 8.dp),
+                        label = { Text(stringResource(R.string.hex_color)) },
+                        supportingText = {
+                            Text(
+                                if (hexColor.toColorAndShapeOrNull() == null) {
+                                    stringResource(R.string.hex_color_error)
+                                } else {
+                                    stringResource(R.string.hex_color_supporting_text)
+                                },
+                            )
                         },
+                        isError = hexColor.toColorAndShapeOrNull() == null,
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Ascii),
                     )
                 }
             }
@@ -189,6 +228,24 @@ fun ColorPickerDialog(
             }
         }
     }
+}
+
+private fun Color.toHexCode(): String {
+    val argb = toArgb()
+    return if ((argb ushr 24) == 0xFF) {
+        "#%06X".format(argb and 0xFFFFFF)
+    } else {
+        "#%08X".format(argb)
+    }
+}
+
+private fun String.toColorAndShapeOrNull(): ColorAndShape? {
+    val hex = removePrefix("#")
+    if (hex.length != 6 && hex.length != 8) return null
+    if (hex.any { it.digitToIntOrNull(16) == null }) return null
+
+    val argb = if (hex.length == 6) "FF$hex" else hex
+    return ColorAndShape(Color(argb.toLong(16).toInt()).value)
 }
 
 @Composable
@@ -253,14 +310,27 @@ fun ShapePickerDialog(
 ) {
     Dialog(onDismissRequest = onDismiss) {
         val shapes =
-            remember {
-                Shape.entries
-                    .groupBy { it.group }
-                    .flatMap { it.value }
-                    .sortedBy { it.group.ordinal }
-            }.filter {
+            Shape.entries.filter {
                 (it.group == ShapeGroup.LEGO && numberOfBoxes <= LEGO_LIMIT) || it.group != ShapeGroup.LEGO
             }
+        val sections =
+            listOf(
+                ShapeSection(R.string.shape_section_basic, setOf(ShapeGroup.BASIC)),
+                ShapeSection(
+                    R.string.shape_section_rectangles_and_corners,
+                    setOf(ShapeGroup.RECTANGLE, ShapeGroup.CORNER),
+                ),
+                ShapeSection(
+                    R.string.shape_section_triangles,
+                    setOf(ShapeGroup.TRIANGLE, ShapeGroup.CORNER_TRIANGLE),
+                ),
+                ShapeSection(
+                    R.string.shape_section_curves,
+                    setOf(ShapeGroup.ARC, ShapeGroup.CORNER_ARC),
+                ),
+                ShapeSection(R.string.shape_section_lines, setOf(ShapeGroup.LINE)),
+                ShapeSection(R.string.shape_section_special, setOf(ShapeGroup.LEGO)),
+            )
         LazyVerticalGrid(
             modifier =
                 Modifier
@@ -269,33 +339,53 @@ fun ShapePickerDialog(
             contentPadding = PaddingValues(16.dp),
             columns = GridCells.Fixed(COLUMN_COUNT),
         ) {
-            items(
-                items = shapes,
-                key = { item -> item.ordinal },
-                span = { item ->
-                    val groupSize = shapes.count { it.group == item.group }
-                    val indexInGroup = shapes.filter { it.group == item.group }.indexOf(item) + 1
-                    val end = indexInGroup % COLUMN_COUNT != 0 && groupSize == indexInGroup
-                    GridItemSpan(
-                        when (end) {
-                            true -> COLUMN_COUNT - ((indexInGroup - 1) % COLUMN_COUNT)
-                            else -> 1
-                        },
-                    )
-                },
+            item(
+                key = "shape_picker_title",
+                span = { GridItemSpan(maxLineSpan) },
             ) {
-                ShapeOption(
-                    shapeSize = 34.dp,
-                    color = color,
-                    shape = it,
-                ) {
-                    onShapeChosen(it)
-                    onDismiss()
+                Text(
+                    text = stringResource(R.string.select_shape),
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(bottom = 8.dp),
+                )
+            }
+            sections.forEach { section ->
+                val sectionShapes = shapes.filter { it.group in section.groups }
+                if (sectionShapes.isNotEmpty()) {
+                    item(
+                        key = "shape_section_${section.titleRes}",
+                        span = { GridItemSpan(maxLineSpan) },
+                    ) {
+                        Text(
+                            text = stringResource(section.titleRes),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 12.dp, bottom = 4.dp),
+                        )
+                    }
+                    items(
+                        items = sectionShapes,
+                        key = { shape -> shape.ordinal },
+                    ) { shape ->
+                        ShapeOption(
+                            shapeSize = 34.dp,
+                            color = color,
+                            shape = shape,
+                        ) {
+                            onShapeChosen(shape)
+                            onDismiss()
+                        }
+                    }
                 }
             }
         }
     }
 }
+
+private data class ShapeSection(
+    @param:StringRes val titleRes: Int,
+    val groups: Set<ShapeGroup>,
+)
 
 @Composable
 fun ExportDialog(
@@ -352,6 +442,7 @@ fun ExportDialog(
                                         else -> R.string.value_too_low
                                     },
                                 )
+
                             else -> ""
                         },
                     color = MaterialTheme.colorScheme.error,
@@ -462,6 +553,7 @@ private fun RowScope.SizeButton(
 }
 
 private const val COLUMN_COUNT = 4
+private const val HEX_COLOR_MAX_LENGTH = 9
 private const val HIGHEST_QUALITY = 12800
 private const val LOWEST_QUALITY = 10
 

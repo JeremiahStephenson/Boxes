@@ -48,6 +48,7 @@ import com.jerry.bit.shapes.ui.boxes.data.Action
 import com.jerry.bit.shapes.ui.boxes.data.LayerState
 import com.jerry.bit.shapes.ui.boxes.state.ButtonsState
 import com.jerry.bit.shapes.ui.boxes.state.CanvasState
+import com.jerry.bit.shapes.ui.boxes.state.enums.ActiveTool
 import com.jerry.bit.shapes.ui.boxes.state.enums.TapType
 import com.jerry.bit.shapes.ui.common.IconMenuButton
 import com.jerry.bit.shapes.ui.common.IconSelectableMenuButton
@@ -118,6 +119,13 @@ fun DrawerMenu(
 
         item {
             ButtonSection(R.string.tools) {
+                val isDrawOn by remember { derivedStateOf { buttonsState.activeToolState == ActiveTool.DRAW } }
+                IconSelectableMenuButton(
+                    onClick = { onAction(Action.SetTapType(TapType.TAP)) },
+                    isSelected = { isDrawOn },
+                    drawableResOn = R.drawable.ic_brush_24,
+                    contentDescription = stringResource(R.string.tool_draw),
+                )
                 val isPickerOn by remember { derivedStateOf { buttonsState.tapTypeState == TapType.PICKER } }
                 IconSelectableMenuButton(
                     onClick = { onAction(Action.SetTapType(TapType.PICKER)) },
@@ -144,6 +152,11 @@ fun DrawerMenu(
                     drawableResOn = R.drawable.ic_select_all_24,
                     contentDescription = stringResource(R.string.select_and_move),
                 )
+            }
+        }
+
+        item {
+            ButtonSection(R.string.canvas_display) {
                 IconSelectableMenuButton(
                     onClick = { onAction(Action.ShowGrid) },
                     isSelected = { getProject().showGrid },
@@ -160,7 +173,7 @@ fun DrawerMenu(
         }
 
         item {
-            ButtonSection(R.string.other) {
+            ButtonSection(R.string.project_actions) {
                 IconMenuButton(
                     onClick = { onAction(Action.Edit) },
                     drawableRes = R.drawable.ic_edit_24,

@@ -3,8 +3,10 @@ package com.jerry.bit.shapes.ui.boxes
 import android.content.Context
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -16,14 +18,19 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Snackbar
@@ -31,6 +38,7 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -54,6 +62,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.window.core.layout.WindowSizeClass
 import com.jerry.bit.shapes.R
 import com.jerry.bit.shapes.cache.data.ColorAndShape
 import com.jerry.bit.shapes.cache.data.Project
@@ -67,6 +76,7 @@ import com.jerry.bit.shapes.ui.boxes.state.ButtonsState
 import com.jerry.bit.shapes.ui.boxes.state.CanvasState
 import com.jerry.bit.shapes.ui.boxes.state.SelectionState
 import com.jerry.bit.shapes.ui.boxes.state.TransformerState
+import com.jerry.bit.shapes.ui.boxes.state.enums.ActiveTool
 import com.jerry.bit.shapes.ui.boxes.state.enums.Direction
 import com.jerry.bit.shapes.ui.boxes.state.enums.TapType
 import com.jerry.bit.shapes.ui.common.DefaultContainer
@@ -262,7 +272,10 @@ fun BoxesMain(
 private fun BoxScope.SnackBarImageLocator(snackBarHostState: SnackbarHostState) {
     val context = LocalContext.current
     SnackbarHost(
-        modifier = Modifier.align(Alignment.BottomCenter),
+        modifier =
+            Modifier
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding(),
         hostState = snackBarHostState,
         snackbar = { snackBarData ->
             Snackbar(
@@ -343,12 +356,12 @@ private fun MainCanvas(
                 },
                 onTap = { point ->
                     if (canvasState.hasLayersTurnedOn) {
-                        when (buttonsState.tapTypeState) {
-                            TapType.PICKER ->
+                        when (buttonsState.activeToolState) {
+                            ActiveTool.EYEDROPPER ->
                                 canvasState.getCurrentSelection(point)?.let {
                                     onAction(Action.SetColor(it))
                                 }
-                            TapType.TAP -> {
+                            ActiveTool.DRAW -> {
                                 if (!canvasState.isLoading) {
                                     onAction(
                                         Action.AddToHistory(
@@ -363,12 +376,30 @@ private fun MainCanvas(
                                     )
                                 }
                             }
-                            TapType.FILL -> onAction(Action.Fill(point, currentLayer))
+                            ActiveTool.ERASER -> {
+                                if (!canvasState.isLoading) {
+                                    onAction(
+                                        Action.AddToHistory(
+                                            canvasState.getTapHistoryItem(point, currentLayer),
+                                        ),
+                                    )
+                                    canvasState.onDrag(hashSetOf(point), currentLayer, null)
+                                }
+                            }
+                            ActiveTool.FILL -> onAction(Action.Fill(point, currentLayer))
+                            ActiveTool.SELECT -> Unit
                         }
                     }
                 },
                 onDrag = {
-                    if (canvasState.hasLayersTurnedOn && !canvasState.isLoading) {
+                    if (
+                        canvasState.hasLayersTurnedOn &&
+                        !canvasState.isLoading &&
+                        (
+                            buttonsState.activeToolState == ActiveTool.DRAW ||
+                                buttonsState.activeToolState == ActiveTool.ERASER
+                        )
+                    ) {
                         val color =
                             projectState.colorAndShape
                                 .copy(shape = projectState.currentShape)
@@ -386,7 +417,14 @@ private fun MainCanvas(
                 },
                 onDragStart = {},
                 onDragEnd = {
-                    if (canvasState.hasLayersTurnedOn && !canvasState.isLoading) {
+                    if (
+                        canvasState.hasLayersTurnedOn &&
+                        !canvasState.isLoading &&
+                        (
+                            buttonsState.activeToolState == ActiveTool.DRAW ||
+                                buttonsState.activeToolState == ActiveTool.ERASER
+                        )
+                    ) {
                         onAction(
                             Action.AddToHistory(
                                 canvasState.closeDragHistory(currentLayer),
@@ -469,11 +507,9 @@ private fun ButtonBar(
             }
         }
 
-        IconMenuButton(
+        ColorSelectorButton(
             onClick = { colorPicker = true },
             color = getColor(),
-            drawableRes = R.drawable.ic_color_lens_24,
-            contentDescription = stringResource(R.string.color_selector),
         )
 
         ShapeOption(
@@ -484,20 +520,9 @@ private fun ButtonBar(
             shapePicker = true
         }
 
-        val tapTypeState by remember {
-            derivedStateOf {
-                when (buttonsState.tapTypeState) {
-                    TapType.PICKER -> R.drawable.ic_colorize_24
-                    TapType.FILL -> R.drawable.ic_format_color_fill_24
-                    else -> R.drawable.ic_brush_24
-                }
-            }
-        }
-        IconMenuButton(
-            onClick = { buttonsState.alternateTapType() },
-            color = getColor(),
-            drawableRes = tapTypeState,
-            contentDescription = stringResource(R.string.toggle_tap_tool),
+        ActiveToolMenuItem(
+            buttonsState = buttonsState,
+            onAction = onAction,
         )
 
         Spacer(modifier = Modifier.weight(1F))
@@ -523,6 +548,133 @@ private fun ButtonBar(
 }
 
 @Composable
+private fun ActiveToolMenuItem(
+    buttonsState: ButtonsState,
+    onAction: (Action) -> Unit,
+) {
+    var toolMenuExpanded by rememberSaveable { mutableStateOf(false) }
+    val windowSizeClass = currentWindowAdaptiveInfoV2().windowSizeClass
+    val useCompactMenu =
+        !windowSizeClass.isHeightAtLeastBreakpoint(
+            WindowSizeClass.HEIGHT_DP_MEDIUM_LOWER_BOUND,
+        )
+    val activeToolIcon by remember {
+        derivedStateOf {
+            when (buttonsState.activeToolState) {
+                ActiveTool.DRAW -> R.drawable.ic_brush_24
+                ActiveTool.EYEDROPPER -> R.drawable.ic_colorize_24
+                ActiveTool.FILL -> R.drawable.ic_format_color_fill_24
+                ActiveTool.ERASER -> R.drawable.ic_eraser_on_24
+                ActiveTool.SELECT -> R.drawable.ic_select_all_24
+            }
+        }
+    }
+    Box {
+        IconMenuButton(
+            onClick = { toolMenuExpanded = true },
+            drawableRes = activeToolIcon,
+            contentDescription = stringResource(R.string.choose_active_tool),
+        )
+        DropdownMenu(
+            expanded = toolMenuExpanded,
+            onDismissRequest = { toolMenuExpanded = false },
+        ) {
+            val options =
+                listOf(
+                    ActiveToolOption(stringResource(R.string.tool_draw), R.drawable.ic_brush_24) {
+                        buttonsState.setTapType(TapType.TAP)
+                    },
+                    ActiveToolOption(stringResource(R.string.tool_eraser), R.drawable.ic_eraser_on_24) {
+                        if (!buttonsState.eraserSelectedState) onAction(Action.Eraser)
+                    },
+                    ActiveToolOption(stringResource(R.string.tool_fill), R.drawable.ic_format_color_fill_24) {
+                        buttonsState.setTapType(TapType.FILL)
+                    },
+                    ActiveToolOption(stringResource(R.string.tool_eyedropper), R.drawable.ic_colorize_24) {
+                        buttonsState.setTapType(TapType.PICKER)
+                    },
+                    ActiveToolOption(stringResource(R.string.tool_select_and_move), R.drawable.ic_select_all_24) {
+                        if (!buttonsState.selectToolSelectedState) onAction(Action.SelectTool)
+                    },
+                )
+            if (useCompactMenu) {
+                Column {
+                    options.chunked(2).forEach { rowOptions ->
+                        Row {
+                            rowOptions.forEach { option ->
+                                ActiveToolMenuItem(
+                                    option = option,
+                                    modifier = Modifier.width(168.dp),
+                                    onMenuDismiss = { toolMenuExpanded = false },
+                                )
+                            }
+                        }
+                    }
+                }
+            } else {
+                options.forEach { option ->
+                    ActiveToolMenuItem(
+                        option = option,
+                        onMenuDismiss = { toolMenuExpanded = false },
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ColorSelectorButton(
+    color: ColorAndShape,
+    onClick: () -> Unit,
+) {
+    Box {
+        IconMenuButton(
+            onClick = onClick,
+            drawableRes = R.drawable.ic_color_lens_24,
+            contentDescription = stringResource(R.string.color_selector),
+        )
+        Box(
+            modifier =
+                Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 7.dp, bottom = 7.dp)
+                    .size(14.dp)
+                    .background(color.color, CircleShape)
+                    .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape),
+        )
+    }
+}
+
+private data class ActiveToolOption(
+    val label: String,
+    @param:DrawableRes val drawableRes: Int,
+    val onClick: () -> Unit,
+)
+
+@Composable
+private fun ActiveToolMenuItem(
+    option: ActiveToolOption,
+    modifier: Modifier = Modifier,
+    onMenuDismiss: () -> Unit,
+) {
+    DropdownMenuItem(
+        modifier = modifier,
+        text = { Text(option.label) },
+        onClick = {
+            option.onClick()
+            onMenuDismiss()
+        },
+        leadingIcon = {
+            Icon(
+                painter = painterResource(option.drawableRes),
+                contentDescription = null,
+            )
+        },
+    )
+}
+
+@Composable
 private fun AdditionalButtonBar(
     canvasState: CanvasState,
     buttonsState: ButtonsState,
@@ -541,21 +693,13 @@ private fun AdditionalButtonBar(
         verticalAlignment = Alignment.Top,
     ) {
         AnimatedContent(targetState = buttonsState) { state ->
-            when {
-                state.selectToolSelectedState ->
-                    IconMenuButton(
-                        modifier = Modifier,
-                        onClick = { onAction(Action.SelectTool) },
-                        drawableRes = R.drawable.ic_select_all_24,
-                        contentDescription = stringResource(R.string.turn_off_select_and_move),
-                    )
-                state.eraserSelectedState ->
-                    IconMenuButton(
-                        modifier = Modifier,
-                        onClick = { onAction(Action.Eraser) },
-                        drawableRes = R.drawable.ic_eraser_on_24,
-                        contentDescription = stringResource(R.string.turn_off_eraser),
-                    )
+            if (state.selectToolSelectedState) {
+                IconMenuButton(
+                    modifier = Modifier,
+                    onClick = { onAction(Action.SelectTool) },
+                    drawableRes = R.drawable.ic_select_all_24,
+                    contentDescription = stringResource(R.string.turn_off_select_and_move),
+                )
             }
         }
         if (buttonsState.selectToolSelectedState) {

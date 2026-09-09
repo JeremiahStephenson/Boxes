@@ -44,8 +44,8 @@ android {
         applicationId = "com.jerry.bit.shapes"
         minSdk = 24
         targetSdk = 37
-        versionCode = 12
-        versionName = "1.11"
+        versionCode = 15
+        versionName = "1.14"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -106,6 +106,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.util)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.material3.adaptive)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.core.splashscreen)
 

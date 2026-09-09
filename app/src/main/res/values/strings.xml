@@ -39,6 +39,9 @@
     <string name="project_range">Between %1$d and %2$d</string>
 
     <string name="set_color">Set Color</string>
+    <string name="hex_color">Hex color</string>
+    <string name="hex_color_supporting_text">#RRGGBB or #AARRGGBB</string>
+    <string name="hex_color_error">Enter #RRGGBB or #AARRGGBB</string>
     <string name="error_save">There was a problem creating your project. Please try again.</string>
 
     <string name="error_message">Error! %1$s</string>
@@ -51,7 +54,8 @@
     <string name="share">Share</string>
     <string name="view">View</string>
     <string name="dismiss">Dismiss</string>
-    <string name="other">Other</string>
+    <string name="canvas_display">Canvas display</string>
+    <string name="project_actions">Project actions</string>
 
     <string name="name_required">A name is required</string>
     <string name="value_too_high">The value is too large</string>
@@ -75,11 +79,15 @@
     <string name="toggle_opacity_bg">Toggles Opacity Background Visibility</string>
     <string name="toggle_grid_visibility">Toggles the Grid Visibility</string>
     <string name="toggle_eraser">Toggles the Eraser</string>
-    <string name="turn_off_eraser">Turn off Eraser</string>
     <string name="toggle_fill">Toggles the Fill Bucket</string>
     <string name="toggle_color_picker">Toggles the Color Picker</string>
     <string name="color_selector">Color Selector</string>
-    <string name="toggle_tap_tool">Switch Tap Tool</string>
+    <string name="choose_active_tool">Choose active tool</string>
+    <string name="tool_draw">Draw</string>
+    <string name="tool_eraser">Eraser</string>
+    <string name="tool_fill">Fill</string>
+    <string name="tool_eyedropper">Eyedropper</string>
+    <string name="tool_select_and_move">Select and move</string>
     <string name="undo_history">Undo</string>
     <string name="re_center">Center the Canvas</string>
     <string name="move_left">Move Left</string>
@@ -92,6 +100,12 @@
     <string name="change_layer_name">Change Layer Name</string>
     <string name="delete_layer">Delete Layer</string>
     <string name="select_shape">Select Shape</string>
+    <string name="shape_section_basic">Basic shapes</string>
+    <string name="shape_section_rectangles_and_corners">Rectangles and corners</string>
+    <string name="shape_section_triangles">Triangles</string>
+    <string name="shape_section_curves">Curves</string>
+    <string name="shape_section_lines">Lines and connectors</string>
+    <string name="shape_section_special">Special</string>
     <string name="drag_layer">Drag this to reorder layer</string>
     <string name="how_to">Guide</string>
     <string name="open_guide">Open guide</string>
@@ -107,25 +121,27 @@
     <string name="guide_basic_drawing_1_label">Draw continuously</string>
     <string name="guide_basic_drawing_1_desc">Drag one finger across the canvas to paint several boxes in a single stroke.</string>
     <string name="guide_basic_drawing_2_label">Place one shape</string>
-    <string name="guide_basic_drawing_2_desc">Tap a box to paint it with the selected color and shape—or to use the active tap tool.</string>
+    <string name="guide_basic_drawing_2_desc">Tap a box to use the active tool. Draw places the selected color and shape; Eraser, Fill, and Eyedropper perform their matching actions.</string>
     <string name="guide_basic_drawing_3_label">Zoom and move</string>
     <string name="guide_basic_drawing_3_desc">Pinch with two fingers to zoom. While zoomed in, use two fingers to move around the canvas.</string>
 
     <string name="guide_tool_icon_bar">Toolbar</string>
     <string name="guide_tool_icon_bar_desc">Keep your most-used drawing controls within reach.</string>
     <string name="guide_tool_icon_bar_1_label">Choose a color</string>
-    <string name="guide_tool_icon_bar_1_desc">Open the palette to set the drawing color or reuse a color from your recent choices.</string>
+    <string name="guide_tool_icon_bar_1_desc">Open the palette to choose visually, reuse a recent color, or enter a hex code. The small swatch on the palette button shows the current color.</string>
     <string name="guide_tool_icon_bar_2_label">Choose a shape</string>
-    <string name="guide_tool_icon_bar_2_desc">Tap the shape preview between the color palette and brush buttons. Its appearance changes to show your currently selected shape.</string>
-    <string name="guide_tool_icon_bar_3_label">Change the tap tool</string>
-    <string name="guide_tool_icon_bar_3_desc">Tap to cycle between Draw, Eyedropper, and Fill. The icon shows which mode is active.</string>
+    <string name="guide_tool_icon_bar_2_desc">Tap the shape preview to browse Basic shapes, Rectangles and corners, Triangles, Curves, Lines and connectors, and Special shapes. The preview shows the current selection.</string>
+    <string name="guide_tool_icon_bar_3_label">Choose the active tool</string>
+    <string name="guide_tool_icon_bar_3_desc">Open the tool menu and choose Draw, Eraser, Fill, Eyedropper, or Select and move. Only one tool is active, and its icon appears on the toolbar.</string>
     <string name="guide_tool_icon_bar_4_label">Undo</string>
     <string name="guide_tool_icon_bar_4_desc">Reverse the most recent drawing action on the current layer.</string>
     <string name="guide_tool_icon_bar_5_label">Reset the view</string>
     <string name="guide_tool_icon_bar_5_desc">Return the canvas to its centered, fit-to-screen position after zooming or panning.</string>
 
-    <string name="guide_drawer_tools">Tools and display</string>
-    <string name="guide_drawer_tools_desc">Open the side menu to select specialized tools and change how the canvas is displayed.</string>
+    <string name="guide_drawer_tools">Drawing tools</string>
+    <string name="guide_drawer_tools_desc">The Tools section in the side menu provides direct access to every drawing mode. Selecting one replaces the currently active tool.</string>
+    <string name="guide_drawer_menu_0_label">Draw</string>
+    <string name="guide_drawer_menu_0_desc">Tap or drag across boxes to paint with the selected color and shape.</string>
     <string name="guide_drawer_menu_1_label">Fill</string>
     <string name="guide_drawer_menu_1_desc">Tap a box to recolor the connected area that has the same color and shape.</string>
     <string name="guide_drawer_menu_2_label">Eyedropper</string>
@@ -139,8 +155,11 @@
     <string name="guide_drawer_menu_6_label">Transparency background</string>
     <string name="guide_drawer_menu_6_desc">Show or hide the checkerboard used to identify transparent areas.</string>
 
-    <string name="guide_project_actions">Save, import, and export</string>
-    <string name="guide_project_actions_desc">The side menu also contains project and file actions.</string>
+    <string name="guide_canvas_display">Canvas display</string>
+    <string name="guide_canvas_display_desc">The Canvas display section contains visual aids that change how the editor looks without changing your artwork.</string>
+
+    <string name="guide_project_actions">Project and file actions</string>
+    <string name="guide_project_actions_desc">Use Project actions to edit, save, export, or share. Import remains under Experimental, and Clear Layer is kept separate at the bottom.</string>
     <string name="guide_drawer_menu_7_label">Edit project</string>
     <string name="guide_drawer_menu_7_desc">Change the project name or resize its grid by editing the row and column counts.</string>
     <string name="guide_drawer_menu_8_label">Save project</string>
