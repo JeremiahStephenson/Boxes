@@ -39,6 +39,9 @@
     <string name="project_range">Between %1$d and %2$d</string>
 
     <string name="set_color">Set Color</string>
+    <string name="hex_color">Hex color</string>
+    <string name="hex_color_supporting_text">#RRGGBB or #AARRGGBB</string>
+    <string name="hex_color_error">Enter #RRGGBB or #AARRGGBB</string>
     <string name="error_save">There was a problem creating your project. Please try again.</string>
 
     <string name="error_message">Error! %1$s</string>
@@ -97,6 +100,12 @@
     <string name="change_layer_name">Change Layer Name</string>
     <string name="delete_layer">Delete Layer</string>
     <string name="select_shape">Select Shape</string>
+    <string name="shape_section_basic">Basic shapes</string>
+    <string name="shape_section_rectangles_and_corners">Rectangles and corners</string>
+    <string name="shape_section_triangles">Triangles</string>
+    <string name="shape_section_curves">Curves</string>
+    <string name="shape_section_lines">Lines</string>
+    <string name="shape_section_special">Special</string>
     <string name="drag_layer">Drag this to reorder layer</string>
     <string name="how_to">Guide</string>
     <string name="open_guide">Open guide</string>
