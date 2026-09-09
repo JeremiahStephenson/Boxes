@@ -11,8 +11,6 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.LifecycleResumeEffect
-import com.jerry.bit.shapes.Toolbar
-import kotlin.text.orEmpty
 
 @Composable
 fun DefaultContainer(

@@ -1,8 +1,13 @@
 package com.jerry.bit.shapes.inject
 
 import androidx.datastore.preferences.preferencesDataStore
+import com.google.android.play.core.appupdate.AppUpdateManager
+import com.google.android.play.core.appupdate.AppUpdateManagerFactory
+import com.google.android.play.core.appupdate.testing.FakeAppUpdateManager
 import com.google.firebase.analytics.FirebaseAnalytics
+import com.jerry.bit.shapes.BuildConfig
 import com.jerry.bit.shapes.LaunchViewModel
+import com.jerry.bit.shapes.MainViewModel
 import com.jerry.bit.shapes.datastore.AppDataStore
 import com.jerry.bit.shapes.navigation.Navigator
 import com.jerry.bit.shapes.repository.BoxesRepository
@@ -16,11 +21,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
-import com.google.android.play.core.appupdate.AppUpdateManager
-import com.google.android.play.core.appupdate.AppUpdateManagerFactory
-import com.google.android.play.core.appupdate.testing.FakeAppUpdateManager
-import com.jerry.bit.shapes.BuildConfig
-import com.jerry.bit.shapes.MainViewModel
 
 val appModule =
     module {
@@ -29,7 +29,7 @@ val appModule =
         viewModel { CreateViewModel(get()) }
         viewModel { LayersEditViewModel(get(), get(), get()) }
         viewModel { LaunchViewModel(get()) }
-        viewModel { MainViewModel(get(), get()) }
+        viewModel { MainViewModel(get(), get(), get()) }
 
         single { BoxesRepository(get(), get(), get(), get(), get(), get()) }
 

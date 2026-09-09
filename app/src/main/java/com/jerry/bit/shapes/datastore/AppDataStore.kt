@@ -5,6 +5,8 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.longPreferencesKey
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapLatest
 import kotlin.properties.ReadOnlyProperty
 
@@ -36,8 +38,19 @@ class AppDataStore(
         }
     }
 
+    suspend fun canRequestInAppUpdate(nowMillis: Long = System.currentTimeMillis()): Boolean =
+        (context.datastore.data.first()[UPDATE_PROMPT_DEFERRED_UNTIL] ?: 0L) <= nowMillis
+
+    suspend fun deferInAppUpdatePrompt(nowMillis: Long = System.currentTimeMillis()) {
+        context.datastore.edit { preferences ->
+            preferences[UPDATE_PROMPT_DEFERRED_UNTIL] = nowMillis + UPDATE_PROMPT_COOLDOWN_MILLIS
+        }
+    }
+
     companion object {
         private val HAS_LAUNCHED = booleanPreferencesKey("FIRST_LAUNCH")
         private val FIRST_PROJECT_GUIDE_SHOWN = booleanPreferencesKey("FIRST_PROJECT_GUIDE_SHOWN")
+        private val UPDATE_PROMPT_DEFERRED_UNTIL = longPreferencesKey("UPDATE_PROMPT_DEFERRED_UNTIL")
+        private const val UPDATE_PROMPT_COOLDOWN_MILLIS = 2L * 24 * 60 * 60 * 1_000
     }
 }
