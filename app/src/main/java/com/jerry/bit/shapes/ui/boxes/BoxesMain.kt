@@ -6,6 +6,7 @@ import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -19,8 +20,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerState
@@ -495,11 +498,9 @@ private fun ButtonBar(
             }
         }
 
-        IconMenuButton(
+        ColorSelectorButton(
             onClick = { colorPicker = true },
             color = getColor(),
-            drawableRes = R.drawable.ic_color_lens_24,
-            contentDescription = stringResource(R.string.color_selector),
         )
 
         ShapeOption(
@@ -513,7 +514,6 @@ private fun ButtonBar(
         ActiveToolMenuItem(
             buttonsState = buttonsState,
             onAction = onAction,
-            getColor = getColor,
         )
 
         Spacer(modifier = Modifier.weight(1F))
@@ -542,7 +542,6 @@ private fun ButtonBar(
 private fun ActiveToolMenuItem(
     buttonsState: ButtonsState,
     onAction: (Action) -> Unit,
-    getColor: () -> ColorAndShape,
 ) {
     var toolMenuExpanded by rememberSaveable { mutableStateOf(false) }
     val useCompactMenu = LocalConfiguration.current.screenHeightDp < 480
@@ -558,12 +557,11 @@ private fun ActiveToolMenuItem(
         }
     }
     Box {
-        IconMenuButton(
-            onClick = { toolMenuExpanded = true },
-            color = getColor(),
-            drawableRes = activeToolIcon,
-            contentDescription = stringResource(R.string.choose_active_tool),
-        )
+            IconMenuButton(
+                onClick = { toolMenuExpanded = true },
+                drawableRes = activeToolIcon,
+                contentDescription = stringResource(R.string.choose_active_tool),
+            )
         DropdownMenu(
             expanded = toolMenuExpanded,
             onDismissRequest = { toolMenuExpanded = false },
@@ -609,6 +607,29 @@ private fun ActiveToolMenuItem(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ColorSelectorButton(
+    color: ColorAndShape,
+    onClick: () -> Unit,
+) {
+    Box {
+        IconMenuButton(
+            onClick = onClick,
+            drawableRes = R.drawable.ic_color_lens_24,
+            contentDescription = stringResource(R.string.color_selector),
+        )
+        Box(
+            modifier =
+                Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 7.dp, bottom = 7.dp)
+                    .size(14.dp)
+                    .background(color.color, CircleShape)
+                    .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape),
+        )
     }
 }
 
