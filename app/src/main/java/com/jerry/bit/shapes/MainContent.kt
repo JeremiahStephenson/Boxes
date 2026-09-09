@@ -33,7 +33,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -79,10 +79,7 @@ fun MainContent(onBackPressed: () -> Unit) {
                     modifier =
                         Modifier
                             .navigationBarsPadding()
-                            .graphicsLayer {
-                                scaleX = animateSize
-                                scaleY = animateSize
-                            },
+                            .scale(animateSize),
                     onClick = fab?.onClick ?: {},
                 ) {
                     Icon(
