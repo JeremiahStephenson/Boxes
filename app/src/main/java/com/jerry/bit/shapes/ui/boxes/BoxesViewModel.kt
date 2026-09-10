@@ -261,9 +261,7 @@ class BoxesViewModel(
 
     suspend fun addToHistory(userHistory: UserHistory) {
         if (userHistory.points.isEmpty()) return
-        viewModelScope.launch {
-            boxesRepository.updateHistory(userHistory.layerId, userHistory.points)
-        }
+        boxesRepository.updateHistory(userHistory.layerId, userHistory.points)
     }
 
     suspend fun addUsedColor(color: ColorAndShape) {

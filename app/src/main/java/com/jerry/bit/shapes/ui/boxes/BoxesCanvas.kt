@@ -521,6 +521,9 @@ private fun Modifier.gesturePointer(
 
                     // Pinch to zoom gesture
                     pointerCount >= 2 -> {
+                        if (dragMode.isDrawing) {
+                            onDragEnd()
+                        }
                         dragMode = DragMode.TRANSFORM
                         // Calculate the centroid (midpoint) of all fingers
                         val currentCentroid =

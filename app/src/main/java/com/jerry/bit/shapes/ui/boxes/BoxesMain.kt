@@ -133,7 +133,7 @@ fun BoxesMain(
 
     val selectionState = rememberSaveable(saver = SelectionState.SAVER) { SelectionState() }
     val isFirstProjectGuideAvailable by
-        viewModel.isFirstProjectGuideAvailable.collectAsStateWithLifecycle(initialValue = false)
+    viewModel.isFirstProjectGuideAvailable.collectAsStateWithLifecycle(initialValue = false)
     var showFirstProjectGuide by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(isFirstProjectGuideAvailable) {
         if (isFirstProjectGuideAvailable) {
@@ -150,7 +150,8 @@ fun BoxesMain(
                         Modifier
                             .unboundClickable {
                                 navigator.navigate(HowToNavKey)
-                            }.padding(16.dp),
+                            }
+                            .padding(16.dp),
                     painter = painterResource(R.drawable.ic_help_24),
                     contentDescription = null,
                 )
@@ -160,7 +161,8 @@ fun BoxesMain(
                     Modifier
                         .unboundClickable {
                             navigator.navigate(LayersEditNavKey(projectId))
-                        }.padding(16.dp),
+                        }
+                        .padding(16.dp),
                 painter = painterResource(R.drawable.ic_layers_24),
                 contentDescription = null,
             )
@@ -174,13 +176,15 @@ fun BoxesMain(
                                     else -> drawerState.open()
                                 }
                             }
-                        }.padding(16.dp),
+                        }
+                        .padding(16.dp),
                 painter = painterResource(R.drawable.ic_menu_24),
                 contentDescription = null,
             )
         },
     ) {
-        val transformerState = rememberSaveable(saver = TransformerState.SAVER) { TransformerState() }
+        val transformerState =
+            rememberSaveable(saver = TransformerState.SAVER) { TransformerState() }
         val handleAction: (Action) -> Unit =
             remember {
                 {
@@ -245,6 +249,7 @@ fun BoxesMain(
                             Toast
                                 .makeText(context, it.error ?: genericError, Toast.LENGTH_LONG)
                                 .show()
+
                         is UiEvent.Export ->
                             when (it.exportType) {
                                 ExportType.FILE ->
@@ -254,10 +259,12 @@ fun BoxesMain(
                                             duration = SnackbarDuration.Indefinite,
                                         )
                                     }
+
                                 else -> {
                                     it.filePath?.let { context.openShareSheet(it) }
                                 }
                             }
+
                         is UiEvent.MoveSelection -> {
                             selectionState.move(it.direction)
                         }
@@ -357,11 +364,12 @@ private fun MainCanvas(
                 onTap = { point ->
                     if (canvasState.hasLayersTurnedOn) {
                         when (buttonsState.activeToolState) {
-                        ActiveTool.EYEDROPPER ->
-                            canvasState.getCurrentSelection(point)?.let {
-                                onAction(Action.SetColor(it))
-                                onAction(Action.AddColorToUsedList(it))
-                            }
+                            ActiveTool.EYEDROPPER ->
+                                canvasState.getCurrentSelection(point)?.let {
+                                    onAction(Action.SetColor(it))
+                                    onAction(Action.AddColorToUsedList(it))
+                                }
+
                             ActiveTool.DRAW -> {
                                 if (!canvasState.isLoading) {
                                     onAction(
@@ -377,6 +385,7 @@ private fun MainCanvas(
                                     )
                                 }
                             }
+
                             ActiveTool.ERASER -> {
                                 if (!canvasState.isLoading) {
                                     onAction(
@@ -387,6 +396,7 @@ private fun MainCanvas(
                                     canvasState.onDrag(hashSetOf(point), currentLayer, null)
                                 }
                             }
+
                             ActiveTool.FILL -> onAction(Action.Fill(point, currentLayer))
                             ActiveTool.SELECT -> Unit
                         }
@@ -397,9 +407,9 @@ private fun MainCanvas(
                         canvasState.hasLayersTurnedOn &&
                         !canvasState.isLoading &&
                         (
-                            buttonsState.activeToolState == ActiveTool.DRAW ||
-                                buttonsState.activeToolState == ActiveTool.ERASER
-                        )
+                                buttonsState.activeToolState == ActiveTool.DRAW ||
+                                        buttonsState.activeToolState == ActiveTool.ERASER
+                                )
                     ) {
                         val color =
                             projectState.colorAndShape
@@ -422,9 +432,9 @@ private fun MainCanvas(
                         canvasState.hasLayersTurnedOn &&
                         !canvasState.isLoading &&
                         (
-                            buttonsState.activeToolState == ActiveTool.DRAW ||
-                                buttonsState.activeToolState == ActiveTool.ERASER
-                        )
+                                buttonsState.activeToolState == ActiveTool.DRAW ||
+                                        buttonsState.activeToolState == ActiveTool.ERASER
+                                )
                     ) {
                         onAction(
                             Action.AddToHistory(
@@ -585,16 +595,28 @@ private fun ActiveToolMenuItem(
                     ActiveToolOption(stringResource(R.string.tool_draw), R.drawable.ic_brush_24) {
                         buttonsState.setTapType(TapType.TAP)
                     },
-                    ActiveToolOption(stringResource(R.string.tool_eraser), R.drawable.ic_eraser_on_24) {
+                    ActiveToolOption(
+                        stringResource(R.string.tool_eraser),
+                        R.drawable.ic_eraser_on_24
+                    ) {
                         if (!buttonsState.eraserSelectedState) onAction(Action.Eraser)
                     },
-                    ActiveToolOption(stringResource(R.string.tool_fill), R.drawable.ic_format_color_fill_24) {
+                    ActiveToolOption(
+                        stringResource(R.string.tool_fill),
+                        R.drawable.ic_format_color_fill_24
+                    ) {
                         buttonsState.setTapType(TapType.FILL)
                     },
-                    ActiveToolOption(stringResource(R.string.tool_eyedropper), R.drawable.ic_colorize_24) {
+                    ActiveToolOption(
+                        stringResource(R.string.tool_eyedropper),
+                        R.drawable.ic_colorize_24
+                    ) {
                         buttonsState.setTapType(TapType.PICKER)
                     },
-                    ActiveToolOption(stringResource(R.string.tool_select_and_move), R.drawable.ic_select_all_24) {
+                    ActiveToolOption(
+                        stringResource(R.string.tool_select_and_move),
+                        R.drawable.ic_select_all_24
+                    ) {
                         if (!buttonsState.selectToolSelectedState) onAction(Action.SelectTool)
                     },
                 )
@@ -708,7 +730,7 @@ private fun AdditionalButtonBar(
             val isAtLeftEdge by remember {
                 derivedStateOf {
                     (selectionState.bottomRightState?.x ?: 0) <= 0 ||
-                        (selectionState.topLeftState?.x ?: 0) <= 0
+                            (selectionState.topLeftState?.x ?: 0) <= 0
                 }
             }
             Spacer(modifier = Modifier.weight(1F))
@@ -732,7 +754,7 @@ private fun AdditionalButtonBar(
                     val isAtTopEdge by remember {
                         derivedStateOf {
                             (selectionState.bottomRightState?.y ?: 0) <= 0 ||
-                                (selectionState.topLeftState?.y ?: 0) <= 0
+                                    (selectionState.topLeftState?.y ?: 0) <= 0
                         }
                     }
                     IconMenuButton(
@@ -751,7 +773,7 @@ private fun AdditionalButtonBar(
                     val isAtBottomEdge by remember {
                         derivedStateOf {
                             (selectionState.bottomRightState?.y ?: 0) >= (rowsState - 1) ||
-                                (selectionState.topLeftState?.y ?: 0) >= (rowsState - 1)
+                                    (selectionState.topLeftState?.y ?: 0) >= (rowsState - 1)
                         }
                     }
                     IconMenuButton(
@@ -771,7 +793,7 @@ private fun AdditionalButtonBar(
                 val isAtRightEdge by remember {
                     derivedStateOf {
                         (selectionState.bottomRightState?.x ?: 0) >= (columnsState - 1) ||
-                            (selectionState.topLeftState?.x ?: 0) >= (columnsState - 1)
+                                (selectionState.topLeftState?.x ?: 0) >= (columnsState - 1)
                     }
                 }
                 IconMenuButton(
@@ -822,6 +844,7 @@ private fun handleAction(
                 project?.rows ?: 0,
             )
         }
+
         is Action.Eraser -> buttonsState.toggleEraserSelected()
         is Action.SetTapType -> buttonsState.setTapType(action.tapType)
         is Action.Save -> {
@@ -834,6 +857,7 @@ private fun handleAction(
                 )
             }
         }
+
         is Action.SelectLayer -> viewModel.selectLayer(action.layerId)
         is Action.Clear ->
             if (canvasState.hasLayersTurnedOn) {
@@ -847,19 +871,23 @@ private fun handleAction(
                     canvasState.clear()
                 }
             }
+
         is Action.Undo ->
             scope.launch {
                 buttonsState.selectToolSelectedState = false
                 viewModel.onUndo(canvasState.selectedLayer.id)
             }
+
         is Action.AddToHistory ->
             scope.launch {
                 viewModel.addToHistory(action.historyItem)
             }
+
         is Action.ShowPngBackground ->
             viewModel.updateProjectShowPngBg(
                 !(project?.showPngBg ?: false),
             )
+
         is Action.ShowGrid -> viewModel.updateProjectShowGrid(!(project?.showGrid ?: false))
         is Action.SetColor -> viewModel.updateProjectColor(action.color)
         is Action.SetShape -> viewModel.updateProjectShape(action.shape)
@@ -868,18 +896,21 @@ private fun handleAction(
             scope.launch { drawerState.close() }
             navigator.navigate(CreateNavKey(project?.id))
         }
+
         is Action.AddLayer ->
             viewModel.addLayer(
                 name = action.name,
                 index = canvasState.layers.maxOf { it.index } + 1,
                 canvasState = canvasState,
             )
+
         is Action.TurnOnOrOffLayer -> viewModel.setLayerOnOrOff(action.layerId, action.on)
         is Action.AddColorToUsedList -> scope.launch { viewModel.addUsedColor(action.color) }
         is Action.GoToLayerEdit ->
             project?.id?.let {
                 navigator.navigate(LayersEditNavKey(it))
             }
+
         is Action.GoToHowTo -> navigator.navigate(HowToNavKey)
         is Action.Export ->
             project?.let {
@@ -891,6 +922,7 @@ private fun handleAction(
                     action.exportType,
                 )
             }
+
         is Action.SelectTool -> buttonsState.toggleSelectTool()
         is Action.ClearSelect -> selectionState.clear()
         is Action.Move -> {
@@ -901,6 +933,7 @@ private fun handleAction(
                 action.direction,
             )
         }
+
         is Action.ImageImport ->
             viewModel.importImage(
                 context,
