@@ -1,6 +1,5 @@
 package com.jerry.bit.shapes
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
@@ -8,23 +7,13 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.animation.unveilIn
 import androidx.compose.animation.veilOut
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.add
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.derivedStateOf
@@ -36,9 +25,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
@@ -46,7 +32,6 @@ import androidx.navigation3.ui.NavDisplay
 import com.jerry.bit.shapes.navigation.Navigator
 import com.jerry.bit.shapes.ui.common.FloatButtonProperties
 import com.jerry.bit.shapes.ui.common.LocalFloatingActionBarButton
-import com.jerry.bit.shapes.ui.common.unboundClickable
 import org.koin.compose.koinInject
 import org.koin.compose.navigation3.koinEntryProvider
 import org.koin.core.annotation.KoinExperimentalAPI
@@ -162,58 +147,6 @@ fun MainContent(onBackPressed: () -> Unit) {
             )
         }
     }
-}
-
-@Composable
-fun Toolbar(
-    scrollBehavior: TopAppBarScrollBehavior,
-    showBackArrow: Boolean,
-    getTitle: () -> String,
-    actions: () -> @Composable RowScope.() -> Unit = { {} },
-) {
-    val navigator = koinInject<Navigator>()
-    val topAppBarElementColor = MaterialTheme.colorScheme.onPrimary
-    val appBarContainerColor = MaterialTheme.colorScheme.primary
-    TopAppBar(
-        actions = actions(),
-        windowInsets =
-            WindowInsets.statusBars.add(
-                WindowInsets.navigationBars.only(
-                    WindowInsetsSides.Top + WindowInsetsSides.Horizontal,
-                ),
-            ),
-        navigationIcon = {
-            if (showBackArrow) {
-                Icon(
-                    modifier =
-                        Modifier
-                            .padding(8.dp)
-                            .unboundClickable {
-                                navigator.popBackstack()
-                            }.padding(8.dp),
-                    painter = painterResource(R.drawable.ic_arrow_back_24),
-                    contentDescription = stringResource(R.string.back),
-                )
-            }
-        },
-        title = {
-            Text(
-                modifier = Modifier.animateContentSize(),
-                text = getTitle(),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        },
-        colors =
-            TopAppBarDefaults.topAppBarColors(
-                containerColor = appBarContainerColor,
-                scrolledContainerColor = appBarContainerColor,
-                navigationIconContentColor = topAppBarElementColor,
-                titleContentColor = topAppBarElementColor,
-                actionIconContentColor = topAppBarElementColor,
-            ),
-        scrollBehavior = scrollBehavior,
-    )
 }
 
 private const val ANIM_DURATION = 500
