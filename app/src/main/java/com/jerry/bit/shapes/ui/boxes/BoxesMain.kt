@@ -137,7 +137,7 @@ fun BoxesMain(
 
     val selectionState = rememberSaveable(saver = SelectionState.SAVER) { SelectionState() }
     val isFirstProjectGuideAvailable by
-    viewModel.isFirstProjectGuideAvailable.collectAsStateWithLifecycle(initialValue = false)
+        viewModel.isFirstProjectGuideAvailable.collectAsStateWithLifecycle(initialValue = false)
     var showFirstProjectGuide by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(isFirstProjectGuideAvailable) {
         if (isFirstProjectGuideAvailable) {
@@ -154,8 +154,7 @@ fun BoxesMain(
                         Modifier
                             .unboundClickable {
                                 navigator.navigate(HowToNavKey)
-                            }
-                            .padding(16.dp),
+                            }.padding(16.dp),
                     painter = painterResource(R.drawable.ic_help_24),
                     contentDescription = null,
                 )
@@ -165,8 +164,7 @@ fun BoxesMain(
                     Modifier
                         .unboundClickable {
                             navigator.navigate(LayersEditNavKey(projectId))
-                        }
-                        .padding(16.dp),
+                        }.padding(16.dp),
                 painter = painterResource(R.drawable.ic_layers_24),
                 contentDescription = null,
             )
@@ -180,8 +178,7 @@ fun BoxesMain(
                                     else -> drawerState.open()
                                 }
                             }
-                        }
-                        .padding(16.dp),
+                        }.padding(16.dp),
                 painter = painterResource(R.drawable.ic_menu_24),
                 contentDescription = null,
             )
@@ -411,9 +408,9 @@ private fun MainCanvas(
                         canvasState.hasLayersTurnedOn &&
                         !canvasState.isLoading &&
                         (
-                                buttonsState.activeToolState == ActiveTool.DRAW ||
-                                        buttonsState.activeToolState == ActiveTool.ERASER
-                                )
+                            buttonsState.activeToolState == ActiveTool.DRAW ||
+                                buttonsState.activeToolState == ActiveTool.ERASER
+                        )
                     ) {
                         val color =
                             projectState.colorAndShape
@@ -436,9 +433,9 @@ private fun MainCanvas(
                         canvasState.hasLayersTurnedOn &&
                         !canvasState.isLoading &&
                         (
-                                buttonsState.activeToolState == ActiveTool.DRAW ||
-                                        buttonsState.activeToolState == ActiveTool.ERASER
-                                )
+                            buttonsState.activeToolState == ActiveTool.DRAW ||
+                                buttonsState.activeToolState == ActiveTool.ERASER
+                        )
                     ) {
                         onAction(
                             Action.AddToHistory(
@@ -601,25 +598,25 @@ private fun ActiveToolMenuItem(
                     },
                     ActiveToolOption(
                         stringResource(R.string.tool_eraser),
-                        R.drawable.ic_eraser_on_24
+                        R.drawable.ic_eraser_on_24,
                     ) {
                         if (!buttonsState.eraserSelectedState) onAction(Action.Eraser)
                     },
                     ActiveToolOption(
                         stringResource(R.string.tool_fill),
-                        R.drawable.ic_format_color_fill_24
+                        R.drawable.ic_format_color_fill_24,
                     ) {
                         buttonsState.setTapType(TapType.FILL)
                     },
                     ActiveToolOption(
                         stringResource(R.string.tool_eyedropper),
-                        R.drawable.ic_colorize_24
+                        R.drawable.ic_colorize_24,
                     ) {
                         buttonsState.setTapType(TapType.PICKER)
                     },
                     ActiveToolOption(
                         stringResource(R.string.tool_select_and_move),
-                        R.drawable.ic_select_all_24
+                        R.drawable.ic_select_all_24,
                     ) {
                         if (!buttonsState.selectToolSelectedState) onAction(Action.SelectTool)
                     },

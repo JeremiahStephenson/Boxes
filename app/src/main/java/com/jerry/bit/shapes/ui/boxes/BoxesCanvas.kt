@@ -161,12 +161,21 @@ fun BoxCanvas(
                             onDragEnd()
                         }
                     },
-                    onTransform = { panDelta, previousDistance, currentDistance ->
+                    onTransform = { centroid, panDelta, previousDistance, currentDistance ->
                         scope.launch {
                             state.transform {
+                                val requestedZoomChange =
+                                    if (previousDistance > 0F) currentDistance / previousDistance else 1F
+                                val appliedZoomChange =
+                                    maxOf(1F, scaleState * requestedZoomChange) / scaleState
+                                val transformOrigin =
+                                    Offset(sizeState.width / 2F, sizeState.height / 2F)
+                                val centroidAdjustedPan =
+                                    (panDelta * appliedZoomChange) +
+                                        ((centroid - transformOrigin) * (1F - appliedZoomChange))
                                 transformBy(
-                                    panChange = panDelta,
-                                    zoomChange = if (previousDistance > 0F) currentDistance / previousDistance else 1F,
+                                    panChange = centroidAdjustedPan,
+                                    zoomChange = requestedZoomChange,
                                 )
                             }
                         }
@@ -499,7 +508,7 @@ private fun Modifier.gesturePointer(
     onDragStart: (PointerInputChange) -> Unit,
     onDrag: (PointerInputChange, Offset) -> Unit,
     onDragEnd: () -> Unit,
-    onTransform: (Offset, Float, Float) -> Unit,
+    onTransform: (Offset, Offset, Float, Float) -> Unit,
 ): Modifier =
     pointerInput(Unit) {
         awaitEachGesture {
@@ -563,7 +572,7 @@ private fun Modifier.gesturePointer(
                                     isCurrent = true,
                                 )
 
-                            onTransform(panDelta, previousDistance, currentDistance)
+                            onTransform(currentCentroid, panDelta, previousDistance, currentDistance)
                         }
 
                         previousCentroid = currentCentroid
