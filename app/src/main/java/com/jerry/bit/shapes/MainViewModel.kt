@@ -3,6 +3,7 @@ package com.jerry.bit.shapes
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.android.play.core.appupdate.AppUpdateInfo
 import com.google.android.play.core.appupdate.AppUpdateManager
 import com.google.android.play.core.install.InstallStateUpdatedListener
 import com.google.android.play.core.install.model.AppUpdateType
@@ -16,7 +17,7 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 
 sealed interface Action {
-    data object RequestUpdate : Action
+    data class RequestUpdate(val updateInfo: AppUpdateInfo) : Action
     data object UpdateDownloaded : Action
 }
 
@@ -53,7 +54,7 @@ class MainViewModel(
                             updateInfo.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE) -> {
                             if (canRequest) {
                                 updateRequestState = true
-                                trySend(Action.RequestUpdate)
+                                trySend(Action.RequestUpdate(updateInfo))
                             }
                         }
                     }

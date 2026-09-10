@@ -55,7 +55,7 @@ class MainActivity : ComponentActivity() {
                                 when (updateFlow) {
                                     is Action.RequestUpdate -> {
                                         appUpdateManager.startUpdateFlowForResult(
-                                            appUpdateManager.appUpdateInfo.result,
+                                            updateFlow.updateInfo,
                                             updateResultLauncher,
                                             AppUpdateOptions.newBuilder(AppUpdateType.FLEXIBLE).build(),
                                         )
