@@ -1,12 +1,13 @@
 package com.jerry.bit.shapes.ui.boxes
 
 import android.content.Context
+import android.content.res.Configuration
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -25,6 +26,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerState
@@ -55,10 +57,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -698,7 +702,7 @@ private fun ActiveToolMenuItem(
 }
 
 @Composable
-private fun AdditionalButtonBar(
+private fun BoxScope.AdditionalButtonBar(
     canvasState: CanvasState,
     buttonsState: ButtonsState,
     selectionState: SelectionState,
@@ -708,116 +712,137 @@ private fun AdditionalButtonBar(
 ) {
     val columnsState by rememberUpdatedState(columns)
     val rowsState by rememberUpdatedState(rows)
-    Row(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(top = 56.dp),
-        verticalAlignment = Alignment.Top,
-    ) {
-        AnimatedContent(targetState = buttonsState) { state ->
-            if (state.selectToolSelectedState) {
-                IconMenuButton(
-                    modifier = Modifier,
-                    onClick = { onAction(Action.SelectTool) },
-                    drawableRes = R.drawable.ic_select_all_24,
-                    contentDescription = stringResource(R.string.turn_off_select_and_move),
-                )
+    val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+    if (!buttonsState.selectToolSelectedState) return
+
+    val moveControlsState =
+        MoveControlsState(
+            enabled = selectionState.bottomRightState != null && selectionState.topLeftState != null,
+            atLeftEdge =
+                (selectionState.bottomRightState?.x ?: 0) <= 0 ||
+                    (selectionState.topLeftState?.x ?: 0) <= 0,
+            atTopEdge =
+                (selectionState.bottomRightState?.y ?: 0) <= 0 ||
+                    (selectionState.topLeftState?.y ?: 0) <= 0,
+            atBottomEdge =
+                (selectionState.bottomRightState?.y ?: 0) >= (rowsState - 1) ||
+                    (selectionState.topLeftState?.y ?: 0) >= (rowsState - 1),
+            atRightEdge =
+                (selectionState.bottomRightState?.x ?: 0) >= (columnsState - 1) ||
+                    (selectionState.topLeftState?.x ?: 0) >= (columnsState - 1),
+        )
+    val onMove: (Direction) -> Unit = { direction ->
+        onAction(Action.Move(canvasState.selectedLayer.id, direction))
+    }
+
+    if (isLandscape) {
+        Column(
+            modifier =
+                Modifier
+                    .align(Alignment.CenterEnd)
+                    .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Horizontal))
+                    .padding(end = 8.dp)
+                    .size(176.dp)
+                    .selectionControlsContainer(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            MoveControls(moveControlsState, onMove)
+            Row {
+                SelectModeButton(onAction)
+                ClearSelectionButton(onAction)
             }
         }
-        if (buttonsState.selectToolSelectedState) {
-            val enabled by remember { derivedStateOf { selectionState.bottomRightState != null && selectionState.topLeftState != null } }
-            val isAtLeftEdge by remember {
-                derivedStateOf {
-                    (selectionState.bottomRightState?.x ?: 0) <= 0 ||
-                            (selectionState.topLeftState?.x ?: 0) <= 0
-                }
-            }
+    } else {
+        Row(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(top = 64.dp, start = 8.dp, end = 8.dp)
+                    .selectionControlsContainer(28.dp),
+            verticalAlignment = Alignment.Top,
+        ) {
+            SelectModeButton(onAction)
             Spacer(modifier = Modifier.weight(1F))
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                IconMenuButton(
-                    enabled = !isAtLeftEdge && enabled,
-                    onClick = {
-                        onAction(
-                            Action.Move(
-                                canvasState.selectedLayer.id,
-                                Direction.LEFT,
-                            ),
-                        )
-                    },
-                    drawableRes = R.drawable.ic_arrow_back_24,
-                    contentDescription = stringResource(R.string.move_left),
-                )
-                Column {
-                    val isAtTopEdge by remember {
-                        derivedStateOf {
-                            (selectionState.bottomRightState?.y ?: 0) <= 0 ||
-                                    (selectionState.topLeftState?.y ?: 0) <= 0
-                        }
-                    }
-                    IconMenuButton(
-                        enabled = !isAtTopEdge && enabled,
-                        onClick = {
-                            onAction(
-                                Action.Move(
-                                    canvasState.selectedLayer.id,
-                                    Direction.UP,
-                                ),
-                            )
-                        },
-                        drawableRes = R.drawable.ic_arrow_upward_24,
-                        contentDescription = stringResource(R.string.move_up),
-                    )
-                    val isAtBottomEdge by remember {
-                        derivedStateOf {
-                            (selectionState.bottomRightState?.y ?: 0) >= (rowsState - 1) ||
-                                    (selectionState.topLeftState?.y ?: 0) >= (rowsState - 1)
-                        }
-                    }
-                    IconMenuButton(
-                        enabled = !isAtBottomEdge && enabled,
-                        onClick = {
-                            onAction(
-                                Action.Move(
-                                    canvasState.selectedLayer.id,
-                                    Direction.DOWN,
-                                ),
-                            )
-                        },
-                        drawableRes = R.drawable.ic_arrow_downward_24,
-                        contentDescription = stringResource(R.string.move_down),
-                    )
-                }
-                val isAtRightEdge by remember {
-                    derivedStateOf {
-                        (selectionState.bottomRightState?.x ?: 0) >= (columnsState - 1) ||
-                                (selectionState.topLeftState?.x ?: 0) >= (columnsState - 1)
-                    }
-                }
-                IconMenuButton(
-                    enabled = !isAtRightEdge && enabled,
-                    onClick = {
-                        onAction(
-                            Action.Move(
-                                canvasState.selectedLayer.id,
-                                Direction.RIGHT,
-                            ),
-                        )
-                    },
-                    drawableRes = R.drawable.ic_arrow_forward_24,
-                    contentDescription = stringResource(R.string.move_right),
-                )
-            }
+            MoveControls(moveControlsState, onMove)
             Spacer(modifier = Modifier.weight(1F))
-            IconMenuButton(
-                onClick = { onAction(Action.ClearSelect) },
-                drawableRes = R.drawable.ic_close_24,
-                contentDescription = stringResource(R.string.un_select),
-            )
+            ClearSelectionButton(onAction)
         }
     }
+}
+
+@Composable
+private fun Modifier.selectionControlsContainer(cornerRadius: Dp): Modifier {
+    val shape = RoundedCornerShape(cornerRadius)
+    return background(
+        MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.65F),
+        shape,
+    ).border(
+        1.dp,
+        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.8F),
+        shape,
+    )
+}
+
+private data class MoveControlsState(
+    val enabled: Boolean,
+    val atLeftEdge: Boolean,
+    val atTopEdge: Boolean,
+    val atBottomEdge: Boolean,
+    val atRightEdge: Boolean,
+)
+
+@Composable
+private fun MoveControls(
+    state: MoveControlsState,
+    onMove: (Direction) -> Unit,
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        IconMenuButton(
+            enabled = !state.atLeftEdge && state.enabled,
+            onClick = { onMove(Direction.LEFT) },
+            drawableRes = R.drawable.ic_arrow_back_24,
+            contentDescription = stringResource(R.string.move_left),
+        )
+        Column {
+            IconMenuButton(
+                enabled = !state.atTopEdge && state.enabled,
+                onClick = { onMove(Direction.UP) },
+                drawableRes = R.drawable.ic_arrow_upward_24,
+                contentDescription = stringResource(R.string.move_up),
+            )
+            IconMenuButton(
+                enabled = !state.atBottomEdge && state.enabled,
+                onClick = { onMove(Direction.DOWN) },
+                drawableRes = R.drawable.ic_arrow_downward_24,
+                contentDescription = stringResource(R.string.move_down),
+            )
+        }
+        IconMenuButton(
+            enabled = !state.atRightEdge && state.enabled,
+            onClick = { onMove(Direction.RIGHT) },
+            drawableRes = R.drawable.ic_arrow_forward_24,
+            contentDescription = stringResource(R.string.move_right),
+        )
+    }
+}
+
+@Composable
+private fun SelectModeButton(onAction: (Action) -> Unit) {
+    IconMenuButton(
+        onClick = { onAction(Action.SelectTool) },
+        drawableRes = R.drawable.ic_select_all_24,
+        contentDescription = stringResource(R.string.turn_off_select_and_move),
+    )
+}
+
+@Composable
+private fun ClearSelectionButton(onAction: (Action) -> Unit) {
+    IconMenuButton(
+        onClick = { onAction(Action.ClearSelect) },
+        drawableRes = R.drawable.ic_close_24,
+        contentDescription = stringResource(R.string.un_select),
+    )
 }
 
 private fun handleAction(

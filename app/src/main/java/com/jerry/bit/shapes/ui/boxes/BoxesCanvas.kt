@@ -345,7 +345,10 @@ fun SelectionTool(
     selectionState: SelectionState,
 ) {
     val highlightColor = MaterialTheme.colorScheme.primary
-    val stroke = with(LocalDensity.current) { 5.dp.toPx() }
+    val contrastColor = MaterialTheme.colorScheme.onSurface
+    val density = LocalDensity.current
+    val outerStroke = with(density) { 8.dp.toPx() }
+    val innerStroke = with(density) { 4.dp.toPx() }
     Canvas(
         modifier =
             Modifier
@@ -389,15 +392,27 @@ fun SelectionTool(
                         else -> br.bottom
                     },
                 )
+            val selectionSize =
+                Size(
+                    adjustmentBottomRight.x - adjustmentTopLeft.x,
+                    adjustmentBottomRight.y - adjustmentTopLeft.y,
+                )
             drawRect(
-                style = Stroke(width = stroke / scale),
+                color = highlightColor.copy(alpha = 0.16F),
+                topLeft = adjustmentTopLeft,
+                size = selectionSize,
+            )
+            drawRect(
+                style = Stroke(width = outerStroke / scale),
+                color = contrastColor.copy(alpha = 0.9F),
+                topLeft = adjustmentTopLeft,
+                size = selectionSize,
+            )
+            drawRect(
+                style = Stroke(width = innerStroke / scale),
                 color = highlightColor,
                 topLeft = adjustmentTopLeft,
-                size =
-                    Size(
-                        adjustmentBottomRight.x - adjustmentTopLeft.x,
-                        adjustmentBottomRight.y - adjustmentTopLeft.y,
-                    ),
+                size = selectionSize,
             )
         }
     }
