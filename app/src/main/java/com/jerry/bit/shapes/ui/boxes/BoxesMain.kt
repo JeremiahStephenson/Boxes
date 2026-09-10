@@ -357,10 +357,11 @@ private fun MainCanvas(
                 onTap = { point ->
                     if (canvasState.hasLayersTurnedOn) {
                         when (buttonsState.activeToolState) {
-                            ActiveTool.EYEDROPPER ->
-                                canvasState.getCurrentSelection(point)?.let {
-                                    onAction(Action.SetColor(it))
-                                }
+                        ActiveTool.EYEDROPPER ->
+                            canvasState.getCurrentSelection(point)?.let {
+                                onAction(Action.SetColor(it))
+                                onAction(Action.AddColorToUsedList(it))
+                            }
                             ActiveTool.DRAW -> {
                                 if (!canvasState.isLoading) {
                                     onAction(
