@@ -11,6 +11,7 @@ plugins {
     alias(libs.plugins.ben.manes.versions)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.android.junit)
 }
 
 ktlint {
@@ -148,6 +149,11 @@ dependencies {
     testImplementation(libs.turbine)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.kotlin.test)
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.junit.jupiter.params)
+    testRuntimeOnly(libs.junit.jupiter.engine)
+    testRuntimeOnly(libs.junit.vintage.engine)
 
     implementation(libs.androidx.paging.runtime.ktx)
     implementation(libs.androidx.paging.compose)

@@ -13,8 +13,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -37,6 +35,8 @@ class HomeViewModel(
 
     val isImporting: StateFlow<Boolean> field = MutableStateFlow(false)
     val importEvents: Flow<Result<Long>> field = MutableSharedFlow<Result<Long>>(extraBufferCapacity = 1)
+    val copiedProjectId: StateFlow<Long?> field = MutableStateFlow(null)
+    val pasteEvents: Flow<Result<Long>> field = MutableSharedFlow<Result<Long>>(extraBufferCapacity = 1)
 
     fun importProject(uri: android.net.Uri) {
         if (isImporting.value) return
@@ -47,9 +47,30 @@ class HomeViewModel(
         }
     }
 
+    fun copyProject(projectId: Long) {
+        copiedProjectId.value = projectId
+    }
+
+    fun clearCopiedProject() {
+        copiedProjectId.value = null
+    }
+
+    fun pasteProject() {
+        val projectId = copiedProjectId.value ?: return
+        if (isImporting.value) return
+        viewModelScope.launch(cc.io) {
+            isImporting.value = true
+            pasteEvents.emit(runCatching { boxesRepository.duplicateProject(projectId) })
+            isImporting.value = false
+        }
+    }
+
     fun deleteProject(projectId: Long) {
         viewModelScope.launch {
             boxesDao.deleteProject(projectId)
+            if (copiedProjectId.value == projectId) {
+                copiedProjectId.value = null
+            }
         }
     }
 

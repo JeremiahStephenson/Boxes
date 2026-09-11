@@ -1,5 +1,9 @@
 package com.jerry.bit.shapes.repository
 
+import com.jerry.bit.shapes.cache.data.Layer
+import com.jerry.bit.shapes.cache.data.Pixel
+import com.jerry.bit.shapes.cache.data.Project
+import com.jerry.bit.shapes.ui.shapes.Shape
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
@@ -26,7 +30,22 @@ data class TransferProject(
     val showGrid: Boolean,
     val showPngBackground: Boolean,
     val layers: List<TransferLayer>,
-)
+) {
+    fun toProject(
+        timestamp: Long,
+        id: Long = 0L,
+    ) = Project(
+        id = id,
+        name = name.trim(),
+        columns = columns,
+        rows = rows,
+        currentColor = currentColor,
+        currentShape = Shape.valueOf(currentShape),
+        showGrid = showGrid,
+        showPngBg = showPngBackground,
+        timestamp = timestamp,
+    )
+}
 
 @JsonClass(generateAdapter = true)
 data class TransferLayer(
@@ -34,7 +53,15 @@ data class TransferLayer(
     val name: String,
     val visible: Boolean,
     val pixels: List<TransferPixel>,
-)
+) {
+    fun toLayer(projectId: Long) =
+        Layer(
+            projectId = projectId,
+            index = index,
+            name = name.trim(),
+            on = visible,
+        )
+}
 
 @JsonClass(generateAdapter = true)
 data class TransferPixel(
@@ -42,4 +69,16 @@ data class TransferPixel(
     val y: Int,
     val color: Int,
     val shape: String,
-)
+) {
+    fun toPixel(
+        layerId: Long,
+        timestamp: Long,
+    ) = Pixel(
+        layerId = layerId,
+        x = x,
+        y = y,
+        color = color,
+        shape = Shape.valueOf(shape),
+        timestamp = timestamp,
+    )
+}

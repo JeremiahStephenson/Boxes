@@ -102,7 +102,7 @@ class BoxesRepository(
                                                     point.x,
                                                     point.y,
                                                     value.color.toArgb(),
-                                                    value.shape.name
+                                                    value.shape.name,
                                                 )
                                             },
                                 )
@@ -134,29 +134,9 @@ class BoxesRepository(
         val importedPixels = mutableListOf<Pixel>()
         val projectId =
             boxesDatabase.withTransaction {
-                val projectId =
-                    boxesDao.insertProject(
-                        Project(
-                            name = imported.name.trim(),
-                            columns = imported.columns,
-                            rows = imported.rows,
-                            currentColor = imported.currentColor,
-                            currentShape = Shape.valueOf(imported.currentShape),
-                            showGrid = imported.showGrid,
-                            showPngBg = imported.showPngBackground,
-                            timestamp = now,
-                        ),
-                    )
+                val projectId = boxesDao.insertProject(imported.toProject(timestamp = now))
                 imported.layers.forEach { layer ->
-                    val layerId =
-                        boxesDao.insertLayer(
-                            Layer(
-                                projectId = projectId,
-                                index = layer.index,
-                                name = layer.name.trim(),
-                                on = layer.visible,
-                            ),
-                        )
+                    val layerId = boxesDao.insertLayer(layer.toLayer(projectId))
                     importedLayers +=
                         LayerState(
                             id = layerId,
@@ -168,17 +148,7 @@ class BoxesRepository(
                             visibilityEnabled = true,
                             showControls = imported.layers.size > 1,
                         )
-                    val pixels =
-                        layer.pixels.map { pixel ->
-                            Pixel(
-                                layerId = layerId,
-                                x = pixel.x,
-                                y = pixel.y,
-                                color = pixel.color,
-                                shape = Shape.valueOf(pixel.shape),
-                                timestamp = now,
-                            )
-                        }
+                    val pixels = layer.pixels.map { pixel -> pixel.toPixel(layerId, now) }
                     boxesDao.insertAllPixels(pixels)
                     importedPixels += pixels
                 }
@@ -186,18 +156,7 @@ class BoxesRepository(
             }
         runCatching {
             export(
-                project =
-                    Project(
-                        id = projectId,
-                        name = imported.name.trim(),
-                        columns = imported.columns,
-                        rows = imported.rows,
-                        currentColor = imported.currentColor,
-                        currentShape = Shape.valueOf(imported.currentShape),
-                        showGrid = imported.showGrid,
-                        showPngBg = imported.showPngBackground,
-                        timestamp = now,
-                    ),
+                project = imported.toProject(timestamp = now, id = projectId),
                 fileName = projectId.toString(),
                 selections = generateSelections(importedPixels),
                 layers = importedLayers,
@@ -206,6 +165,71 @@ class BoxesRepository(
             )
         }.onFailure(analytics::logError)
         return projectId
+    }
+
+    suspend fun duplicateProject(sourceProjectId: Long): Long {
+        val source = boxesDao.getFullProjectById(sourceProjectId) ?: error("The copied project no longer exists")
+        val now = Clock.System.now().toEpochMilliseconds()
+        val duplicatedLayers = mutableListOf<LayerState>()
+        val duplicatedPixels = mutableListOf<Pixel>()
+        val newProjectId =
+            boxesDatabase.withTransaction {
+                val projectId =
+                    boxesDao.insertProject(
+                        source.project.copy(
+                            id = 0L,
+                            name = "Copy of ${source.project.name}",
+                            timestamp = now,
+                        ),
+                    )
+                source.layers.sortedBy { it.layer.index }.forEach { sourceLayer ->
+                    val layerId =
+                        boxesDao.insertLayer(
+                            sourceLayer.layer.copy(
+                                id = 0L,
+                                projectId = projectId,
+                            ),
+                        )
+                    duplicatedLayers +=
+                        LayerState(
+                            id = layerId,
+                            projectId = projectId,
+                            index = sourceLayer.layer.index,
+                            name = sourceLayer.layer.name,
+                            on = sourceLayer.layer.on,
+                            selected = false,
+                            visibilityEnabled = true,
+                            showControls = source.layers.size > 1,
+                        )
+                    val pixels =
+                        sourceLayer.pixels.map { pixel ->
+                            pixel.copy(
+                                id = 0L,
+                                layerId = layerId,
+                                timestamp = now,
+                            )
+                        }
+                    boxesDao.insertAllPixels(pixels)
+                    duplicatedPixels += pixels
+                }
+                projectId
+            }
+        runCatching {
+            export(
+                project =
+                    source.project.copy(
+                        id = newProjectId,
+                        name = "Copy of ${source.project.name}",
+                        timestamp = now,
+                    ),
+                fileName = newProjectId.toString(),
+                selections = generateSelections(duplicatedPixels),
+                layers = duplicatedLayers,
+                imageSize = THUMBNAIL_SIZE,
+                exportType = ExportType.THUMBNAIL,
+            )
+        }.onFailure(analytics::logError)
+        return newProjectId
     }
 
     private fun validate(transfer: ProjectTransfer) {
@@ -293,7 +317,7 @@ class BoxesRepository(
                     saveProject(
                         projectId = project.id,
                         canvasState = canvasState,
-                        autoSave = autoSave
+                        autoSave = autoSave,
                     )
                     canvasState.layers.forEach {
                         boxesDao.turnOnOrOffLayer(it.on, it.id)
@@ -371,10 +395,10 @@ class BoxesRepository(
         val max = boxesDao.findMaxIndexForHistory(layerId)
         val history = boxesDao.findMaxHistory(layerId, max)
         return (
-                history?.let {
-                    boxesDao.findAllHistoryItems(history.id)
-                } ?: emptyList()
-                ).also { history?.let { boxesDao.deleteHistory(it.id) } }
+            history?.let {
+                boxesDao.findAllHistoryItems(history.id)
+            } ?: emptyList()
+        ).also { history?.let { boxesDao.deleteHistory(it.id) } }
     }
 
     suspend fun deleteInvalidHistoryItems() {
@@ -390,7 +414,8 @@ class BoxesRepository(
         val list =
             canvasState.selections.flatMap { (layer, quad) ->
                 quad.flatMap { q ->
-                    q.value.filterKeys { if (autoSave) true else canvasState.containsPosition(it) }
+                    q.value
+                        .filterKeys { if (autoSave) true else canvasState.containsPosition(it) }
                         .map {
                             Pixel(
                                 layerId = layer,
