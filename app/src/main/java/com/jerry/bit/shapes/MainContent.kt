@@ -170,7 +170,6 @@ fun MainContent(
                                 targetOffsetX = { it },
                                 animationSpec = tween(ANIM_DURATION),
                             )
-
                         enterTransition togetherWith exitTransition
                     },
                 )

@@ -11,6 +11,7 @@ plugins {
     alias(libs.plugins.ben.manes.versions)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.android.junit)
 }
 
 ktlint {
@@ -44,8 +45,8 @@ android {
         applicationId = "com.jerry.bit.shapes"
         minSdk = 24
         targetSdk = 37
-        versionCode = 17
-        versionName = "1.16"
+        versionCode = 19
+        versionName = "1.18"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -150,6 +151,11 @@ dependencies {
     testImplementation(libs.turbine)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.kotlin.test)
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.junit.jupiter.params)
+    testRuntimeOnly(libs.junit.jupiter.engine)
+    testRuntimeOnly(libs.junit.vintage.engine)
 
     implementation(libs.androidx.paging.runtime.ktx)
     implementation(libs.androidx.paging.compose)

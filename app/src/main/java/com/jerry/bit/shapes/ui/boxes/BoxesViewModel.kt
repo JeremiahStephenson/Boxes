@@ -261,9 +261,7 @@ class BoxesViewModel(
 
     suspend fun addToHistory(userHistory: UserHistory) {
         if (userHistory.points.isEmpty()) return
-        viewModelScope.launch {
-            boxesRepository.updateHistory(userHistory.layerId, userHistory.points)
-        }
+        boxesRepository.updateHistory(userHistory.layerId, userHistory.points)
     }
 
     suspend fun addUsedColor(color: ColorAndShape) {
@@ -339,6 +337,26 @@ class BoxesViewModel(
                 }
                 loadingState.value = false
             }
+    }
+
+    fun exportProject(
+        project: Project,
+        layers: Collection<LayerState>,
+        selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
+        destinationFolder: Uri,
+    ) {
+        viewModelScope.launch(cc.io) {
+            loadingState.value = true
+            runCatching {
+                boxesRepository.exportProject(project, layers, selections, destinationFolder)
+            }.onSuccess {
+                _uiEventFlow.emit(UiEvent.ProjectExported)
+            }.onFailure { error ->
+                _uiEventFlow.emit(UiEvent.Error(error.message))
+                analytics.logError(error)
+            }
+            loadingState.value = false
+        }
     }
 
     fun selectLayer(layerId: Long) {

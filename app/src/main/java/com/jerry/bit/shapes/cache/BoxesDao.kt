@@ -27,6 +27,10 @@ interface BoxesDao {
 
     @Transaction
     @Query("SELECT * FROM project WHERE id = :id")
+    suspend fun getFullProjectById(id: Long): FullProject?
+
+    @Transaction
+    @Query("SELECT * FROM project WHERE id = :id")
     fun getProjectAndLayersFlowById(id: Long): Flow<ProjectAndLayers>
 
     @Query("SELECT * FROM layer WHERE projectId = :projectId")

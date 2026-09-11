@@ -174,6 +174,14 @@ fun DrawerMenu(
 
         item {
             ButtonSection(R.string.project_actions) {
+                val projectExportLauncher =
+                    rememberLauncherForActivityResult(
+                        ActivityResultContracts.CreateDocument("application/json"),
+                    ) { uri ->
+                        uri?.let {
+                            onAction(Action.ExportProject(it))
+                        }
+                    }
                 IconMenuButton(
                     onClick = { onAction(Action.Edit) },
                     drawableRes = R.drawable.ic_edit_24,
@@ -204,6 +212,19 @@ fun DrawerMenu(
                     onClick = { exportDialog = ExportType.SHARE },
                     drawableRes = R.drawable.ic_share_24,
                     contentDescription = stringResource(R.string.share_with_people),
+                )
+                IconMenuButton(
+                    onClick = {
+                        val fileName =
+                            getProject()
+                                .name
+                                .replace(Regex("[^A-Za-z0-9._ -]"), "_")
+                                .trim()
+                                .ifEmpty { "project" }
+                        projectExportLauncher.launch("$fileName.bitshape.json")
+                    },
+                    drawableRes = R.drawable.ic_upload_file_24,
+                    contentDescription = stringResource(R.string.export_project_file),
                 )
             }
         }

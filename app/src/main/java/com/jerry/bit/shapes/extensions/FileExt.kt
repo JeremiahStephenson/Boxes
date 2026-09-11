@@ -3,6 +3,7 @@ package com.jerry.bit.shapes.extensions
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Point
+import android.media.MediaScannerConnection
 import android.os.Environment
 import com.jerry.bit.shapes.R
 import com.jerry.bit.shapes.cache.data.ColorAndShape
@@ -43,6 +44,15 @@ fun Bitmap.storeImage(
         outputStream.flush()
     }
 
+    if (exportType == ExportType.FILE) {
+        MediaScannerConnection.scanFile(
+            context,
+            arrayOf(pictureFile.toString()),
+            arrayOf("image/png"),
+            null,
+        )
+    }
+
     return pictureFile.toString()
 }
 
@@ -54,7 +64,7 @@ private fun getOutputMediaFile(
 ): Path? {
     val mediaStorageDir =
         when (exportType) {
-            ExportType.FILE -> Path(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES + "/Pixels").path)
+            ExportType.FILE -> Path(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES + "/BitShape").path)
             ExportType.SHARE -> Path(context.cacheDir.path, "pixels")
             else -> Path(context.filesDir.path, "pixels")
         }

@@ -161,12 +161,21 @@ fun BoxCanvas(
                             onDragEnd()
                         }
                     },
-                    onTransform = { panDelta, previousDistance, currentDistance ->
+                    onTransform = { centroid, panDelta, previousDistance, currentDistance ->
                         scope.launch {
                             state.transform {
+                                val requestedZoomChange =
+                                    if (previousDistance > 0F) currentDistance / previousDistance else 1F
+                                val appliedZoomChange =
+                                    maxOf(1F, scaleState * requestedZoomChange) / scaleState
+                                val transformOrigin =
+                                    Offset(sizeState.width / 2F, sizeState.height / 2F)
+                                val centroidAdjustedPan =
+                                    (panDelta * appliedZoomChange) +
+                                        ((centroid - transformOrigin) * (1F - appliedZoomChange))
                                 transformBy(
-                                    panChange = panDelta,
-                                    zoomChange = if (previousDistance > 0F) currentDistance / previousDistance else 1F,
+                                    panChange = centroidAdjustedPan,
+                                    zoomChange = requestedZoomChange,
                                 )
                             }
                         }
@@ -345,7 +354,10 @@ fun SelectionTool(
     selectionState: SelectionState,
 ) {
     val highlightColor = MaterialTheme.colorScheme.primary
-    val stroke = with(LocalDensity.current) { 5.dp.toPx() }
+    val contrastColor = MaterialTheme.colorScheme.onSurface
+    val density = LocalDensity.current
+    val outerStroke = with(density) { 8.dp.toPx() }
+    val innerStroke = with(density) { 4.dp.toPx() }
     Canvas(
         modifier =
             Modifier
@@ -389,15 +401,27 @@ fun SelectionTool(
                         else -> br.bottom
                     },
                 )
+            val selectionSize =
+                Size(
+                    adjustmentBottomRight.x - adjustmentTopLeft.x,
+                    adjustmentBottomRight.y - adjustmentTopLeft.y,
+                )
             drawRect(
-                style = Stroke(width = stroke / scale),
+                color = highlightColor.copy(alpha = 0.16F),
+                topLeft = adjustmentTopLeft,
+                size = selectionSize,
+            )
+            drawRect(
+                style = Stroke(width = outerStroke / scale),
+                color = contrastColor.copy(alpha = 0.9F),
+                topLeft = adjustmentTopLeft,
+                size = selectionSize,
+            )
+            drawRect(
+                style = Stroke(width = innerStroke / scale),
                 color = highlightColor,
                 topLeft = adjustmentTopLeft,
-                size =
-                    Size(
-                        adjustmentBottomRight.x - adjustmentTopLeft.x,
-                        adjustmentBottomRight.y - adjustmentTopLeft.y,
-                    ),
+                size = selectionSize,
             )
         }
     }
@@ -484,7 +508,7 @@ private fun Modifier.gesturePointer(
     onDragStart: (PointerInputChange) -> Unit,
     onDrag: (PointerInputChange, Offset) -> Unit,
     onDragEnd: () -> Unit,
-    onTransform: (Offset, Float, Float) -> Unit,
+    onTransform: (Offset, Offset, Float, Float) -> Unit,
 ): Modifier =
     pointerInput(Unit) {
         awaitEachGesture {
@@ -521,6 +545,9 @@ private fun Modifier.gesturePointer(
 
                     // Pinch to zoom gesture
                     pointerCount >= 2 -> {
+                        if (dragMode.isDrawing) {
+                            onDragEnd()
+                        }
                         dragMode = DragMode.TRANSFORM
                         // Calculate the centroid (midpoint) of all fingers
                         val currentCentroid =
@@ -545,7 +572,7 @@ private fun Modifier.gesturePointer(
                                     isCurrent = true,
                                 )
 
-                            onTransform(panDelta, previousDistance, currentDistance)
+                            onTransform(currentCentroid, panDelta, previousDistance, currentDistance)
                         }
 
                         previousCentroid = currentCentroid

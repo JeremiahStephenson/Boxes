@@ -33,8 +33,8 @@ fun Toolbar(
     actions: () -> @Composable RowScope.() -> Unit = { {} },
 ) {
     val navigator = koinInject<Navigator>()
-    val topAppBarElementColor = MaterialTheme.colorScheme.onPrimary
-    val appBarContainerColor = MaterialTheme.colorScheme.primary
+    val topAppBarElementColor = MaterialTheme.colorScheme.onPrimaryContainer
+    val appBarContainerColor = MaterialTheme.colorScheme.primaryContainer
     TopAppBar(
         actions = actions(),
         windowInsets =

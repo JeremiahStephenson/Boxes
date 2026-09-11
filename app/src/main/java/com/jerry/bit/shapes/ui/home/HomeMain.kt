@@ -1,5 +1,8 @@
 package com.jerry.bit.shapes.ui.home
 
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -7,6 +10,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -68,8 +72,16 @@ fun HomeMain(
     viewModel: HomeViewModel = koinViewModel(),
 ) {
     val itemsFlow by viewModel.projectsFlow.collectAsStateWithLifecycle(null)
-    val isLoading by remember { derivedStateOf { itemsFlow?.isLoading ?: false } }
+    val isImporting by viewModel.isImporting.collectAsStateWithLifecycle()
+    val copiedProjectId by viewModel.copiedProjectId.collectAsStateWithLifecycle()
+    val isLoading by remember { derivedStateOf { (itemsFlow?.isLoading ?: false) || isImporting } }
     var editMode by rememberSaveable { mutableStateOf(false) }
+    var pastedInEditMode by rememberSaveable { mutableStateOf(false) }
+    val context = LocalContext.current
+    val importLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+            uri?.let(viewModel::importProject)
+        }
     DefaultContainer(
         title = stringResource(R.string.app_name),
         showBackArrow = false,
@@ -88,8 +100,35 @@ fun HomeMain(
 //            }
             if (!emptyList) {
                 EditMenu(editMode) {
+                    if (editMode && pastedInEditMode) {
+                        viewModel.clearCopiedProject()
+                        pastedInEditMode = false
+                    }
                     editMode = !editMode
                 }
+            }
+            if (copiedProjectId != null) {
+                IconButton(onClick = {
+                    viewModel.pasteProject()
+                    if (editMode) {
+                        pastedInEditMode = true
+                    } else {
+                        viewModel.clearCopiedProject()
+                    }
+                }) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_content_paste_24),
+                        contentDescription = stringResource(R.string.paste_project),
+                    )
+                }
+            }
+            IconButton(onClick = {
+                importLauncher.launch(arrayOf("application/json", "text/json", "text/plain"))
+            }) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_file_open_24),
+                    contentDescription = stringResource(R.string.import_project_file),
+                )
             }
         },
     ) {
@@ -101,6 +140,26 @@ fun HomeMain(
                     navigator.navigate(CreateNavKey())
                     viewModel.setHasLaunched()
                 }
+            }
+        }
+        LaunchedEffect(Unit) {
+            viewModel.importEvents.collectLatest { result ->
+                val message =
+                    result.fold(
+                        onSuccess = { context.getString(R.string.project_imported) },
+                        onFailure = { it.message ?: context.getString(R.string.generic_error) },
+                    )
+                Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+            }
+        }
+        LaunchedEffect(Unit) {
+            viewModel.pasteEvents.collectLatest { result ->
+                val message =
+                    result.fold(
+                        onSuccess = { context.getString(R.string.project_pasted) },
+                        onFailure = { it.message ?: context.getString(R.string.generic_error) },
+                    )
+                Toast.makeText(context, message, Toast.LENGTH_LONG).show()
             }
         }
 
@@ -131,6 +190,10 @@ fun HomeMain(
                     },
                     onDeleteProject = {
                         viewModel.deleteProject(it)
+                    },
+                    onCopyProject = {
+                        viewModel.copyProject(it)
+                        pastedInEditMode = false
                     },
                 )
             }
@@ -181,6 +244,7 @@ private fun ProjectItem(
     editMode: Boolean,
     onGoToProject: (Long) -> Unit,
     onDeleteProject: (Long) -> Unit,
+    onCopyProject: (Long) -> Unit,
 ) {
     Card {
         Column(
@@ -199,21 +263,26 @@ private fun ProjectItem(
             ) {
                 ProjectImageItem(item.id, item.timestamp)
                 if (editMode) {
-                    FilledIconButton(
-                        modifier =
-                            Modifier
-                                .padding(8.dp),
-                        onClick = { showConfirmationDialog = true },
-                        colors =
-                            IconButtonDefaults.filledIconButtonColors(
-                                containerColor = MaterialTheme.colorScheme.errorContainer,
-                                contentColor = MaterialTheme.colorScheme.onErrorContainer,
-                            ),
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_delete_24),
-                            contentDescription = stringResource(R.string.delete_project),
-                        )
+                    Row(modifier = Modifier.padding(8.dp)) {
+                        FilledIconButton(onClick = { onCopyProject(item.id) }) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_content_copy_24),
+                                contentDescription = stringResource(R.string.copy_project),
+                            )
+                        }
+                        FilledIconButton(
+                            onClick = { showConfirmationDialog = true },
+                            colors =
+                                IconButtonDefaults.filledIconButtonColors(
+                                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                                    contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                                ),
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_delete_24),
+                                contentDescription = stringResource(R.string.delete_project),
+                            )
+                        }
                     }
                 }
             }
