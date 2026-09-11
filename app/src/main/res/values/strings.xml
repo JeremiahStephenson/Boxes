@@ -71,6 +71,10 @@
     <string name="edit_project">Edit Project Details</string>
     <string name="save_to_png">Save to PNG File</string>
     <string name="share_with_people">Share Your Creation</string>
+    <string name="export_project_file">Export Project File</string>
+    <string name="import_project_file">Import Project File</string>
+    <string name="project_exported">Project exported</string>
+    <string name="project_imported">Project imported</string>
     <string name="import_photo">Import a photo</string>
     <string name="clear_layer">Clear the Selected Layer</string>
     <string name="toggle_layer_visibility">Toggle Layer Visibility</string>

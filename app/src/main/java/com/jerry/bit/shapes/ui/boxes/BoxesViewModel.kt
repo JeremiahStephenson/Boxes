@@ -339,6 +339,26 @@ class BoxesViewModel(
             }
     }
 
+    fun exportProject(
+        project: Project,
+        layers: Collection<LayerState>,
+        selections: Map<Long, Map<Point, Map<Point, ColorAndShape>>>,
+        destinationFolder: Uri,
+    ) {
+        viewModelScope.launch(cc.io) {
+            loadingState.value = true
+            runCatching {
+                boxesRepository.exportProject(project, layers, selections, destinationFolder)
+            }.onSuccess {
+                _uiEventFlow.emit(UiEvent.ProjectExported)
+            }.onFailure { error ->
+                _uiEventFlow.emit(UiEvent.Error(error.message))
+                analytics.logError(error)
+            }
+            loadingState.value = false
+        }
+    }
+
     fun selectLayer(layerId: Long) {
         selectedLayerStateHandle = layerId
     }

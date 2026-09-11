@@ -16,4 +16,6 @@ sealed class UiEvent {
         val filePath: String?,
         val exportType: ExportType,
     ) : UiEvent()
+
+    data object ProjectExported : UiEvent()
 }

@@ -37,6 +37,10 @@ sealed interface Action {
         val layerId: Long,
     ) : Action
 
+    data class ExportProject(
+        val destinationFolder: Uri,
+    ) : Action
+
     data class SetColor(
         val color: ColorAndShape,
     ) : Action

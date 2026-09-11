@@ -269,6 +269,9 @@ fun BoxesMain(
                         is UiEvent.MoveSelection -> {
                             selectionState.move(it.direction)
                         }
+                        UiEvent.ProjectExported -> {
+                            Toast.makeText(context, R.string.project_exported, Toast.LENGTH_SHORT).show()
+                        }
                     }
                 }
             }
@@ -964,6 +967,16 @@ private fun handleAction(
                 project?.rows,
                 action.uri,
             )
+
+        is Action.ExportProject ->
+            project?.let {
+                viewModel.exportProject(
+                    project = it,
+                    layers = canvasState.layers,
+                    selections = canvasState.selections,
+                    destinationFolder = action.destinationFolder,
+                )
+            }
     }
 }
 
