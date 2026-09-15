@@ -1,0 +1,3 @@
+interface:
+  display_name: "Add Shape"
+  short_description: "Add a persisted drawable shape safely"

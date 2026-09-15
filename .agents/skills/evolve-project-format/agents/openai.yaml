@@ -1,0 +1,3 @@
+interface:
+  display_name: "Evolve Project Format"
+  short_description: "Evolve project JSON with compatibility"

@@ -1,0 +1,3 @@
+interface:
+  display_name: "Room Schema Migration"
+  short_description: "Migrate Room data without data loss"
