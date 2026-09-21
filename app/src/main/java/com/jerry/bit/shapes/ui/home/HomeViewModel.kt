@@ -8,6 +8,7 @@ import com.jerry.bit.shapes.repository.BoxesRepository
 import com.jerry.bit.shapes.util.CoroutineContextProvider
 import com.jerry.bit.shapes.util.ProjectSeeder
 import com.jerry.bit.shapes.util.Resource
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,21 +31,25 @@ class HomeViewModel(
             .findAllProjects()
             .map { Resource.done(it) }
             .stateIn(viewModelScope, SharingStarted.Eagerly, Resource.loading())
+    val isImporting: StateFlow<Boolean> field = MutableStateFlow(false)
+    val copiedProjectId: StateFlow<Long?> field = MutableStateFlow(null)
 
     val hasLaunchedBefore = appDataStore.hasLaunchedBefore
+    val projectEvents: Flow<ProjectTransferEvent> field =
+        MutableSharedFlow<ProjectTransferEvent>(extraBufferCapacity = 1)
 
-    val isImporting: StateFlow<Boolean> field = MutableStateFlow(false)
-    val importEvents: Flow<Result<Long>> field = MutableSharedFlow<Result<Long>>(extraBufferCapacity = 1)
-    val copiedProjectId: StateFlow<Long?> field = MutableStateFlow(null)
-    val pasteEvents: Flow<Result<Long>> field = MutableSharedFlow<Result<Long>>(extraBufferCapacity = 1)
+    private var importJob: Job? = null
 
     fun importProject(uri: android.net.Uri) {
-        if (isImporting.value) return
-        viewModelScope.launch(cc.io) {
-            isImporting.value = true
-            importEvents.emit(runCatching { boxesRepository.importProject(uri) })
-            isImporting.value = false
-        }
+        if (importJob?.isActive == true || isImporting.value) return
+        importJob =
+            viewModelScope.launch(cc.io) {
+                isImporting.value = true
+                projectEvents.emit(
+                    ProjectTransferEvent.Imported(runCatching { boxesRepository.importProject(uri) }),
+                )
+                isImporting.value = false
+            }
     }
 
     fun copyProject(projectId: Long) {
@@ -55,23 +60,32 @@ class HomeViewModel(
         copiedProjectId.value = null
     }
 
+    private var pasteJob: Job? = null
+
     fun pasteProject() {
         val projectId = copiedProjectId.value ?: return
-        if (isImporting.value) return
-        viewModelScope.launch(cc.io) {
-            isImporting.value = true
-            pasteEvents.emit(runCatching { boxesRepository.duplicateProject(projectId) })
-            isImporting.value = false
-        }
+        if (pasteJob?.isActive == true || isImporting.value) return
+        pasteJob =
+            viewModelScope.launch(cc.io) {
+                isImporting.value = true
+                projectEvents.emit(
+                    ProjectTransferEvent.Pasted(runCatching { boxesRepository.duplicateProject(projectId) }),
+                )
+                isImporting.value = false
+            }
     }
 
+    private var deleteJob: Job? = null
+
     fun deleteProject(projectId: Long) {
-        viewModelScope.launch {
-            boxesDao.deleteProject(projectId)
-            if (copiedProjectId.value == projectId) {
-                copiedProjectId.value = null
+        if (deleteJob?.isActive == true) return
+        deleteJob =
+            viewModelScope.launch {
+                boxesDao.deleteProject(projectId)
+                if (copiedProjectId.value == projectId) {
+                    copiedProjectId.value = null
+                }
             }
-        }
     }
 
     fun setHasLaunched() {

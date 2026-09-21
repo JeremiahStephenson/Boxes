@@ -8,6 +8,7 @@ import com.jerry.bit.shapes.repository.BoxesRepository
 import com.jerry.bit.shapes.testing.MainDispatcherExtension
 import com.jerry.bit.shapes.util.CoroutineContextProvider
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CompletableDeferred
@@ -22,6 +23,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import kotlin.coroutines.CoroutineContext
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 @ExtendWith(MainDispatcherExtension::class)
@@ -60,7 +62,7 @@ class HomeViewModelTransferTest {
     @Test
     fun `paste without a copied project does nothing`() =
         runTest {
-            viewModel.pasteEvents.test {
+            viewModel.projectEvents.test {
                 viewModel.pasteProject()
                 expectNoEvents()
             }
@@ -72,10 +74,11 @@ class HomeViewModelTransferTest {
             coEvery { repository.duplicateProject(7L) } returns 8L
             viewModel.copyProject(7L)
 
-            viewModel.pasteEvents.test {
+            viewModel.projectEvents.test {
                 viewModel.pasteProject()
                 advanceUntilIdle()
-                assertEquals(8L, awaitItem().getOrThrow())
+                val event = assertIs<ProjectTransferEvent.Pasted>(awaitItem())
+                assertEquals(8L, event.result.getOrThrow())
             }
         }
 
@@ -85,10 +88,11 @@ class HomeViewModelTransferTest {
             coEvery { repository.duplicateProject(7L) } throws IllegalStateException("failed")
             viewModel.copyProject(7L)
 
-            viewModel.pasteEvents.test {
+            viewModel.projectEvents.test {
                 viewModel.pasteProject()
                 advanceUntilIdle()
-                assertEquals("failed", awaitItem().exceptionOrNull()?.message)
+                val event = assertIs<ProjectTransferEvent.Pasted>(awaitItem())
+                assertEquals("failed", event.result.exceptionOrNull()?.message)
             }
         }
 
@@ -98,10 +102,11 @@ class HomeViewModelTransferTest {
             val uri = mockk<Uri>()
             coEvery { repository.importProject(uri) } returns 9L
 
-            viewModel.importEvents.test {
+            viewModel.projectEvents.test {
                 viewModel.importProject(uri)
                 advanceUntilIdle()
-                assertEquals(9L, awaitItem().getOrThrow())
+                val event = assertIs<ProjectTransferEvent.Imported>(awaitItem())
+                assertEquals(9L, event.result.getOrThrow())
             }
         }
 
@@ -132,10 +137,64 @@ class HomeViewModelTransferTest {
             val uri = mockk<Uri>()
             coEvery { repository.importProject(uri) } throws IllegalArgumentException("invalid")
 
-            viewModel.importEvents.test {
+            viewModel.projectEvents.test {
                 viewModel.importProject(uri)
                 advanceUntilIdle()
-                assertEquals("invalid", awaitItem().exceptionOrNull()?.message)
+                val event = assertIs<ProjectTransferEvent.Imported>(awaitItem())
+                assertEquals("invalid", event.result.exceptionOrNull()?.message)
             }
+        }
+
+    @Test
+    fun `import ignores duplicate call while import is running`() =
+        runTest {
+            val uri = mockk<Uri>()
+            val releaseImport = CompletableDeferred<Unit>()
+            coEvery { repository.importProject(uri) } coAnswers {
+                releaseImport.await()
+                9L
+            }
+
+            viewModel.importProject(uri)
+            viewModel.importProject(uri)
+            runCurrent()
+
+            coVerify(exactly = 1) { repository.importProject(uri) }
+            releaseImport.complete(Unit)
+            advanceUntilIdle()
+        }
+
+    @Test
+    fun `paste ignores duplicate call while paste is running`() =
+        runTest {
+            val releasePaste = CompletableDeferred<Unit>()
+            coEvery { repository.duplicateProject(7L) } coAnswers {
+                releasePaste.await()
+                8L
+            }
+            viewModel.copyProject(7L)
+
+            viewModel.pasteProject()
+            viewModel.pasteProject()
+            runCurrent()
+
+            coVerify(exactly = 1) { repository.duplicateProject(7L) }
+            releasePaste.complete(Unit)
+            advanceUntilIdle()
+        }
+
+    @Test
+    fun `delete ignores duplicate call while delete is running`() =
+        runTest {
+            val releaseDelete = CompletableDeferred<Unit>()
+            coEvery { dao.deleteProject(7L) } coAnswers { releaseDelete.await() }
+
+            viewModel.deleteProject(7L)
+            viewModel.deleteProject(7L)
+            runCurrent()
+
+            coVerify(exactly = 1) { dao.deleteProject(7L) }
+            releaseDelete.complete(Unit)
+            advanceUntilIdle()
         }
 }

@@ -61,6 +61,7 @@ import com.jerry.bit.shapes.ui.common.FadeAnimatedVisibility
 import com.jerry.bit.shapes.ui.common.ProjectImage
 import com.jerry.bit.shapes.ui.common.unboundClickable
 import com.jerry.bit.shapes.ui.create.CreateNavKey
+import com.jerry.bit.shapes.ui.home.state.HomeState
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.io.files.SystemPathSeparator
 import org.koin.androidx.compose.koinViewModel
@@ -71,10 +72,7 @@ fun HomeMain(
     navigator: Navigator,
     viewModel: HomeViewModel = koinViewModel(),
 ) {
-    val itemsFlow by viewModel.projectsFlow.collectAsStateWithLifecycle(null)
-    val isImporting by viewModel.isImporting.collectAsStateWithLifecycle()
-    val copiedProjectId by viewModel.copiedProjectId.collectAsStateWithLifecycle()
-    val isLoading by remember { derivedStateOf { (itemsFlow?.isLoading ?: false) || isImporting } }
+    val homeState = rememberHomeState(viewModel)
     var editMode by rememberSaveable { mutableStateOf(false) }
     var pastedInEditMode by rememberSaveable { mutableStateOf(false) }
     val context = LocalContext.current
@@ -91,7 +89,7 @@ fun HomeMain(
         appBarActions = {
             val emptyList by remember {
                 derivedStateOf {
-                    itemsFlow?.isSuccessful == true && (itemsFlow?.data?.isEmpty() ?: true)
+                    homeState.projects?.isSuccessful == true && (homeState.projects?.data?.isEmpty() ?: true)
                 }
             }
             // Turn this on when seeding is needed
@@ -107,7 +105,7 @@ fun HomeMain(
                     editMode = !editMode
                 }
             }
-            if (copiedProjectId != null) {
+            if (homeState.copiedProjectId != null) {
                 IconButton(onClick = {
                     viewModel.pasteProject()
                     if (editMode) {
@@ -143,20 +141,17 @@ fun HomeMain(
             }
         }
         LaunchedEffect(Unit) {
-            viewModel.importEvents.collectLatest { result ->
+            viewModel.projectEvents.collectLatest { event ->
                 val message =
-                    result.fold(
-                        onSuccess = { context.getString(R.string.project_imported) },
-                        onFailure = { it.message ?: context.getString(R.string.generic_error) },
-                    )
-                Toast.makeText(context, message, Toast.LENGTH_LONG).show()
-            }
-        }
-        LaunchedEffect(Unit) {
-            viewModel.pasteEvents.collectLatest { result ->
-                val message =
-                    result.fold(
-                        onSuccess = { context.getString(R.string.project_pasted) },
+                    event.result.fold(
+                        onSuccess = {
+                            context.getString(
+                                when (event) {
+                                    is ProjectTransferEvent.Imported -> R.string.project_imported
+                                    is ProjectTransferEvent.Pasted -> R.string.project_pasted
+                                },
+                            )
+                        },
                         onFailure = { it.message ?: context.getString(R.string.generic_error) },
                     )
                 Toast.makeText(context, message, Toast.LENGTH_LONG).show()
@@ -178,7 +173,7 @@ fun HomeMain(
             verticalItemSpacing = 16.dp,
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            itemsIndexed(itemsFlow?.data ?: emptyList()) { _, item ->
+            itemsIndexed(homeState.projects?.data ?: emptyList()) { _, item ->
                 ProjectItem(
                     item = item,
                     editMode = editMode,
@@ -201,7 +196,9 @@ fun HomeMain(
 
         val areItemsEmpty by remember {
             derivedStateOf {
-                itemsFlow?.isSuccessful == true && itemsFlow?.data != null && itemsFlow!!.data!!.isEmpty()
+                homeState.projects?.isSuccessful == true &&
+                    homeState.projects?.data != null &&
+                    homeState.projects!!.data!!.isEmpty()
             }
         }
         if (areItemsEmpty) {
@@ -231,7 +228,7 @@ fun HomeMain(
                 Modifier
                     .fillMaxSize()
                     .wrapContentSize(Alignment.Center),
-            visible = isLoading,
+            visible = homeState.isLoading,
         ) {
             CircularProgressIndicator()
         }
@@ -365,6 +362,20 @@ private fun EditMenu(
         Icon(
             painter = painterResource(icon),
             contentDescription = stringResource(contentDescription),
+        )
+    }
+}
+
+@Composable
+private fun rememberHomeState(viewModel: HomeViewModel): HomeState {
+    val projectsState = viewModel.projectsFlow.collectAsStateWithLifecycle(null)
+    val importingState = viewModel.isImporting.collectAsStateWithLifecycle()
+    val copiedProjectIdState = viewModel.copiedProjectId.collectAsStateWithLifecycle()
+    return remember {
+        HomeState(
+            projectsState,
+            importingState,
+            copiedProjectIdState,
         )
     }
 }
