@@ -76,6 +76,9 @@ fun HomeMain(
     var editMode by rememberSaveable { mutableStateOf(false) }
     var pastedInEditMode by rememberSaveable { mutableStateOf(false) }
     val context = LocalContext.current
+    val projectImportedMessage = stringResource(R.string.project_imported)
+    val projectPastedMessage = stringResource(R.string.project_pasted)
+    val genericErrorMessage = stringResource(R.string.generic_error)
     val importLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
             uri?.let(viewModel::importProject)
@@ -145,14 +148,12 @@ fun HomeMain(
                 val message =
                     event.result.fold(
                         onSuccess = {
-                            context.getString(
-                                when (event) {
-                                    is ProjectTransferEvent.Imported -> R.string.project_imported
-                                    is ProjectTransferEvent.Pasted -> R.string.project_pasted
-                                },
-                            )
+                            when (event) {
+                                is ProjectTransferEvent.Imported -> projectImportedMessage
+                                is ProjectTransferEvent.Pasted -> projectPastedMessage
+                            }
                         },
-                        onFailure = { it.message ?: context.getString(R.string.generic_error) },
+                        onFailure = { it.message ?: genericErrorMessage },
                     )
                 Toast.makeText(context, message, Toast.LENGTH_LONG).show()
             }

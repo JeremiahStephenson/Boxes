@@ -1,9 +1,7 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">BitShape</string>
 
     <string name="back">Back</string>
-
-    <string name="set_name">Set a name for your project</string>
 
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
@@ -39,7 +37,7 @@
     <string name="paste_project">Paste project</string>
     <string name="project_pasted">Project pasted</string>
 
-    <string name="project_range">Between %1$d and %2$d</string>
+    <string name="project_range" tools:ignore="PluralsCandidate">Between %1$d and %2$d</string>
 
     <string name="set_color">Set Color</string>
     <string name="hex_color">Hex color</string>
@@ -47,11 +45,9 @@
     <string name="hex_color_error">Enter #RRGGBB or #AARRGGBB</string>
     <string name="error_save">There was a problem creating your project. Please try again.</string>
 
-    <string name="error_message">Error! %1$s</string>
     <string name="error_export">Error creating media file, check storage permissions</string>
     <string name="generic_error">Something went wrong, please try again.</string>
 
-    <string name="project">Project</string>
     <string name="tools">Tools</string>
     <string name="export">Export</string>
     <string name="share">Share</string>
@@ -101,8 +97,6 @@
     <string name="move_right">Move Right</string>
     <string name="move_up">Move Up</string>
     <string name="move_down">Move Down</string>
-    <string name="move_layer_up">Move Layer Up</string>
-    <string name="move_layer_down">Move Layer Down</string>
     <string name="un_select">Un-select Current Selection</string>
     <string name="change_layer_name">Change Layer Name</string>
     <string name="delete_layer">Delete Layer</string>
@@ -115,7 +109,6 @@
     <string name="shape_section_special">Special</string>
     <string name="drag_layer">Drag this to reorder layer</string>
     <string name="how_to">Guide</string>
-    <string name="open_guide">Open guide</string>
 
     <string name="guide_welcome_title">Create with confidence</string>
     <string name="guide_welcome_desc">BitShape turns a simple grid into pixel art. Choose a color and shape, draw on the canvas, then use layers to build up your creation.</string>

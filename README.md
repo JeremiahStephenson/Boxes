@@ -1,11 +1,11 @@
-# BitShapes (Formally Boxes/Drixels)
+# BitShapes (Formerly Boxes/Drixels)
 ### Description
 This is a simple project I started back in 2023 to fill in some time and to do some interesting things with Jetpack Compose.
 
 I did release it in the Play Store but was eventually pulled by Google because I didn't make frequent updates. I was working a demanding job at the time and wasn't able to keep this project up to date. 
 
 I have resumed work on this to get the 3-year-old code up to date and to fix things up.
-I will also be working on adding new features now that I can do it quicker with AI.
+I will also be working on adding new features with time permitting.
 
 New play store release is also imminent.
 

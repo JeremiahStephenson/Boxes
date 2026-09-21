@@ -31,7 +31,6 @@ kotlin {
             "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
             "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
             "-jvm-default=enable",
-            "-XXLanguage:+ExplicitBackingFields",
         )
     }
 }
@@ -54,22 +53,11 @@ android {
         }
     }
 
-    signingConfigs {
-        // TODO create new keystore file for re-release and DO NOT COMMIT IT TO REPO!!!
-        create("release") {
-            keyAlias = "RouteSucks"
-            keyPassword = "RouteSucks"
-            storeFile = file("../../key.jks")
-            storePassword = "RouteSucks"
-        }
-    }
-
     buildTypes {
         getByName("release") {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            signingConfig = signingConfigs.getByName("release")
             ndk {
                 debugSymbolLevel = "FULL"
             }

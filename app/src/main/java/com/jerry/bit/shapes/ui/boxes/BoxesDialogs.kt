@@ -407,7 +407,7 @@ fun ExportDialog(
                 text = stringResource(R.string.image_size),
                 style = MaterialTheme.typography.titleLarge,
             )
-            var quality by remember { mutableStateOf(MEDIUM) }
+            var quality by remember { mutableIntStateOf(MEDIUM) }
             var qualityError by remember { mutableStateOf(false) }
             Column(
                 modifier =
