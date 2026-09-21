@@ -5,12 +5,9 @@ This is a simple project I started back in 2023 to fill in some time and to do s
 I did release it in the Play Store but was eventually pulled by Google because I didn't make frequent updates. I was working a demanding job at the time and wasn't able to keep this project up to date. 
 
 I have resumed work on this to get the 3-year-old code up to date and to fix things up.
+I will also be working on adding new features now that I can do it quicker with AI.
 
-After getting the code up to date here are some ideas I would like to explore with this:
-1. Kotlin/Compose Multiplatform.
-    1. iOS app version perhaps
-    2. Web version too
-2. Content generation through AI. User can prompt the app to generate a project through a prompt.
+New play store release is also imminent.
 
 ### Screenshots
 <table>
@@ -39,6 +36,3 @@ After getting the code up to date here are some ideas I would like to explore wi
         <td><img width="1080" height="2424" alt="Screenshot_20260629_093823" src="https://github.com/user-attachments/assets/dde6f35d-275e-4c00-a6ec-713ba9905cc5" /></td>
     </tr>
 </table>
-
-
-Once I get the code looking better I will expand more here and add screenshots.
