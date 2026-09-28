@@ -2,6 +2,7 @@ package com.jerry.bit.shapes.ui.boxes
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.graphics.ImageDecoder
 import android.graphics.Point
 import android.net.Uri
@@ -22,7 +23,6 @@ import com.jerry.bit.shapes.datastore.AppDataStore
 import com.jerry.bit.shapes.extensions.addIfNotFound
 import com.jerry.bit.shapes.extensions.adjust
 import com.jerry.bit.shapes.extensions.filterNotNullValues
-import com.jerry.bit.shapes.extensions.findDominateColor
 import com.jerry.bit.shapes.extensions.groupByQuadrant
 import com.jerry.bit.shapes.extensions.isNotOutside
 import com.jerry.bit.shapes.extensions.logError
@@ -466,19 +466,21 @@ class BoxesViewModel(
                             }
                         }
                     }
-                val boxSize =
-                    min(
-                        bitmap.width.toFloat() / dimens.first.toFloat(),
-                        bitmap.height.toFloat() / dimens.second.toFloat(),
-                    )
-                val boxes = generateBoxes(dimens.first, dimens.second, boxSize, 0F, 0F)
+                val scaledBitmap = Bitmap.createScaledBitmap(bitmap, dimens.first, dimens.second, true)
                 val points = HashMap<Point, ColorAndShape>()
-                boxes.forEach {
-                    val region = it.value
-                    val point = it.key
-                    bitmap.findDominateColor(region).let { color ->
-                        points[point] = ColorAndShape(color)
+                for (y in 0 until dimens.second) {
+                    for (x in 0 until dimens.first) {
+                        val color = scaledBitmap.getPixel(x, y)
+                        if (Color.alpha(color) > 0) {
+                            points[Point(x, y)] = ColorAndShape(color)
+                        }
                     }
+                }
+                if (scaledBitmap != bitmap) {
+                    scaledBitmap.recycle()
+                }
+                if (!bitmap.isRecycled) {
+                    bitmap.recycle()
                 }
                 val layer = pixelsFlow.value.data?.getOrPut(layerId) { mutableStateMapOf() }
                 layer?.let { l ->
