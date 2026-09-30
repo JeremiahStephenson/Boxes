@@ -62,6 +62,7 @@ import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.time.Duration.Companion.seconds
+import androidx.core.graphics.get
 
 class BoxesViewModel(
     private val handle: SavedStateHandle,
@@ -470,7 +471,7 @@ class BoxesViewModel(
                 val points = HashMap<Point, ColorAndShape>()
                 for (y in 0 until dimens.second) {
                     for (x in 0 until dimens.first) {
-                        val color = scaledBitmap.getPixel(x, y)
+                        val color = scaledBitmap[x, y]
                         if (Color.alpha(color) > 0) {
                             points[Point(x, y)] = ColorAndShape(color)
                         }

@@ -1,62 +1,69 @@
 # Privacy Policy for BitShape
 
-This privacy policy applies to the BitShape app (herein referred to as "Application") for mobile devices that was created by Jerry Bit (herein referred to as "Service Provider") as a Free service. This service is intended for use "AS IS".
+**Effective date: September 30, 2026**
 
-## Information Collection and Use
+This Privacy Policy applies to the BitShape mobile application for Android and iOS (the "Application"), provided by Jerry Bit (the "Service Provider"). The Application is provided as a free service and is intended for use as is.
 
-The Application collects information when you download and use it. This information may include information such as:
+## Information Stored on Your Device
 
-*   Your device's Internet Protocol address (e.g. IP address)
-*   The pages of the Application that you visit, the time and date of your visit, the time spent on those pages
-*   The time spent on the Application
-*   The operating system you use on your mobile device
+BitShape does not require an account. Your projects, layers, canvas data, and app settings are stored locally on your device.
 
-The Application does not gather precise information about the location of your mobile device.
+When you choose to import an image or project file, the Application accesses only the item you select and processes it on your device. BitShape does not upload your artwork, imported images, or project files to the Service Provider or to Firebase.
 
-The Service Provider may use the information you provided to contact you from time to time to provide you with important information, required notices and marketing promotions.
+When you export, save, or share an image or project, the Application sends it only to the destination you choose, such as your photo library, file storage, or another app through the operating system's share sheet. The privacy practices of that destination are governed by its own policy.
 
-For a better experience, while using the Application, the Service Provider may require you to provide us with certain personally identifiable information. The information that the Service Provider requests will be retained by them and used as described in this privacy policy.
+You can delete locally stored projects within the Application. Uninstalling the Application removes its locally stored data, subject to the backup and retention behavior of your device and operating system.
 
-## Third Party Access
+## Information Collected Automatically
 
-Only aggregated, anonymized data is periodically transmitted to external services to aid the Service Provider in improving the Application and their service. The Service Provider may share your information with third parties in the ways that are described in this privacy statement.
+The Application uses Google Analytics for Firebase and Firebase Crashlytics on Android and iOS to understand feature usage, improve performance, and diagnose errors.
 
-Please note that the Application utilizes third-party services that have their own Privacy Policy about handling data. Below are the links to the Privacy Policy of the third-party service providers used by the Application:
+Depending on the service and platform, automatically collected information may include:
 
-*   [Google Play Services](https://www.google.com/policies/privacy/)
-*   [Google Analytics for Firebase](https://firebase.google.com/support/privacy)
-*   [Firebase Crashlytics](https://firebase.google.com/support/privacy/)
+- App interactions, screen views, feature usage, and event timestamps
+- Non-content project attributes, such as canvas dimensions, layer counts, pixel counts, selected tool or shape, and whether an operation succeeded or failed
+- App version, operating system, device model, language, and general device characteristics
+- Installation identifiers, including Firebase installation identifiers and Crashlytics installation identifiers
+- Crash reports, stack traces, app state, and technical error messages
+- IP address, which may be processed for service delivery, security, and approximate geographic information
 
-The Service Provider may disclose User Provided and Automatically Collected Information:
+BitShape does not intentionally send the contents of your artwork, imported images, exported files, project names, contact information, or precise location to Firebase. The Application does not use Firebase data for cross-app advertising and does not sell personal information.
 
-*   as required by law, such as to comply with a subpoena, or similar legal process;
-*   when they believe in good faith that disclosure is necessary to protect their rights, protect your safety or the safety of others, investigate fraud, or respond to a government request;
-*   with their trusted services providers who work on their behalf, do not have an independent use of the information we disclose to them, and have agreed to adhere to the rules set forth in this privacy statement.
+Firebase may process data on Google infrastructure in various countries. Crashlytics generally retains crash reports and associated identifiers for 90 days before beginning removal from live and backup systems. Other analytics and service data is retained according to the Service Provider's Firebase settings and Google's applicable terms and policies.
 
-## Data Retention Policy, Managing Your Information
+## Third-Party Services
 
-The Service Provider will retain User Provided data for as long as you use the Application and for a reasonable time thereafter. The Service Provider will retain Automatically Collected information for up to 24 months and thereafter may store it in aggregate. If you'd like the Service Provider to delete User Provided Data that you have provided via the Application, please contact them at jerrytheconqueror913@gmail.com and they will respond in a reasonable time. Please note that some or all of the User Provided Data may be required in order for the Application to function properly.
+The Application uses third-party services that process information under their own privacy policies:
 
-## Children
+- [Google Analytics for Firebase and Firebase Crashlytics](https://firebase.google.com/support/privacy/) — Android and iOS
+- [Google Play Services](https://policies.google.com/privacy) — Android only
 
-The Service Provider does not use the Application to knowingly solicit data from or market to children under the age of 13.
+The Service Provider may disclose information when required by law, when reasonably necessary to protect the rights or safety of users or others, to investigate fraud or abuse, or to trusted service providers that process information on the Service Provider's behalf under appropriate obligations.
 
-The Application does not address anyone under the age of 13. The Service Provider does not knowingly collect personally identifiable information from children under 13 years of age. In the case the Service Provider discovers that a child under 13 has provided personal information, the Service Provider will immediately delete this from their servers. If you are a parent or guardian and you are aware that your child has provided us with personal information, please contact the Service Provider (jerrytheconqueror913@gmail.com) so that they will be able to take the necessary actions.
+## Permissions and User-Initiated Access
+
+BitShape may request access to photos, files, or media only when you choose an import, save, export, or sharing feature. This access is used to complete the action you request. The Application does not collect precise location, contacts, health information, or financial information.
+
+## Data Choices and Requests
+
+You can control local project data by deleting projects in the Application or uninstalling the Application. You can also manage photo, file, and media permissions in your device settings.
+
+For questions or requests concerning data associated with the Application, contact the Service Provider at [jerrytheconqueror913@gmail.com](mailto:jerrytheconqueror913@gmail.com). Because BitShape does not require an account, the Service Provider may not be able to associate Firebase data with a specific person or installation.
+
+## Children's Privacy
+
+The Application is not directed to children under 13, and the Service Provider does not knowingly collect personal information from children under 13. If you are a parent or guardian and believe a child has provided personal information through the Application, contact the Service Provider so appropriate action can be taken.
 
 ## Security
 
-The Service Provider is concerned about safeguarding the confidentiality of your information. The Service Provider provides physical, electronic, and procedural safeguards to protect information they process and maintain. For example, they limit access to this information to authorized employees and contractors who need to know that information in order to operate, develop or improve their Application. Please be aware that, although they endeavor provide reasonable security for information they process and maintain, no security system can prevent all potential security breaches.
+The Service Provider uses reasonable administrative and technical measures to protect information processed in connection with the Application. Firebase encrypts data in transit using HTTPS and applies its own security controls. No method of electronic storage or transmission is completely secure.
 
-## Changes
+## Changes to This Policy
 
-This Privacy Policy may be updated from time to time for any reason. The Service Provider will notify you of any changes to the Privacy Policy by updating this page with the new Privacy Policy. You are advised to consult this Privacy Policy regularly for any changes, as continued use is deemed approval of all changes.
-
-This privacy policy is effective as of 2026-08-24.
-
-## Your Consent
-
-By using the Application, you are giving your consent to the Service Provider processing of your information as set forth in this Privacy Policy now and as amended by us. "Processing,” means using cookies on a computer/hand held device or using or touching information in any way, including, but not limited to, collecting, storing, deleting, using, combining and disclosing information.
+This Privacy Policy may be updated from time to time. Changes will be posted on this page with an updated effective date. Continued use of the Application after a change means the updated policy applies to your use of the Application.
 
 ## Contact Us
 
-If you have any questions regarding privacy while using the Application, or have questions about the practices, please contact the Service Provider via email at jerrytheconqueror913@gmail.com.
+For privacy questions or requests, contact:
+
+[jerrytheconqueror913@gmail.com](mailto:jerrytheconqueror913@gmail.com)
